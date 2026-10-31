@@ -1,0 +1,122 @@
+/* Import dialog: a panel over a dimmed page, ticks and radios in hairline rows. */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(0 0 0 / 0.6);
+}
+
+.modal.panel {
+  width: min(460px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  padding: 18px 20px 20px;
+  background: var(--panel);
+}
+
+.modal .h-panel {
+  margin-bottom: 12px;
+}
+
+.imp-list {
+  display: grid;
+  margin: 4px 0 10px;
+  border-top: 1px solid var(--border);
+}
+
+.imp-list h4 {
+  margin: 14px 0 6px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.imp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--fg-strong);
+  cursor: pointer;
+}
+
+.imp-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+.imp-pick {
+  display: grid;
+  margin-top: 10px;
+}
+
+.imp-pick > span {
+  padding-bottom: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.imp-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* The import trigger: one ghost button; the help is in its title, a drop lands on it. */
+.import {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.import button {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  background: rgb(0 0 0 / 0.4);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--fg-strong);
+  transition: border-color 0.15s;
+}
+
+.import button:hover:not(:disabled),
+.import.drag button {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.import [role='status'] {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.import [role='status']:empty {
+  display: none;
+}
+
+.import .err {
+  color: var(--bad);
+}
+
+@media (max-width: 699px) {
+  .import button {
+    height: 44px;
+  }
+}

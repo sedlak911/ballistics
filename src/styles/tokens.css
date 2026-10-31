@@ -1,0 +1,23 @@
+/* Shared design tokens. Each game's palette lives in src/games/<game>/theme.css (see DESIGN.md). */
+:root {
+  color-scheme: dark;
+
+  /* Status signals, from grayzonewarfare.com's state colours */
+  --ok: #10b981;
+  --bad: #ef4444;
+
+  /* Scope inks */
+  --reticle: #0a0a0a;
+  --target: #141517;
+
+  /* Penetration ratings: 2 usually penetrates, 1 magdump only, 0 pointless */
+  --pen-2: var(--accent);
+  --pen-1: color-mix(in srgb, var(--accent) 38%, transparent);
+  --pen-0: var(--panel-2);
+
+  --ease: cubic-bezier(0.2, 0.7, 0.1, 1);
+
+  --font-display: 'Barlow Condensed', system-ui, sans-serif;
+  --font-body: 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+}

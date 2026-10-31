@@ -1,0 +1,64 @@
+{{Infobox weapon
+ | image              =AR-15 20' inspect.png
+ | type               =Barrel
+ | weight             =0.970
+ | vendor             =Loot only
+ | accuracy           =1.11
+ | velocity           =+20%
+ | rate               =
+ | manufacturer       =Colt
+ | muzzle_efficiency  =
+ | horizontal         =+4
+}}
+
+'''{{PAGENAME}}''' (AR-15 20') is a [[Weapon Parts|Barrels]] in ''[[Gray Zone Warfare]]''.
+
+==Description==
+This AR-15 barrel boasts a length of 508mm and is specifically crafted for the AR-15 weapon platform. It offers compatibility with various 5.56x45mm cartridges, providing increased accuracy for your firearm.
+
+==Mods==
+<div style="display:table"><tabber>
+|-|Compatibility=
+<div class="mobileonly">'''Compatibility'''</div>
+<p>
+[[DDMK18 Upper Receiver]]<br>
+[[M16A1 Upper Receiver]]<br>
+[[M4 Upper Receiver]]<br>
+[[CQ A1 Upper Receiver]]
+</p>
+
+|-|Gas block=
+<div class="mobileonly">'''Gas block'''</div>
+<p>
+[[CQA1 Standard Gas Block]]<br>
+[[AR-15 JPGS-10D Gas Block]]<br>
+[[DD MK12 Low Profile Gas Block]]
+</p>
+
+|-|Muzzle device=
+<div class="mobileonly">'''Muzzle device'''</div>
+<p>
+[[CQ A2 Flash Hider]]<br>
+[[DD Extended Flash Suppressor]]<br>
+[[Fury Titanium Muzzle Brake]]<br>
+[[M4QD Flash Hider]]<br>
+[[SOCOM 3 Prong Flash Hider]]<br>
+[[Vulcan F1]]<br>
+[[Vulcan M1]]<br>
+[[XM177E2 Moderator Flash Hider]]<br>
+[[3 Prong Flash Hider]]
+</p>
+
+|-|Suppressors=
+<div class="mobileonly">'''Suppressors'''</div>
+<p>
+[[SOCOM556 RC1 Suppressor]]<br>
+[[SOCOM556 RC1 Suppressor (FDE)]]<br>
+[[QDSS NT4 Suppressor]]<br>
+[[QDSS NT4 Suppressor (FDE)]]<br>
+[[VLC 556 MARK 1 Suppressor]]
+</p>
+
+</tabber></div>
+
+[[Category:Barrels]]

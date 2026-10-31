@@ -1,0 +1,3467 @@
+{
+ "version": "2026-10-26T13:24:38.686073Z",
+ "builtAt": "2026-10-31T01:55:52+00:00",
+ "gamePatch": "0.5.1.0",
+ "weapons": [
+  {
+   "id": "ak-12",
+   "name": "AK-12",
+   "type": "Assault Rifle",
+   "caliber": "5.45x39mm",
+   "ammoIds": [
+    "5.45x39mm-bp-7n22",
+    "5.45x39mm-bs-7n24",
+    "5.45x39mm-bt-7bt4",
+    "5.45x39mm-fmj",
+    "5.45x39mm-hp",
+    "5.45x39mm-pp-7n10",
+    "5.45x39mm-ps-7n6",
+    "5.45x39mm-us-7u1"
+   ],
+   "accuracyMoa": 2.81,
+   "barrelIds": [],
+   "scopeIds": [
+    "kaps-classic-4x36-oc",
+    "razor-1-10x-rifle-scope",
+    "razor-1-6x-rifle-scope",
+    "viper-pst-gen-ii-5-25x50-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-1-6x24-ffp-rifle-scope",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": "Turncoat R.2"
+  },
+  {
+   "id": "ak-15",
+   "name": "AK-15",
+   "type": "Assault Rifle",
+   "caliber": "7.62x39mm",
+   "ammoIds": [
+    "7.62x39mm-bp-7n23",
+    "7.62x39mm-ps-57-n-231c",
+    "7.62x39mm-sp",
+    "7.62x39mm-tracer-57-n-231p",
+    "7.62x39mm-us"
+   ],
+   "accuracyMoa": 2.5,
+   "barrelIds": [],
+   "scopeIds": [
+    "kaps-classic-4x36-oc",
+    "razor-1-10x-rifle-scope",
+    "razor-1-6x-rifle-scope",
+    "viper-pst-gen-ii-5-25x50-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-1-6x24-ffp-rifle-scope",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": "Artisan R3"
+  },
+  {
+   "id": "ak-19",
+   "name": "AK-19",
+   "type": "Assault Rifle",
+   "caliber": "5.56x45mm",
+   "ammoIds": [
+    "5.56x45mm-sp",
+    "5.56x45mm-fmj",
+    "5.56x45mm-hpbt",
+    "5.56x45mm-m193",
+    "5.56x45mm-ap-m855",
+    "5.56x45mm-ap-m855a1",
+    "5.56x45mm-tracer-m856",
+    "5.56x45mm-tracer-m856a1"
+   ],
+   "accuracyMoa": 2.1,
+   "barrelIds": [],
+   "scopeIds": [
+    "kaps-classic-4x36-oc",
+    "razor-1-10x-rifle-scope",
+    "razor-1-6x-rifle-scope",
+    "viper-pst-gen-ii-5-25x50-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-1-6x24-ffp-rifle-scope",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "ak-308",
+   "name": "AK-308",
+   "type": "Assault Rifle",
+   "caliber": "7.62x51mm",
+   "ammoIds": [
+    "7.62x51mm-ap-m61",
+    "7.62x51mm-fmj-m80",
+    "7.62x51mm-fmj-m80a1",
+    "7.62x51mm-hpbt",
+    "7.62x51mm-tracer-m62"
+   ],
+   "accuracyMoa": 1.8,
+   "barrelIds": [],
+   "scopeIds": [
+    "acog-ta01nsn-4x32-assault-scope",
+    "kaps-classic-4x36-oc",
+    "razor-1-10x-rifle-scope",
+    "razor-1-6x-rifle-scope",
+    "specterdr-1-4x-assault-scope",
+    "viper-pst-gen-ii-5-25x50-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-1-6x24-ffp-rifle-scope",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": "Vulture R.4"
+  },
+  {
+   "id": "ak-74m",
+   "name": "AK-74M",
+   "type": "Assault Rifle",
+   "caliber": "5.45x39mm",
+   "ammoIds": [
+    "5.45x39mm-bp-7n22",
+    "5.45x39mm-bs-7n24",
+    "5.45x39mm-bt-7bt4",
+    "5.45x39mm-fmj",
+    "5.45x39mm-hp",
+    "5.45x39mm-pp-7n10",
+    "5.45x39mm-ps-7n6",
+    "5.45x39mm-us-7u1"
+   ],
+   "accuracyMoa": null,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": null
+  },
+  {
+   "id": "ak-74n",
+   "name": "AK-74N",
+   "type": "Assault Rifle",
+   "caliber": "5.45x39mm",
+   "ammoIds": [
+    "5.45x39mm-bp-7n22",
+    "5.45x39mm-bs-7n24",
+    "5.45x39mm-bt-7bt4",
+    "5.45x39mm-fmj",
+    "5.45x39mm-hp",
+    "5.45x39mm-pp-7n10",
+    "5.45x39mm-ps-7n6",
+    "5.45x39mm-us-7u1"
+   ],
+   "accuracyMoa": null,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": null
+  },
+  {
+   "id": "akm",
+   "name": "AKM",
+   "type": "Assault Rifle",
+   "caliber": "7.62x39mm",
+   "ammoIds": [
+    "7.62x39mm-bp-7n23",
+    "7.62x39mm-ps-57-n-231c",
+    "7.62x39mm-sp",
+    "7.62x39mm-tracer-57-n-231p",
+    "7.62x39mm-us"
+   ],
+   "accuracyMoa": 3.5,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": "akmn",
+   "name": "AKMN",
+   "type": "Assault Rifle",
+   "caliber": "7.62x39mm",
+   "ammoIds": [
+    "7.62x39mm-bp-7n23",
+    "7.62x39mm-ps-57-n-231c",
+    "7.62x39mm-sp",
+    "7.62x39mm-tracer-57-n-231p",
+    "7.62x39mm-us"
+   ],
+   "accuracyMoa": null,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": null
+  },
+  {
+   "id": "akmsn",
+   "name": "AKMSN",
+   "type": "Assault Rifle",
+   "caliber": "7.62x39mm",
+   "ammoIds": [
+    "7.62x39mm-bp-7n23",
+    "7.62x39mm-ps-57-n-231c",
+    "7.62x39mm-sp",
+    "7.62x39mm-tracer-57-n-231p",
+    "7.62x39mm-us"
+   ],
+   "accuracyMoa": null,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": null
+  },
+  {
+   "id": "aks-74u",
+   "name": "AKS-74U",
+   "type": "Assault Rifle",
+   "caliber": "5.45x39mm",
+   "ammoIds": [
+    "5.45x39mm-bp-7n22",
+    "5.45x39mm-bs-7n24",
+    "5.45x39mm-bt-7bt4",
+    "5.45x39mm-fmj",
+    "5.45x39mm-hp",
+    "5.45x39mm-pp-7n10",
+    "5.45x39mm-ps-7n6",
+    "5.45x39mm-us-7u1"
+   ],
+   "accuracyMoa": 3.5,
+   "barrelIds": [],
+   "scopeIds": [
+    "kaps-classic-4x36-oc",
+    "razor-1-10x-rifle-scope",
+    "razor-1-6x-rifle-scope",
+    "viper-pst-gen-ii-5-25x50-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-1-6x24-ffp-rifle-scope",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "beretta-m9a1",
+   "name": "Beretta M9A1",
+   "type": "Pistol",
+   "caliber": "9x19mm",
+   "ammoIds": [
+    "9x19mm-fmj",
+    "9x19mm-hp",
+    "9x19mm-libra-snail",
+    "9x19mm-tracer",
+    "9x19mm-xtreme-penetrator-p+"
+   ],
+   "accuracyMoa": 11.7,
+   "barrelIds": [
+    "m9a1-standard-barrel",
+    "m9a1-threaded-barrel"
+   ],
+   "scopeIds": [],
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "burans-ak-74n",
+   "name": "Buran's AK-74N",
+   "type": "Assault Rifle",
+   "caliber": "5.45x39mm",
+   "ammoIds": [
+    "5.45x39mm-bp-7n22",
+    "5.45x39mm-bs-7n24",
+    "5.45x39mm-bt-7bt4",
+    "5.45x39mm-fmj",
+    "5.45x39mm-hp",
+    "5.45x39mm-pp-7n10",
+    "5.45x39mm-ps-7n6",
+    "5.45x39mm-us-7u1"
+   ],
+   "accuracyMoa": 3.04,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": "Turncoat"
+  },
+  {
+   "id": "colt-1911",
+   "name": "Colt 1911",
+   "type": "Pistol",
+   "caliber": ".45 ACP",
+   "ammoIds": [
+    ".45-acp-ap",
+    ".45-acp-fmj",
+    ".45-acp-hydra-shok",
+    ".45-acp-jhp-+p"
+   ],
+   "accuracyMoa": 12.13,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": null
+  },
+  {
+   "id": "colt-combat-commander",
+   "name": "Colt Combat Commander",
+   "type": "Pistol",
+   "caliber": ".45 ACP",
+   "ammoIds": [
+    ".45-acp-ap",
+    ".45-acp-fmj",
+    ".45-acp-hydra-shok",
+    ".45-acp-jhp-+p"
+   ],
+   "accuracyMoa": 11.0,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": null
+  },
+  {
+   "id": "cq-a1",
+   "name": "CQ A1",
+   "type": "Assault Rifle",
+   "caliber": "5.56x45mm",
+   "ammoIds": [
+    "5.56x45mm-sp",
+    "5.56x45mm-fmj",
+    "5.56x45mm-hpbt",
+    "5.56x45mm-m193",
+    "5.56x45mm-ap-m855",
+    "5.56x45mm-ap-m855a1",
+    "5.56x45mm-tracer-m856",
+    "5.56x45mm-tracer-m856a1"
+   ],
+   "accuracyMoa": 4.18,
+   "barrelIds": [
+    "ar-15-barrel---10.5\"",
+    "ar-15-barrel---14.5\"",
+    "ar-15-barrel---16\"",
+    "ar-15-barrel---18\"",
+    "ar-15-barrel---20\"",
+    "ar-15-cqa1-barrel---14.5\""
+   ],
+   "scopeIds": [
+    "acog-ta01nsn-4x32-assault-scope",
+    "kaps-classic-4x36-oc",
+    "razor-1-10x-rifle-scope",
+    "razor-1-6x-rifle-scope",
+    "specterdr-1-4x-assault-scope",
+    "viper-pst-gen-ii-5-25x50-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-1-6x24-ffp-rifle-scope",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "ddm4",
+   "name": "DDM4",
+   "type": "Assault Rifle",
+   "caliber": "5.56x45mm NATO",
+   "ammoIds": [
+    "5.56x45mm-sp",
+    "5.56x45mm-fmj",
+    "5.56x45mm-hpbt",
+    "5.56x45mm-m193",
+    "5.56x45mm-ap-m855",
+    "5.56x45mm-ap-m855a1",
+    "5.56x45mm-tracer-m856",
+    "5.56x45mm-tracer-m856a1"
+   ],
+   "accuracyMoa": 1.83,
+   "barrelIds": [
+    "ar-15-barrel---10.5\"",
+    "ar-15-barrel---14.5\"",
+    "ar-15-barrel---16\"",
+    "ar-15-barrel---18\"",
+    "ar-15-barrel---20\"",
+    "ar-15-cqa1-barrel---14.5\""
+   ],
+   "scopeIds": [
+    "acog-ta01nsn-4x32-assault-scope",
+    "kaps-classic-4x36-oc",
+    "razor-1-10x-rifle-scope",
+    "razor-1-6x-rifle-scope",
+    "specterdr-1-4x-assault-scope",
+    "viper-pst-gen-ii-5-25x50-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-1-6x24-ffp-rifle-scope",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": "Gunny R.3"
+  },
+  {
+   "id": "firebrands-aks-74u",
+   "name": "Firebrand's AKS-74U",
+   "type": "Assault Rifle",
+   "caliber": "5.45x39mm",
+   "ammoIds": [
+    "5.45x39mm-bp-7n22",
+    "5.45x39mm-bs-7n24",
+    "5.45x39mm-bt-7bt4",
+    "5.45x39mm-fmj",
+    "5.45x39mm-hp",
+    "5.45x39mm-pp-7n10",
+    "5.45x39mm-ps-7n6",
+    "5.45x39mm-us-7u1"
+   ],
+   "accuracyMoa": 3.68,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": "Turncoat after Like a Boss - Firebrand's AKS-74u"
+  },
+  {
+   "id": "glock-17",
+   "name": "Glock 17",
+   "type": "Handgun",
+   "caliber": "9x19mm",
+   "ammoIds": [
+    "9x19mm-fmj",
+    "9x19mm-hp",
+    "9x19mm-libra-snail",
+    "9x19mm-tracer",
+    "9x19mm-xtreme-penetrator-p+"
+   ],
+   "accuracyMoa": 11.7,
+   "barrelIds": [
+    "glock-17-match-grade-barrel",
+    "glock-17-match-grade-threaded-barrel-gold",
+    "glock-17-standard-barrel"
+   ],
+   "scopeIds": [],
+   "soldBy": null
+  },
+  {
+   "id": "grins-colt-1911-commander",
+   "name": "Grin's Colt 1911 Commander",
+   "type": "Pistol",
+   "caliber": ".45 ACP",
+   "ammoIds": [
+    ".45-acp-ap",
+    ".45-acp-fmj",
+    ".45-acp-hydra-shok",
+    ".45-acp-jhp-+p"
+   ],
+   "accuracyMoa": 13.15,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": null
+  },
+  {
+   "id": "l403a1",
+   "name": "L403A1",
+   "type": "Assault Rifle",
+   "caliber": "5.56x45mm",
+   "ammoIds": [
+    "5.56x45mm-sp",
+    "5.56x45mm-fmj",
+    "5.56x45mm-hpbt",
+    "5.56x45mm-m193",
+    "5.56x45mm-ap-m855",
+    "5.56x45mm-ap-m855a1",
+    "5.56x45mm-tracer-m856",
+    "5.56x45mm-tracer-m856a1",
+    "5.56x45mm-ap-m995"
+   ],
+   "accuracyMoa": 0.8,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": "Gunny R.4"
+  },
+  {
+   "id": "laugo-alien",
+   "name": "Laugo alien",
+   "type": "Pistol",
+   "caliber": "9x19mm",
+   "ammoIds": [
+    "9x19mm-fmj",
+    "9x19mm-hp",
+    "9x19mm-libra-snail",
+    "9x19mm-tracer",
+    "9x19mm-xtreme-penetrator-p+"
+   ],
+   "accuracyMoa": 8.15,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": null
+  },
+  {
+   "id": "m14-rifle",
+   "name": "M14 Rifle",
+   "type": "Rifle",
+   "caliber": "7.62x51mm",
+   "ammoIds": [
+    "7.62x51mm-ap-m61",
+    "7.62x51mm-fmj-m80",
+    "7.62x51mm-fmj-m80a1",
+    "7.62x51mm-hpbt",
+    "7.62x51mm-tracer-m62"
+   ],
+   "accuracyMoa": null,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": null
+  },
+  {
+   "id": "m16-a1",
+   "name": "M16 A1",
+   "type": "Assault Rifle",
+   "caliber": "5.56x45mm",
+   "ammoIds": [
+    "5.56x45mm-sp",
+    "5.56x45mm-fmj",
+    "5.56x45mm-hpbt",
+    "5.56x45mm-m193",
+    "5.56x45mm-ap-m855",
+    "5.56x45mm-ap-m855a1",
+    "5.56x45mm-tracer-m856",
+    "5.56x45mm-tracer-m856a1",
+    "5.56x45mm-ap-m995"
+   ],
+   "accuracyMoa": 1.22,
+   "barrelIds": [
+    "ar-15-barrel---10.5\"",
+    "ar-15-barrel---14.5\"",
+    "ar-15-barrel---16\"",
+    "ar-15-barrel---18\"",
+    "ar-15-barrel---20\"",
+    "ar-15-cqa1-barrel---14.5\""
+   ],
+   "scopeIds": [
+    "acog-ta01nsn-4x32-assault-scope"
+   ],
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "m1a-rifle",
+   "name": "M1A Rifle",
+   "type": "Rifle",
+   "caliber": "7.62x51mm",
+   "ammoIds": [
+    "7.62x51mm-ap-m61",
+    "7.62x51mm-fmj-m80",
+    "7.62x51mm-fmj-m80a1",
+    "7.62x51mm-hpbt",
+    "7.62x51mm-tracer-m62"
+   ],
+   "accuracyMoa": 1.01,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": "Banshee"
+  },
+  {
+   "id": "m201c",
+   "name": "M201C",
+   "type": "Pistol",
+   "caliber": "7.62x25mm",
+   "ammoIds": [
+    "7.62x25mm-fmj",
+    "7.62x25mm-pt",
+    "7.62x25mm-pst"
+   ],
+   "accuracyMoa": null,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": null
+  },
+  {
+   "id": "m4a1",
+   "name": "M4A1",
+   "type": "Assault Rifle",
+   "caliber": "5.56x45mm NATO",
+   "ammoIds": [
+    "5.56x45mm-sp",
+    "5.56x45mm-fmj",
+    "5.56x45mm-hpbt",
+    "5.56x45mm-m193",
+    "5.56x45mm-ap-m855",
+    "5.56x45mm-ap-m855a1",
+    "5.56x45mm-tracer-m856",
+    "5.56x45mm-tracer-m856a1"
+   ],
+   "accuracyMoa": 2.15,
+   "barrelIds": [
+    "ar-15-barrel---10.5\"",
+    "ar-15-barrel---14.5\"",
+    "ar-15-barrel---16\"",
+    "ar-15-barrel---18\"",
+    "ar-15-barrel---20\"",
+    "ar-15-cqa1-barrel---14.5\""
+   ],
+   "scopeIds": [
+    "acog-ta01nsn-4x32-assault-scope",
+    "kaps-classic-4x36-oc",
+    "razor-1-10x-rifle-scope",
+    "razor-1-6x-rifle-scope",
+    "specterdr-1-4x-assault-scope",
+    "viper-pst-gen-ii-5-25x50-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-1-6x24-ffp-rifle-scope",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": "Gunny R.2"
+  },
+  {
+   "id": "m700",
+   "name": "M700",
+   "type": "Rifle",
+   "caliber": "7.62x51mm",
+   "ammoIds": [
+    "7.62x51mm-ap-m61",
+    "7.62x51mm-fmj-m80",
+    "7.62x51mm-fmj-m80a1",
+    "7.62x51mm-hpbt",
+    "7.62x51mm-tracer-m62"
+   ],
+   "accuracyMoa": null,
+   "barrelIds": [
+    "m700-barrel---22\"",
+    "m700-heavy-barrel---26\"",
+    "m700-suppressed-barrel---20\"",
+    "m700-threaded-barrel---18\"",
+    "m700-vtr-barrel---22\""
+   ],
+   "scopeIds": [
+    "kaps-classic-4x36-oc",
+    "razor-1-10x-rifle-scope",
+    "razor-1-6x-rifle-scope",
+    "viper-pst-gen-ii-5-25x50-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-1-6x24-ffp-rifle-scope",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": "Gunny R.2"
+  },
+  {
+   "id": "m870",
+   "name": "M870",
+   "type": "Shotgun",
+   "caliber": "12 Gauge",
+   "ammoIds": [
+    "12ga-00-buckshot",
+    "12ga-fc-00-buckshot",
+    "12ga-slug",
+    "12ga-sst-sabot-slug"
+   ],
+   "accuracyMoa": 24.5,
+   "barrelIds": [
+    "m870-barrel---18.5\"",
+    "m870-barrel---23\"",
+    "m870-barrel---26\""
+   ],
+   "scopeIds": [
+    "acog-ta01nsn-4x32-assault-scope",
+    "specterdr-1-4x-assault-scope",
+    "vortex-spitfire-hd-gen-ii-5x"
+   ],
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "mosin-nagant",
+   "name": "Mosin-Nagant",
+   "type": "Rifle",
+   "caliber": "7.62x54mm R",
+   "ammoIds": [
+    "7.62x54r-ap-7n13",
+    "7.62x54r-lps-57-n-323s",
+    "7.62x54r-sniper-round-7n1",
+    "7.62x54r-tracer-t-46m"
+   ],
+   "accuracyMoa": 3.0,
+   "barrelIds": [
+    "mosin-nagant-barrel---514mm",
+    "mosin-nagant-barrel---730mm"
+   ],
+   "scopeIds": [
+    "kaps-classic-4x36-oc",
+    "razor-1-10x-rifle-scope",
+    "razor-1-6x-rifle-scope",
+    "viper-pst-gen-ii-5-25x50-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-1-6x24-ffp-rifle-scope",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": "mosin-nagant-sniper",
+   "name": "Mosin-Nagant (Sniper)",
+   "type": "Rifle",
+   "caliber": null,
+   "ammoIds": [
+    "7.62x54r-ap-7n13",
+    "7.62x54r-lps-57-n-323s",
+    "7.62x54r-sniper-round-7n1",
+    "7.62x54r-tracer-t-46m"
+   ],
+   "accuracyMoa": null,
+   "barrelIds": [
+    "mosin-nagant-barrel---514mm"
+   ],
+   "scopeIds": [],
+   "soldBy": "Artisan"
+  },
+  {
+   "id": "mossberg-590",
+   "name": "Mossberg 590",
+   "type": "Shotgun",
+   "caliber": "12 Gauge",
+   "ammoIds": [
+    "12ga-00-buckshot",
+    "12ga-fc-00-buckshot",
+    "12ga-slug",
+    "12ga-sst-sabot-slug"
+   ],
+   "accuracyMoa": 42.1,
+   "barrelIds": [],
+   "scopeIds": [
+    "acog-ta01nsn-4x32-assault-scope",
+    "kaps-classic-4x36-oc",
+    "razor-1-10x-rifle-scope",
+    "razor-1-6x-rifle-scope",
+    "specterdr-1-4x-assault-scope",
+    "viper-pst-gen-ii-5-25x50-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-1-6x24-ffp-rifle-scope",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "mp5",
+   "name": "MP5",
+   "type": "Submachine Gun",
+   "caliber": "9x19mm",
+   "ammoIds": [
+    "9x19mm-fmj",
+    "9x19mm-hp",
+    "9x19mm-libra-snail",
+    "9x19mm-tracer",
+    "9x19mm-xtreme-penetrator-p+"
+   ],
+   "accuracyMoa": 6.88,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "mp7",
+   "name": "MP7",
+   "type": "SMG",
+   "caliber": "4.6x30mm",
+   "ammoIds": [],
+   "accuracyMoa": 5.24,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": null
+  },
+  {
+   "id": "mp7a1",
+   "name": "MP7A1",
+   "type": "Submachine Gun",
+   "caliber": "4.6x30mm",
+   "ammoIds": [
+    "4.6x30mm-ap-sx",
+    "4.6x30mm-action-sx",
+    "4.6x30mm-fmj-sx",
+    "4.6x30mm-subsonic-sx"
+   ],
+   "accuracyMoa": null,
+   "barrelIds": [],
+   "scopeIds": [
+    "razor-1-10x-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": "Banshee R.2"
+  },
+  {
+   "id": "mp7a2",
+   "name": "MP7A2",
+   "type": "Submachine Gun",
+   "caliber": "4.6x30mm",
+   "ammoIds": [
+    "4.6x30mm-ap-sx",
+    "4.6x30mm-action-sx",
+    "4.6x30mm-fmj-sx",
+    "4.6x30mm-subsonic-sx"
+   ],
+   "accuracyMoa": null,
+   "barrelIds": [],
+   "scopeIds": [
+    "razor-1-10x-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": "Vulture R.2"
+  },
+  {
+   "id": "remington-788",
+   "name": "Remington 788",
+   "type": "Rifle",
+   "caliber": ".222 Remington",
+   "ammoIds": [
+    ".222-remington-sp",
+    ".222-remington-hp",
+    ".222-remington-fmj",
+    ".222-remington-vmax"
+   ],
+   "accuracyMoa": null,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": "sa-vz.-58",
+   "name": "Sa vz. 58",
+   "type": "Assault Rifle",
+   "caliber": "7.62x39mm",
+   "ammoIds": [
+    "7.62x39mm-sp",
+    "7.62x39mm-us",
+    "7.62x39mm-tracer-57-n-231p",
+    "7.62x39mm-ps-57-n-231c",
+    "7.62x39mm-bp-7n23"
+   ],
+   "accuracyMoa": 1.9,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": "Banshee R.2"
+  },
+  {
+   "id": "sig-mcx",
+   "name": "SIG MCX",
+   "type": "Assault Rifle",
+   "caliber": ".300 AAC Blackout",
+   "ammoIds": [
+    ".300-aac-blackout-ap",
+    ".300-aac-blackout-cq",
+    ".300-aac-blackout-fmj",
+    ".300-aac-blackout-subsonic",
+    ".300-aac-blackout-v-max"
+   ],
+   "accuracyMoa": 3.28,
+   "barrelIds": [
+    "sig-mcx-barrel---16\"",
+    "sig-mcx-barrel---6.75\"",
+    "sig-mcx-barrel---9\""
+   ],
+   "scopeIds": [
+    "acog-ta01nsn-4x32-assault-scope",
+    "kaps-classic-4x36-oc",
+    "razor-1-10x-rifle-scope",
+    "razor-1-6x-rifle-scope",
+    "specterdr-1-4x-assault-scope",
+    "viper-pst-gen-ii-5-25x50-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-1-6x24-ffp-rifle-scope",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": "Banshee R.3"
+  },
+  {
+   "id": "sks",
+   "name": "SKS",
+   "type": null,
+   "caliber": "7.62x39mm",
+   "ammoIds": [
+    "7.62x39mm-bp-7n23",
+    "7.62x39mm-ps-57-n-231c",
+    "7.62x39mm-sp",
+    "7.62x39mm-tracer-57-n-231p",
+    "7.62x39mm-us"
+   ],
+   "accuracyMoa": null,
+   "barrelIds": [],
+   "scopeIds": [
+    "kaps-classic-4x36-oc",
+    "razor-1-10x-rifle-scope",
+    "razor-1-6x-rifle-scope",
+    "viper-pst-gen-ii-5-25x50-rifle-scope",
+    "vortex-spitfire-hd-gen-ii-5x",
+    "vudu-1-6x24-ffp-rifle-scope",
+    "vudu-3.5-18x50-ffp-rifle-scope"
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "svd",
+   "name": "SVD",
+   "type": "Rifle",
+   "caliber": "7.62x54mm R",
+   "ammoIds": [
+    "7.62x54r-ap-7n13",
+    "7.62x54r-lps-57-n-323s",
+    "7.62x54r-sniper-round-7n1",
+    "7.62x54r-tracer-t-46m"
+   ],
+   "accuracyMoa": 0.95,
+   "barrelIds": [
+    "svd-barrel---620mm"
+   ],
+   "scopeIds": [
+    "npz-pso-3-9x24"
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "type-51",
+   "name": "Type 51",
+   "type": "Pistol",
+   "caliber": "7.62x25mm",
+   "ammoIds": [
+    "7.62x25mm-fmj",
+    "7.62x25mm-pt",
+    "7.62x25mm-pst"
+   ],
+   "accuracyMoa": 16.11,
+   "barrelIds": [
+    "type-51-barrel",
+    "type-51-threaded-barrel"
+   ],
+   "scopeIds": [],
+   "soldBy": null
+  },
+  {
+   "id": "usmc-fighting-knife",
+   "name": "USMC Fighting Knife",
+   "type": "Melee",
+   "caliber": null,
+   "ammoIds": [],
+   "accuracyMoa": null,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": "Can't be bought or looted"
+  },
+  {
+   "id": "vz.-58",
+   "name": "VZ. 58",
+   "type": "Assault Rifle",
+   "caliber": "7.62x39mm",
+   "ammoIds": [
+    "7.62x39mm-bp-7n23",
+    "7.62x39mm-ps-57-n-231c",
+    "7.62x39mm-sp",
+    "7.62x39mm-tracer-57-n-231p",
+    "7.62x39mm-us"
+   ],
+   "accuracyMoa": null,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": "????"
+  },
+  {
+   "id": "vz.-61-skorpion",
+   "name": "Vz. 61 Skorpion",
+   "type": "SMG",
+   "caliber": "7.65mm Browning",
+   "ammoIds": [
+    "7.65-browning-fmj",
+    "7.65-browning-jhp",
+    "7.65-browning-xtreme-defender"
+   ],
+   "accuracyMoa": 7.52,
+   "barrelIds": [],
+   "scopeIds": [],
+   "soldBy": null
+  }
+ ],
+ "barrels": [
+  {
+   "id": "ar-15-barrel---10.5\"",
+   "name": "AR-15 Barrel - 10.5\"",
+   "accuracyMoa": 3.89,
+   "velocityModifierPct": null,
+   "soldBy": "Gunny R.2"
+  },
+  {
+   "id": "ar-15-barrel---14.5\"",
+   "name": "AR-15 Barrel - 14.5\"",
+   "accuracyMoa": 2.15,
+   "velocityModifierPct": null,
+   "soldBy": "Gunny R.??"
+  },
+  {
+   "id": "ar-15-barrel---16\"",
+   "name": "AR-15 Barrel - 16\"",
+   "accuracyMoa": 1.83,
+   "velocityModifierPct": null,
+   "soldBy": "Gunny R.3"
+  },
+  {
+   "id": "ar-15-barrel---18\"",
+   "name": "AR-15 Barrel - 18\"",
+   "accuracyMoa": 1.44,
+   "velocityModifierPct": 12.0,
+   "soldBy": "Gunny R.4"
+  },
+  {
+   "id": "ar-15-barrel---20\"",
+   "name": "AR-15 Barrel - 20\"",
+   "accuracyMoa": 1.11,
+   "velocityModifierPct": 20.0,
+   "soldBy": null
+  },
+  {
+   "id": "ar-15-cqa1-barrel---14.5\"",
+   "name": "AR-15 CQA1 Barrel - 14.5\"",
+   "accuracyMoa": 4.18,
+   "velocityModifierPct": -4.0,
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "glock-17-match-grade-barrel",
+   "name": "Glock 17 Match Grade Barrel",
+   "accuracyMoa": 10.82,
+   "velocityModifierPct": 4.0,
+   "soldBy": "Banshee R.2"
+  },
+  {
+   "id": "glock-17-match-grade-threaded-barrel-gold",
+   "name": "Glock 17 Match Grade Threaded Barrel (Gold)",
+   "accuracyMoa": null,
+   "velocityModifierPct": null,
+   "soldBy": "????"
+  },
+  {
+   "id": "glock-17-standard-barrel",
+   "name": "Glock 17 Standard Barrel",
+   "accuracyMoa": 11.7,
+   "velocityModifierPct": null,
+   "soldBy": "Gunny R.1 Banshee R.1"
+  },
+  {
+   "id": "m700-barrel---22\"",
+   "name": "M700 Barrel - 22\"",
+   "accuracyMoa": 0.61,
+   "velocityModifierPct": null,
+   "soldBy": "Banshee R.2"
+  },
+  {
+   "id": "m700-heavy-barrel---26\"",
+   "name": "M700 Heavy Barrel - 26\"",
+   "accuracyMoa": 0.48,
+   "velocityModifierPct": 6.0,
+   "soldBy": "Gunny R.4"
+  },
+  {
+   "id": "m700-suppressed-barrel---20\"",
+   "name": "M700 Suppressed Barrel - 20\"",
+   "accuracyMoa": 1.1,
+   "velocityModifierPct": -4.0,
+   "soldBy": "Banshee R.3"
+  },
+  {
+   "id": "m700-threaded-barrel---18\"",
+   "name": "M700 Threaded Barrel - 18\"",
+   "accuracyMoa": 1.02,
+   "velocityModifierPct": -8.0,
+   "soldBy": "Banshee R.1"
+  },
+  {
+   "id": "m700-vtr-barrel---22\"",
+   "name": "M700 VTR Barrel - 22\"",
+   "accuracyMoa": 0.55,
+   "velocityModifierPct": 2.0,
+   "soldBy": "Banshee R.3"
+  },
+  {
+   "id": "m870-barrel---18.5\"",
+   "name": "M870 Barrel - 18.5\"",
+   "accuracyMoa": 41.6,
+   "velocityModifierPct": null,
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "m870-barrel---23\"",
+   "name": "M870 Barrel - 23\"",
+   "accuracyMoa": 29.6,
+   "velocityModifierPct": 8.0,
+   "soldBy": "Gunny R.2"
+  },
+  {
+   "id": "m870-barrel---26\"",
+   "name": "M870 Barrel - 26\"",
+   "accuracyMoa": 24.5,
+   "velocityModifierPct": 12.0,
+   "soldBy": "Gunny R.??"
+  },
+  {
+   "id": "m9a1-standard-barrel",
+   "name": "M9A1 Standard Barrel",
+   "accuracyMoa": 11.7,
+   "velocityModifierPct": null,
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "m9a1-threaded-barrel",
+   "name": "M9A1 Threaded Barrel",
+   "accuracyMoa": 11.7,
+   "velocityModifierPct": null,
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "mosin-nagant-barrel---514mm",
+   "name": "Mosin-Nagant Barrel - 514mm",
+   "accuracyMoa": 3.0,
+   "velocityModifierPct": null,
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": "mosin-nagant-barrel---730mm",
+   "name": "Mosin-Nagant Barrel - 730mm",
+   "accuracyMoa": null,
+   "velocityModifierPct": null,
+   "soldBy": "????"
+  },
+  {
+   "id": "optimized-glock-17-match-grade-threaded-barrel",
+   "name": "Optimized Glock 17 Match Grade Threaded Barrel",
+   "accuracyMoa": 11.65,
+   "velocityModifierPct": null,
+   "soldBy": "Banshee R.3"
+  },
+  {
+   "id": "sig-mcx-barrel---16\"",
+   "name": "SIG MCX Barrel - 16\"",
+   "accuracyMoa": 1.95,
+   "velocityModifierPct": null,
+   "soldBy": "Banshee R.4"
+  },
+  {
+   "id": "sig-mcx-barrel---6.75\"",
+   "name": "SIG MCX Barrel - 6.75\"",
+   "accuracyMoa": 3.27,
+   "velocityModifierPct": -24.0,
+   "soldBy": null
+  },
+  {
+   "id": "sig-mcx-barrel---9\"",
+   "name": "SIG MCX Barrel - 9\"",
+   "accuracyMoa": 2.65,
+   "velocityModifierPct": -11.0,
+   "soldBy": "Banshee R.3"
+  },
+  {
+   "id": "svd-barrel---620mm",
+   "name": "SVD Barrel - 620mm",
+   "accuracyMoa": 0.95,
+   "velocityModifierPct": null,
+   "soldBy": "Artisan R.4"
+  },
+  {
+   "id": "type-51-barrel",
+   "name": "Type 51 Barrel",
+   "accuracyMoa": 12.23,
+   "velocityModifierPct": null,
+   "soldBy": null
+  },
+  {
+   "id": "type-51-threaded-barrel",
+   "name": "Type 51 Threaded Barrel",
+   "accuracyMoa": 12.23,
+   "velocityModifierPct": null,
+   "soldBy": null
+  }
+ ],
+ "scopes": [
+  {
+   "id": "acog-ta01nsn-4x32-assault-scope",
+   "name": "ACOG TA01NSN 4x32 Assault Scope",
+   "magnification": "4×",
+   "maxZeroM": 600.0,
+   "ffp": false,
+   "soldBy": "Gunny R.2"
+  },
+  {
+   "id": "kaps-classic-4x36-oc",
+   "name": "Kaps Classic 4x36 OC",
+   "magnification": "4×",
+   "maxZeroM": 250.0,
+   "ffp": false,
+   "soldBy": "Banshee R.1"
+  },
+  {
+   "id": "mosin-nagant-pu-3.5x22-scope",
+   "name": "Mosin-Nagant PU 3.5x22 Scope",
+   "magnification": "3.5×",
+   "maxZeroM": 1300.0,
+   "ffp": false,
+   "soldBy": "Artisan R.2"
+  },
+  {
+   "id": "npz-pso-3-9x24",
+   "name": "NPZ PSO 3-9x24",
+   "magnification": "3–9×",
+   "maxZeroM": 900.0,
+   "ffp": false,
+   "soldBy": null
+  },
+  {
+   "id": "pso-1-4x24",
+   "name": "PSO-1 4x24",
+   "magnification": "4×",
+   "maxZeroM": 500.0,
+   "ffp": false,
+   "soldBy": "Artisan R.4"
+  },
+  {
+   "id": "razor-1-10x-rifle-scope",
+   "name": "RAZOR 1-10x Rifle Scope",
+   "magnification": "1–10×",
+   "maxZeroM": 1000.0,
+   "ffp": false,
+   "soldBy": null
+  },
+  {
+   "id": "razor-1-6x-rifle-scope",
+   "name": "RAZOR 1-6x Rifle Scope",
+   "magnification": "1–6×",
+   "maxZeroM": 1000.0,
+   "ffp": false,
+   "soldBy": "Banshee R.4"
+  },
+  {
+   "id": "specterdr-1-4x-assault-scope",
+   "name": "SpecterDR 1-4x Assault Scope",
+   "magnification": "1–4×",
+   "maxZeroM": 600.0,
+   "ffp": false,
+   "soldBy": "Gunny R.3"
+  },
+  {
+   "id": "viper-pst-gen-ii-5-25x50-rifle-scope",
+   "name": "Viper PST Gen II 5-25x50 Rifle Scope",
+   "magnification": "5–25×",
+   "maxZeroM": 1000.0,
+   "ffp": false,
+   "soldBy": "Banshee R.4"
+  },
+  {
+   "id": "vortex-spitfire-hd-gen-ii-5x",
+   "name": "Vortex Spitfire HD Gen II 5x",
+   "magnification": "5×",
+   "maxZeroM": 600.0,
+   "ffp": false,
+   "soldBy": "Gunny R.4"
+  },
+  {
+   "id": "vudu-1-6x24-ffp-rifle-scope",
+   "name": "Vudu 1-6x24 FFP Rifle Scope",
+   "magnification": "1–6×",
+   "maxZeroM": 1000.0,
+   "ffp": true,
+   "soldBy": null
+  },
+  {
+   "id": "vudu-3.5-18x50-ffp-rifle-scope",
+   "name": "Vudu 3.5-18x50 FFP Rifle Scope",
+   "magnification": "3.5–18×",
+   "maxZeroM": 1000.0,
+   "ffp": true,
+   "soldBy": "Banshee R.3"
+  }
+ ],
+ "ammo": [
+  {
+   "id": ".222-remington-fmj",
+   "name": ".222 Remington FMJ",
+   "caliber": ".222 Remington",
+   "muzzleVelocityMs": 970.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ 0",
+   "chart": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": ".222-remington-hp",
+   "name": ".222 Remington HP",
+   "caliber": ".222 Remington",
+   "muzzleVelocityMs": 966.0,
+   "accuracyModifierPct": -2.0,
+   "stoppedBy": "NIJ 0",
+   "chart": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Artisan R.2"
+  },
+  {
+   "id": ".222-remington-sp",
+   "name": ".222 Remington SP",
+   "caliber": ".222 Remington",
+   "muzzleVelocityMs": 970.0,
+   "accuracyModifierPct": -5.0,
+   "stoppedBy": "NIJ 0",
+   "chart": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": ".222-remington-vmax",
+   "name": ".222 Remington VMax",
+   "caliber": ".222 Remington",
+   "muzzleVelocityMs": 1020.0,
+   "accuracyModifierPct": 7.0,
+   "stoppedBy": "NIJ 0",
+   "chart": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Artisan R.2"
+  },
+  {
+   "id": ".300-aac-blackout-ap",
+   "name": ".300 AAC Blackout AP",
+   "caliber": ".300 AAC Blackout",
+   "muzzleVelocityMs": 725.0,
+   "accuracyModifierPct": 4.0,
+   "stoppedBy": "NIJ IV",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "soldBy": null
+  },
+  {
+   "id": ".300-aac-blackout-cq",
+   "name": ".300 AAC Blackout CQ",
+   "caliber": ".300 AAC Blackout",
+   "muzzleVelocityMs": 853.0,
+   "accuracyModifierPct": 1.0,
+   "stoppedBy": "NIJ III",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0
+   ],
+   "soldBy": "Banshee R.2"
+  },
+  {
+   "id": ".300-aac-blackout-fmj",
+   "name": ".300 AAC Blackout FMJ",
+   "caliber": ".300 AAC Blackout",
+   "muzzleVelocityMs": 633.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ IIIA+",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Banshee R.1"
+  },
+  {
+   "id": ".300-aac-blackout-subsonic",
+   "name": ".300 AAC Blackout Subsonic",
+   "caliber": ".300 AAC Blackout",
+   "muzzleVelocityMs": 310.0,
+   "accuracyModifierPct": -6.0,
+   "stoppedBy": "NIJ IIIA",
+   "chart": [
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Banshee R.1"
+  },
+  {
+   "id": ".300-aac-blackout-v-max",
+   "name": ".300 AAC Blackout V-MAX",
+   "caliber": ".300 AAC Blackout",
+   "muzzleVelocityMs": 724.0,
+   "accuracyModifierPct": 2.0,
+   "stoppedBy": "NIJ IIIA+",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Banshee R.2"
+  },
+  {
+   "id": ".45-acp-ap",
+   "name": ".45 ACP AP",
+   "caliber": ".45 ACP",
+   "muzzleVelocityMs": 450.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ IIIA",
+   "chart": [
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Artisan R.3"
+  },
+  {
+   "id": ".45-acp-fmj",
+   "name": ".45 ACP FMJ",
+   "caliber": ".45 ACP",
+   "muzzleVelocityMs": 260.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ IIA",
+   "chart": [
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": ".45-acp-hydra-shok",
+   "name": ".45 ACP Hydra-Shok",
+   "caliber": ".45 ACP",
+   "muzzleVelocityMs": 274.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ 0",
+   "chart": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Artisan R.2"
+  },
+  {
+   "id": ".45-acp-jhp-+p",
+   "name": ".45 ACP JHP +P",
+   "caliber": ".45 ACP",
+   "muzzleVelocityMs": 290.0,
+   "accuracyModifierPct": -2.0,
+   "stoppedBy": "NIJ 0",
+   "chart": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": "12ga-00-buckshot",
+   "name": "12GA 00 Buckshot",
+   "caliber": "12 Gauge",
+   "muzzleVelocityMs": 370.0,
+   "accuracyModifierPct": 38.0,
+   "stoppedBy": "NIJ 0",
+   "chart": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "12ga-fc-00-buckshot",
+   "name": "12GA FC 00 Buckshot",
+   "caliber": "12 Gauge",
+   "muzzleVelocityMs": 349.0,
+   "accuracyModifierPct": 27.0,
+   "stoppedBy": "NIJ IIIA",
+   "chart": [
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Gunny R.2"
+  },
+  {
+   "id": "12ga-slug",
+   "name": "12GA Slug",
+   "caliber": "12 Gauge",
+   "muzzleVelocityMs": 420.0,
+   "accuracyModifierPct": 42.0,
+   "stoppedBy": "NIJ 0",
+   "chart": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Gunny R.2"
+  },
+  {
+   "id": "12ga-sst-sabot-slug",
+   "name": "12GA SST Sabot Slug",
+   "caliber": "12 Gauge",
+   "muzzleVelocityMs": 609.0,
+   "accuracyModifierPct": 50.0,
+   "stoppedBy": "NIJ III",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0
+   ],
+   "soldBy": "Gunny R.3"
+  },
+  {
+   "id": "4.6x30mm-action-sx",
+   "name": "4.6x30mm Action SX",
+   "caliber": "4.6x30mm",
+   "muzzleVelocityMs": 690.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ IIA+",
+   "chart": [
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Banshee R.2"
+  },
+  {
+   "id": "4.6x30mm-ap-sx",
+   "name": "4.6x30mm AP SX",
+   "caliber": "4.6x30mm",
+   "muzzleVelocityMs": 680.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ IIIA",
+   "chart": [
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Banshee R.4"
+  },
+  {
+   "id": "4.6x30mm-fmj-sx",
+   "name": "4.6x30mm FMJ SX",
+   "caliber": "4.6x30mm",
+   "muzzleVelocityMs": 620.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ IIIA",
+   "chart": [
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Banshee R.2"
+  },
+  {
+   "id": "4.6x30mm-subsonic-sx",
+   "name": "4.6x30mm Subsonic SX",
+   "caliber": "4.6x30mm",
+   "muzzleVelocityMs": 290.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ IIIA",
+   "chart": [
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Banshee R.1"
+  },
+  {
+   "id": "5.45x39mm-bp-7n22",
+   "name": "5.45x39mm BP (7N22)",
+   "caliber": "5.45x39mm",
+   "muzzleVelocityMs": 860.0,
+   "accuracyModifierPct": 1.0,
+   "stoppedBy": "NIJ IV",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "5.45x39mm-bs-7n24",
+   "name": "5.45x39mm BS (7N24)",
+   "caliber": "5.45x39mm",
+   "muzzleVelocityMs": 840.0,
+   "accuracyModifierPct": 6.0,
+   "stoppedBy": "NIJ III++",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "5.45x39mm-bt-7bt4",
+   "name": "5.45x39mm BT (7BT4)",
+   "caliber": "5.45x39mm",
+   "muzzleVelocityMs": 915.0,
+   "accuracyModifierPct": 2.0,
+   "stoppedBy": "NIJ III+",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "5.45x39mm-fmj",
+   "name": "5.45x39mm FMJ",
+   "caliber": "5.45x39mm",
+   "muzzleVelocityMs": 855.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ IIIA+",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Turncoat R.1"
+  },
+  {
+   "id": "5.45x39mm-hp",
+   "name": "5.45x39mm HP",
+   "caliber": "5.45x39mm",
+   "muzzleVelocityMs": 880.0,
+   "accuracyModifierPct": -6.0,
+   "stoppedBy": "NIJ IIIA+",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Turncoat R.1"
+  },
+  {
+   "id": "5.45x39mm-pp-7n10",
+   "name": "5.45x39mm PP (7N10)",
+   "caliber": "5.45x39mm",
+   "muzzleVelocityMs": 870.0,
+   "accuracyModifierPct": 2.0,
+   "stoppedBy": "NIJ III+",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0
+   ],
+   "soldBy": "Turncoat R.3"
+  },
+  {
+   "id": "5.45x39mm-ps-7n6",
+   "name": "5.45x39mm PS (7N6)",
+   "caliber": "5.45x39mm",
+   "muzzleVelocityMs": 900.0,
+   "accuracyModifierPct": -2.0,
+   "stoppedBy": "NIJ III",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "5.45x39mm-us-7u1",
+   "name": "5.45x39mm US (7U1)",
+   "caliber": "5.45x39mm",
+   "muzzleVelocityMs": 303.0,
+   "accuracyModifierPct": -6.0,
+   "stoppedBy": "NIJ IIIA",
+   "chart": [
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "5.45x39mm-wolf",
+   "name": "5.45x39mm Wolf",
+   "caliber": "5.45x39mm",
+   "muzzleVelocityMs": 840.0,
+   "accuracyModifierPct": -2.0,
+   "stoppedBy": "NIJ 0",
+   "chart": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "5.45x39mm-wolf",
+   "name": "5.45x39mm WOLF",
+   "caliber": "5.45x39mm",
+   "muzzleVelocityMs": 840.0,
+   "accuracyModifierPct": -2.0,
+   "stoppedBy": "NIJ 0",
+   "chart": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Turncoat R.1"
+  },
+  {
+   "id": "5.56x45mm-ap-m855",
+   "name": "5.56x45mm AP (M855)",
+   "caliber": "5.56x45mm",
+   "muzzleVelocityMs": 920.0,
+   "accuracyModifierPct": 2.0,
+   "stoppedBy": "NIJ III++",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1
+   ],
+   "soldBy": "Gunny R.2"
+  },
+  {
+   "id": "5.56x45mm-ap-m855a1",
+   "name": "5.56x45mm AP (M855A1)",
+   "caliber": "5.56x45mm",
+   "muzzleVelocityMs": 970.0,
+   "accuracyModifierPct": 7.0,
+   "stoppedBy": "NIJ IV",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "soldBy": "Gunny R.3"
+  },
+  {
+   "id": "5.56x45mm-ap-m995",
+   "name": "5.56x45mm AP (M995)",
+   "caliber": "5.56x45mm",
+   "muzzleVelocityMs": 1030.0,
+   "accuracyModifierPct": 5.0,
+   "stoppedBy": "NIJ IV",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "soldBy": "Gunny R.4"
+  },
+  {
+   "id": "5.56x45mm-fmj",
+   "name": "5.56x45mm FMJ",
+   "caliber": "5.56x45mm",
+   "muzzleVelocityMs": 880.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ III",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0
+   ],
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "5.56x45mm-hpbt",
+   "name": "5.56x45mm HPBT",
+   "caliber": "5.56x45mm",
+   "muzzleVelocityMs": 861.0,
+   "accuracyModifierPct": -3.0,
+   "stoppedBy": "NIJ III",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0
+   ],
+   "soldBy": "Gunny R.2"
+  },
+  {
+   "id": "5.56x45mm-m193",
+   "name": "5.56x45mm M193",
+   "caliber": "5.56x45mm",
+   "muzzleVelocityMs": 1006.0,
+   "accuracyModifierPct": 2.0,
+   "stoppedBy": "NIJ III",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "5.56x45mm-sp",
+   "name": "5.56x45mm SP",
+   "caliber": "5.56x45mm",
+   "muzzleVelocityMs": 930.0,
+   "accuracyModifierPct": -3.0,
+   "stoppedBy": "NIJ 0",
+   "chart": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "5.56x45mm-tracer-m856",
+   "name": "5.56x45mm Tracer (M856)",
+   "caliber": "5.56x45mm",
+   "muzzleVelocityMs": 917.0,
+   "accuracyModifierPct": -3.0,
+   "stoppedBy": "NIJ III",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0
+   ],
+   "soldBy": "Gunny R.2"
+  },
+  {
+   "id": "5.56x45mm-tracer-m856a1",
+   "name": "5.56x45mm Tracer (M856A1)",
+   "caliber": "5.56x45mm",
+   "muzzleVelocityMs": 945.0,
+   "accuracyModifierPct": -4.0,
+   "stoppedBy": "NIJ III++",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "7.62x25mm-fmj",
+   "name": "7.62x25mm FMJ",
+   "caliber": "7.62x25mm",
+   "muzzleVelocityMs": 415.0,
+   "accuracyModifierPct": 2.0,
+   "stoppedBy": "NIJ IIA",
+   "chart": null,
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": "7.62x25mm-pst",
+   "name": "7.62x25mm PST",
+   "caliber": "7.62x25mm",
+   "muzzleVelocityMs": 430.0,
+   "accuracyModifierPct": -2.0,
+   "stoppedBy": null,
+   "chart": null,
+   "soldBy": "Artisan R.2"
+  },
+  {
+   "id": "7.62x25mm-pt",
+   "name": "7.62x25mm PT",
+   "caliber": "7.62x25mm",
+   "muzzleVelocityMs": 415.0,
+   "accuracyModifierPct": 2.0,
+   "stoppedBy": null,
+   "chart": null,
+   "soldBy": "Artisan R.2"
+  },
+  {
+   "id": "7.62x39mm-bp-7n23",
+   "name": "7.62x39mm BP (7N23)",
+   "caliber": "7.62x39mm",
+   "muzzleVelocityMs": 740.0,
+   "accuracyModifierPct": 2.0,
+   "stoppedBy": "NIJ III++",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "7.62x39mm-ps-57-n-231c",
+   "name": "7.62x39mm PS (57-N-231C)",
+   "caliber": "7.62x39mm",
+   "muzzleVelocityMs": 725.0,
+   "accuracyModifierPct": 1.0,
+   "stoppedBy": "NIJ III+",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0
+   ],
+   "soldBy": "Artisan R.3"
+  },
+  {
+   "id": "7.62x39mm-sp",
+   "name": "7.62x39mm SP",
+   "caliber": "7.62x39mm",
+   "muzzleVelocityMs": 743.0,
+   "accuracyModifierPct": -2.0,
+   "stoppedBy": "NIJ 0",
+   "chart": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": "7.62x39mm-tracer-57-n-231p",
+   "name": "7.62x39mm Tracer (57-N-231P)",
+   "caliber": "7.62x39mm",
+   "muzzleVelocityMs": 725.0,
+   "accuracyModifierPct": -3.0,
+   "stoppedBy": "NIJ III+",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "7.62x39mm-us",
+   "name": "7.62x39mm US",
+   "caliber": "7.62x39mm",
+   "muzzleVelocityMs": 310.0,
+   "accuracyModifierPct": -6.0,
+   "stoppedBy": "NIJ IIIA",
+   "chart": [
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": "7.62x51mm-ap-m61",
+   "name": "7.62x51mm AP (M61)",
+   "caliber": "7.62x51mm",
+   "muzzleVelocityMs": 838.0,
+   "accuracyModifierPct": 4.0,
+   "stoppedBy": "NIJ IV",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "7.62x51mm-fmj-m80",
+   "name": "7.62x51mm FMJ (M80)",
+   "caliber": "7.62x51mm",
+   "muzzleVelocityMs": 817.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ III",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0
+   ],
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "7.62x51mm-fmj-m80a1",
+   "name": "7.62x51mm FMJ (M80A1)",
+   "caliber": "7.62x51mm",
+   "muzzleVelocityMs": 835.0,
+   "accuracyModifierPct": 3.0,
+   "stoppedBy": "NIJ III++",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1
+   ],
+   "soldBy": "Banshee R.3"
+  },
+  {
+   "id": "7.62x51mm-hpbt",
+   "name": "7.62x51mm HPBT",
+   "caliber": "7.62x51mm",
+   "muzzleVelocityMs": 800.0,
+   "accuracyModifierPct": 4.0,
+   "stoppedBy": "NIJ III",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0
+   ],
+   "soldBy": "Banshee R.2"
+  },
+  {
+   "id": "7.62x51mm-tracer-m62",
+   "name": "7.62x51mm Tracer (M62)",
+   "caliber": "7.62x51mm",
+   "muzzleVelocityMs": 820.0,
+   "accuracyModifierPct": -4.0,
+   "stoppedBy": "NIJ III++",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "7.62x54r-ap-7n13",
+   "name": "7.62x54R AP (7N13)",
+   "caliber": "7.62x54mm R",
+   "muzzleVelocityMs": 828.0,
+   "accuracyModifierPct": 2.0,
+   "stoppedBy": "NIJ IV",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "7.62x54r-lps-57-n-323s",
+   "name": "7.62x54R LPS (57-N-323S)",
+   "caliber": "7.62x54mm R",
+   "muzzleVelocityMs": 828.0,
+   "accuracyModifierPct": 1.0,
+   "stoppedBy": "NIJ III+",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0
+   ],
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": "7.62x54r-sniper-round-7n1",
+   "name": "7.62x54R Sniper Round (7N1)",
+   "caliber": "7.62x54mm R",
+   "muzzleVelocityMs": 830.0,
+   "accuracyModifierPct": 5.0,
+   "stoppedBy": "NIJ III++",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "7.62x54r-tracer-t-46m",
+   "name": "7.62x54R Tracer (T-46M)",
+   "caliber": "7.62x54mm R",
+   "muzzleVelocityMs": 830.0,
+   "accuracyModifierPct": -3.0,
+   "stoppedBy": "NIJ III+",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0
+   ],
+   "soldBy": "Artisan R.2"
+  },
+  {
+   "id": "7.65-browning-fmj",
+   "name": "7.65 Browning FMJ",
+   "caliber": "7.65mm Browning",
+   "muzzleVelocityMs": 318.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ 0",
+   "chart": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": "7.65-browning-jhp",
+   "name": "7.65 Browning JHP",
+   "caliber": "7.65mm Browning",
+   "muzzleVelocityMs": 276.0,
+   "accuracyModifierPct": -4.0,
+   "stoppedBy": "NIJ 0",
+   "chart": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": "7.65-browning-xtreme-defender",
+   "name": "7.65 Browning Xtreme Defender",
+   "caliber": "7.65mm Browning",
+   "muzzleVelocityMs": 290.0,
+   "accuracyModifierPct": -2.0,
+   "stoppedBy": "NIJ IIA",
+   "chart": [
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": null
+  },
+  {
+   "id": "9x19mm-fmj",
+   "name": "9x19mm FMJ",
+   "caliber": "9x19mm",
+   "muzzleVelocityMs": 390.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ IIA",
+   "chart": [
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "9x19mm-hp",
+   "name": "9x19mm HP",
+   "caliber": "9x19mm",
+   "muzzleVelocityMs": 377.0,
+   "accuracyModifierPct": -3.0,
+   "stoppedBy": "NIJ IIA",
+   "chart": [
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "9x19mm-libra-snail",
+   "name": "9x19mm Libra Snail",
+   "caliber": "9x19mm",
+   "muzzleVelocityMs": 700.0,
+   "accuracyModifierPct": 0.0,
+   "stoppedBy": "NIJ III",
+   "chart": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    0,
+    0
+   ],
+   "soldBy": "Gunny R.3"
+  },
+  {
+   "id": "9x19mm-tracer",
+   "name": "9x19mm Tracer",
+   "caliber": "9x19mm",
+   "muzzleVelocityMs": 342.0,
+   "accuracyModifierPct": -4.0,
+   "stoppedBy": "NIJ IIA",
+   "chart": [
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Gunny R.1"
+  },
+  {
+   "id": "9x19mm-xtreme-penetrator-p+",
+   "name": "9x19mm Xtreme Penetrator P+",
+   "caliber": "9x19mm",
+   "muzzleVelocityMs": 381.0,
+   "accuracyModifierPct": 2.0,
+   "stoppedBy": "NIJ IIIA",
+   "chart": [
+    2,
+    2,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "soldBy": "Gunny R.2"
+  }
+ ],
+ "armor": [
+  {
+   "id": "6b47-ratnik",
+   "name": "6B47 Ratnik",
+   "kind": "helmet",
+   "nijClass": "IIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": null
+  },
+  {
+   "id": "amp-1-tp-lc-ranger-green",
+   "name": "AMP-1 TP LC (Ranger Green)",
+   "kind": "helmet",
+   "nijClass": "IIIA+",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": null
+  },
+  {
+   "id": "amp-1-tp-lc-unlra",
+   "name": "AMP-1 TP LC (UNLRA)",
+   "kind": "helmet",
+   "nijClass": "IIIA+",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": null
+  },
+  {
+   "id": "amp-1-tp-mc-ranger-green",
+   "name": "AMP-1 TP MC (Ranger Green)",
+   "kind": "helmet",
+   "nijClass": "IIIA+",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": "Looting"
+  },
+  {
+   "id": "bandana-blue",
+   "name": "Bandana (Blue)",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": null
+  },
+  {
+   "id": "bandana-red",
+   "name": "Bandana (Red)",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": null
+  },
+  {
+   "id": "baseball-cap-black",
+   "name": "Baseball Cap (Black)",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": "Handshake R.1"
+  },
+  {
+   "id": "baseball-cap-blue",
+   "name": "Baseball Cap (Blue)",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": "Handshake R.1"
+  },
+  {
+   "id": "baseball-cap-green",
+   "name": "Baseball Cap (Green)",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": "Handshake R.1"
+  },
+  {
+   "id": "baseball-cap-khaki",
+   "name": "Baseball Cap (Khaki)",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": "Handshake R.1"
+  },
+  {
+   "id": "baseball-cap-red",
+   "name": "Baseball Cap (Red)",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": "Handshake R.1"
+  },
+  {
+   "id": "beret-black",
+   "name": "Beret (Black)",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": null
+  },
+  {
+   "id": "beret-green",
+   "name": "Beret (Green)",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": null
+  },
+  {
+   "id": "beret-red",
+   "name": "Beret (Red)",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": null
+  },
+  {
+   "id": "cpu-hat-nyco-ripstop",
+   "name": "CPU Hat Nyco Ripstop",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": "Handshake R.3"
+  },
+  {
+   "id": "exfil-coyote-brown",
+   "name": "EXFIL (Coyote Brown)",
+   "kind": "helmet",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Handshake R.2"
+  },
+  {
+   "id": "exfil-multicam",
+   "name": "EXFIL (Multicam)",
+   "kind": "helmet",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Handshake R.3"
+  },
+  {
+   "id": "exsof-cap",
+   "name": "ExSOF Cap",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": "Banshee R.1"
+  },
+  {
+   "id": "fast-mt-multicam",
+   "name": "FAST MT (Multicam)",
+   "kind": "helmet",
+   "nijClass": "IIIA+",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": "Handshake R.4"
+  },
+  {
+   "id": "fast-mt-tan",
+   "name": "FAST MT (Tan)",
+   "kind": "helmet",
+   "nijClass": "IIIA+",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": "Handshake R.3"
+  },
+  {
+   "id": "fast-xp-hc-multicam",
+   "name": "FAST XP HC (Multicam)",
+   "kind": "helmet",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Looting"
+  },
+  {
+   "id": "fast-xp-hc-olive",
+   "name": "FAST XP HC (Olive)",
+   "kind": "helmet",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Looting"
+  },
+  {
+   "id": "headscarf-black",
+   "name": "Headscarf (Black)",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": null
+  },
+  {
+   "id": "leafy-boonie-camo",
+   "name": "Leafy Boonie (Camo)",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": "Handshake R.4"
+  },
+  {
+   "id": "lshz-1+-black",
+   "name": "LSHZ 1+ (Black)",
+   "kind": "helmet",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": null
+  },
+  {
+   "id": "lshz-1+-multicam",
+   "name": "LSHZ 1+ (Multicam)",
+   "kind": "helmet",
+   "nijClass": "IIA+",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": null
+  },
+  {
+   "id": "m1-ace-of-hearts",
+   "name": "M1 (Ace of Hearts)",
+   "kind": "helmet",
+   "nijClass": "I",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Steel",
+   "soldBy": "Twitch Drop"
+  },
+  {
+   "id": "m1-ace-of-spades",
+   "name": "M1 (Ace of Spades)",
+   "kind": "helmet",
+   "nijClass": "I",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Steel",
+   "soldBy": "Twitch Drop"
+  },
+  {
+   "id": "mich-lc",
+   "name": "MICH LC",
+   "kind": "helmet",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": "Looting"
+  },
+  {
+   "id": "mich-tc-2000-black",
+   "name": "Mich TC-2000 (Black)",
+   "kind": "helmet",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": null
+  },
+  {
+   "id": "mich-tc-2000-ranger-green",
+   "name": "Mich TC-2000 (Ranger Green)",
+   "kind": "helmet",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": "Handshake R.1"
+  },
+  {
+   "id": "mich-tc-2000-unlra",
+   "name": "Mich TC-2000 (UNLRA)",
+   "kind": "helmet",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": null
+  },
+  {
+   "id": "mich-tc-2002-black",
+   "name": "MICH TC-2002 (Black)",
+   "kind": "helmet",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": null
+  },
+  {
+   "id": "mich-tc-2002-green",
+   "name": "MICH TC-2002 (Green)",
+   "kind": "helmet",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": null
+  },
+  {
+   "id": "mich-tc-2002-tan",
+   "name": "MICH TC-2002 (Tan)",
+   "kind": "helmet",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": "Handshake R.2"
+  },
+  {
+   "id": "military-cap",
+   "name": "Military Cap",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": null
+  },
+  {
+   "id": "pandatac-trucker-cap",
+   "name": "Pandatac Trucker Cap",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": "Handshake R.2"
+  },
+  {
+   "id": "pasgt",
+   "name": "PASGT",
+   "kind": "helmet",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Turncoat R.2"
+  },
+  {
+   "id": "qgf-03-ghillie",
+   "name": "QGF-03 (Ghillie)",
+   "kind": "helmet",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Aramid",
+   "soldBy": "??"
+  },
+  {
+   "id": "regiment-cap",
+   "name": "Regiment Cap",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": "Banshee R.4"
+  },
+  {
+   "id": "skull-crusher",
+   "name": "Skull Crusher",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": "Handshake R.1 Banshee R.1"
+  },
+  {
+   "id": "ssh-60",
+   "name": "SSh-60",
+   "kind": "helmet",
+   "nijClass": "I",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Steel",
+   "soldBy": "Artisan R.1"
+  },
+  {
+   "id": "ssh-68n",
+   "name": "SSh-68N",
+   "kind": "helmet",
+   "nijClass": "I",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Steel",
+   "soldBy": null
+  },
+  {
+   "id": "stack-up-cap",
+   "name": "Stack Up Cap",
+   "kind": "helmet",
+   "nijClass": null,
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": null,
+   "soldBy": "N/A"
+  },
+  {
+   "id": "6b23-1digital",
+   "name": "6B23-1(Digital)",
+   "kind": "vest",
+   "nijClass": "III+",
+   "locations": [
+    "front"
+   ],
+   "material": "Steel",
+   "soldBy": null
+  },
+  {
+   "id": "6b23-1flora",
+   "name": "6B23-1(Flora)",
+   "kind": "vest",
+   "nijClass": "III+",
+   "locations": [
+    "front"
+   ],
+   "material": "Steel",
+   "soldBy": "Turncoat R.3 Looting"
+  },
+  {
+   "id": "atbv-vest",
+   "name": "ATBV Vest",
+   "kind": "vest",
+   "nijClass": "III",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Turncoat R.2 Looting"
+  },
+  {
+   "id": "b-krogan",
+   "name": "B Krogan",
+   "kind": "vest",
+   "nijClass": "III+",
+   "locations": [],
+   "material": null,
+   "soldBy": null
+  },
+  {
+   "id": "commander-black",
+   "name": "Commander (Black)",
+   "kind": "vest",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Handshake R.1 Looting"
+  },
+  {
+   "id": "commander-navy",
+   "name": "Commander (Navy)",
+   "kind": "vest",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "Aramid",
+   "soldBy": "Handshake R.1"
+  },
+  {
+   "id": "commander-olive",
+   "name": "Commander (Olive)",
+   "kind": "vest",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Handshake R.1 Looting"
+  },
+  {
+   "id": "coolmax-covert-vest",
+   "name": "Coolmax Covert Vest",
+   "kind": "vest",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "Aramid",
+   "soldBy": null
+  },
+  {
+   "id": "covert-tactical-body-armour-police",
+   "name": "Covert Tactical Body Armour (Police)",
+   "kind": "vest",
+   "nijClass": "III",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Looting"
+  },
+  {
+   "id": "covert-tactical-body-armour-press",
+   "name": "Covert Tactical Body Armour (Press)",
+   "kind": "vest",
+   "nijClass": "III",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "Steel",
+   "soldBy": null
+  },
+  {
+   "id": "covert-tactical-body-armour-unlra",
+   "name": "Covert Tactical Body Armour (UNLRA)",
+   "kind": "vest",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "Aramid",
+   "soldBy": null
+  },
+  {
+   "id": "cz-4m-hornet-unlra",
+   "name": "CZ 4M Hornet (UNLRA)",
+   "kind": "vest",
+   "nijClass": "III",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "Ceramic",
+   "soldBy": null
+  },
+  {
+   "id": "cz-vip-black",
+   "name": "CZ VIP (Black)",
+   "kind": "vest",
+   "nijClass": "III",
+   "locations": [
+    "front"
+   ],
+   "material": "Steel",
+   "soldBy": "Handshake R.2 Looting"
+  },
+  {
+   "id": "lvs-overt-ranger-green",
+   "name": "LVS Overt (Ranger Green)",
+   "kind": "vest",
+   "nijClass": "IIIA+",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "Steel",
+   "soldBy": null
+  },
+  {
+   "id": "lvs-tactical-multicam",
+   "name": "LVS Tactical (Multicam)",
+   "kind": "vest",
+   "nijClass": "III++",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Ceramic",
+   "soldBy": "Handshake R.4 Looting"
+  },
+  {
+   "id": "lvs-tactical-ranger-green",
+   "name": "LVS Tactical (Ranger Green)",
+   "kind": "vest",
+   "nijClass": "III",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Steel",
+   "soldBy": null
+  },
+  {
+   "id": "molle-vest",
+   "name": "Molle Vest",
+   "kind": "vest",
+   "nijClass": "IIIA",
+   "locations": [
+    "front"
+   ],
+   "material": "Steel",
+   "soldBy": "Artisan R.1 Looting"
+  },
+  {
+   "id": "sk-s-ballistic-vest",
+   "name": "SK-S Ballistic Vest",
+   "kind": "vest",
+   "nijClass": "III",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Turncoat R.2"
+  },
+  {
+   "id": "burans-pantsir-2.0",
+   "name": "Buran's Pantsir 2.0",
+   "kind": "carrier",
+   "nijClass": "III++",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Ceramic",
+   "soldBy": "Looting"
+  },
+  {
+   "id": "cgpc3-tqs",
+   "name": "CGPC3 TQS",
+   "kind": "carrier",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Handshake R.1 Looting"
+  },
+  {
+   "id": "chest-rig-901-elite-4",
+   "name": "Chest Rig 901 Elite 4",
+   "kind": "carrier",
+   "nijClass": "III",
+   "locations": [
+    "front"
+   ],
+   "material": "Steel",
+   "soldBy": "Handshake R.2"
+  },
+  {
+   "id": "cz-4m-lancer",
+   "name": "CZ 4M Lancer",
+   "kind": "carrier",
+   "nijClass": "III",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Looting Tasks rewards"
+  },
+  {
+   "id": "cz-4m-lancer-black",
+   "name": "CZ 4M Lancer (Black)",
+   "kind": "carrier",
+   "nijClass": "III+",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "Ceramic",
+   "soldBy": null
+  },
+  {
+   "id": "cz-4m-lancer-unlra",
+   "name": "CZ 4M Lancer (UNLRA)",
+   "kind": "carrier",
+   "nijClass": "III",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "IHMWPE",
+   "soldBy": null
+  },
+  {
+   "id": "lbt-6094-g3v2",
+   "name": "LBT-6094 G3v2",
+   "kind": "carrier",
+   "nijClass": "III++",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "Ceramic",
+   "soldBy": "Handshake Rank 4"
+  },
+  {
+   "id": "lcs-sentry",
+   "name": "LCS Sentry",
+   "kind": "carrier",
+   "nijClass": "III",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Handshake R.2 Looting"
+  },
+  {
+   "id": "lcs-sentry-unlra",
+   "name": "LCS Sentry (UNLRA)",
+   "kind": "carrier",
+   "nijClass": "III",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Looting"
+  },
+  {
+   "id": "m2-plate-carrier",
+   "name": "M2 Plate Carrier",
+   "kind": "carrier",
+   "nijClass": "III++",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "Ceramic",
+   "soldBy": null
+  },
+  {
+   "id": "modular-operator-carrier-gen-ii",
+   "name": "Modular Operator Carrier Gen II",
+   "kind": "carrier",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Handshake R.1"
+  },
+  {
+   "id": "pantsir-2.0",
+   "name": "Pantsir 2.0",
+   "kind": "carrier",
+   "nijClass": "III",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Steel",
+   "soldBy": "Turncoat R.2"
+  },
+  {
+   "id": "phantom-type-2",
+   "name": "Phantom Type 2",
+   "kind": "carrier",
+   "nijClass": "III++",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Ceramic",
+   "soldBy": "Turncoat R.4 Looting"
+  },
+  {
+   "id": "plate6-plate-carrier",
+   "name": "Plate6 Plate Carrier",
+   "kind": "carrier",
+   "nijClass": "III++",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "Ceramic",
+   "soldBy": "Handshake R.4 Looting"
+  },
+  {
+   "id": "recon-plate-carrier",
+   "name": "Recon Plate Carrier",
+   "kind": "carrier",
+   "nijClass": "III+",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "UHMWPE",
+   "soldBy": "Handshake R.3"
+  },
+  {
+   "id": "specter",
+   "name": "Specter",
+   "kind": "carrier",
+   "nijClass": "IIIA",
+   "locations": [
+    "front",
+    "back"
+   ],
+   "material": "Aramid",
+   "soldBy": "Handshake R.1 Looting"
+  },
+  {
+   "id": "spitfire-plate-carrier",
+   "name": "Spitfire Plate Carrier",
+   "kind": "carrier",
+   "nijClass": "III+",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Steel",
+   "soldBy": null
+  },
+  {
+   "id": "yens-pantsir-2.0",
+   "name": "Yen's Pantsir 2.0",
+   "kind": "carrier",
+   "nijClass": "III++",
+   "locations": [
+    "front",
+    "back",
+    "sides"
+   ],
+   "material": "Ceramic",
+   "soldBy": null
+  }
+ ]
+}

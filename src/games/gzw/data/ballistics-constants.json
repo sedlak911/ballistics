@@ -1,0 +1,18 @@
+{
+  "7.62x51mm-fmj-m80": { "dragModel": "G7", "bc": 0.2, "massGr": 147, "source": "M80 147 gr FMJBT, G7 .195–.200: https://www.snipershide.com/shooting/goto/post?id=2505359" },
+  "7.62x51mm-hpbt": { "dragModel": "G7", "bc": 0.252, "massGr": 175, "source": "M118LR 175 gr SMK, G7 .252: https://www.snipershide.com/shooting/goto/post?id=574105" },
+  "5.56x45mm-ap-m855": { "dragModel": "G7", "bc": 0.151, "massGr": 62, "source": "M855 62 gr, G7 0.151: https://bulletin.accurateshooter.com/2015/05/09/" },
+  "5.45x39mm-ps-7n6": { "dragModel": "G7", "bc": 0.168, "massGr": 53, "source": "7N6M, G7 0.168 measured by the US Army BRL: https://thinlineweapons.com/wiki/index.php/7.62x39_vs_5.45x39_vs_9x39:_Complete_Comparison_Guide" },
+  "5.45x39mm-pp-7n10": { "dragModel": "G7", "bc": 0.179, "massGr": 56, "source": "7N10, G7 0.179: https://www.milsurps.com/archive/index.php/t-44425.html" },
+  "7.62x39mm-ps-57-n-231c": { "dragModel": "G7", "bc": 0.138, "massGr": 123, "source": "M1943 FMJBT (57-N-231), G7 0.138: https://thinlineweapons.com/wiki/index.php/7.62x39_vs_5.45x39_vs_9x39:_Complete_Comparison_Guide" },
+  "7.62x54r-sniper-round-7n1": { "dragModel": "G7", "bc": 0.206, "massGr": 152, "source": "7N1, G7 ≈0.206: https://en.wikipedia.org/wiki/7.62%C3%9754mmR" },
+
+  "_caliber:5.56x45mm": { "dragModel": "G7", "bc": 0.151, "source": "approx, generic (M855)" },
+  "_caliber:5.56x45mm NATO": { "dragModel": "G7", "bc": 0.151, "source": "approx, generic (M855)" },
+  "_caliber:5.45x39mm": { "dragModel": "G7", "bc": 0.168, "source": "approx, generic (7N6)" },
+  "_caliber:7.62x39mm": { "dragModel": "G7", "bc": 0.138, "source": "approx, generic (M43)" },
+  "_caliber:7.62x51mm": { "dragModel": "G7", "bc": 0.2, "source": "approx, generic (M80)" },
+  "_caliber:7.62x54mm R": { "dragModel": "G7", "bc": 0.187, "source": "approx, generic" },
+  "_caliber:.300 AAC Blackout": { "dragModel": "G7", "bc": 0.146, "source": "approx, generic" },
+  "_caliber:4.6x30mm": { "dragModel": "G7", "bc": 0.09, "source": "approx, generic" }
+}

@@ -1,0 +1,143 @@
+/* Coming-soon page for a game without a workbench yet (DESIGN.md: title role, panel, glow, reticle). */
+.soon-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  align-items: center;
+  gap: 48px;
+  max-width: 1280px;
+  min-height: calc(100dvh - 64px);
+  margin: 0 auto;
+  padding: 48px 32px;
+}
+
+.soon-glow {
+  left: 8%;
+  top: 50%;
+  width: 720px;
+  height: 720px;
+  transform: translateY(-50%);
+}
+
+/* Faint reticle behind the title, in the accent. */
+.soon-reticle {
+  position: absolute;
+  left: 4%;
+  top: 50%;
+  width: min(640px, 70vw);
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  color: color-mix(in srgb, var(--accent) 14%, transparent);
+  pointer-events: none;
+}
+
+.soon-copy {
+  position: relative;
+}
+
+.soon-copy h1 {
+  margin: 20px 0 24px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 104px;
+  line-height: 0.86;
+  text-transform: uppercase;
+  color: var(--fg-strong);
+}
+
+.soon-copy h1 span {
+  display: block;
+  margin-top: 8px; /* room for the Czech diacritics under the tight line height */
+  color: color-mix(in srgb, var(--fg-strong) 32%, transparent);
+}
+
+.soon-lead {
+  max-width: 44ch;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--fg);
+}
+
+.soon-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.soon-rows {
+  list-style: none;
+}
+
+.soon-rows li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+
+.soon-rows b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-strong);
+}
+
+.soon-rows small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Entrance: blocks fade up (base.css switches this off under reduced motion). */
+.soon-copy,
+.soon-status {
+  animation: soon-in 0.6s var(--ease) both;
+}
+
+.soon-status {
+  position: relative;
+  animation-delay: 80ms;
+}
+
+@keyframes soon-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@media (max-width: 899px) {
+  .soon-page {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+    padding: 32px 20px;
+    min-height: 0;
+  }
+
+  .soon-copy h1 {
+    font-size: 48px;
+  }
+
+  .soon-actions .btn {
+    flex: 1 1 100%;
+  }
+
+  .soon-glow {
+    left: 50%;
+    width: 480px;
+    height: 480px;
+    transform: translate(-50%, -50%);
+  }
+
+  .soon-reticle {
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}

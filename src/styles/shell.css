@@ -1,0 +1,253 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The page sits over the contour lines; views put their own glow behind the hero. */
+.app-main {
+  flex: 1;
+  position: relative;
+  overflow: clip;
+}
+
+.app-main > :not(.topo) {
+  position: relative;
+}
+
+.topo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Header ------------------------------------------------------------------ */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  height: 64px;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  backdrop-filter: blur(12px);
+  transition: transform 0.25s var(--ease);
+}
+
+/* Out of the way while the page scrolls down; back on the way up (useHiddenOnScrollDown). */
+.app-header.hidden {
+  transform: translateY(-100%);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--fg-strong);
+  text-decoration: none;
+}
+
+.logo b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 0.85;
+  letter-spacing: 0.02em;
+}
+
+.logo small {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: 0.32em;
+  color: var(--muted);
+}
+
+.games {
+  display: flex;
+  border: 1px solid var(--border-strong);
+}
+
+.games a {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 5px 10px;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.games a:hover {
+  color: var(--fg-strong);
+}
+
+.games a[aria-current] {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.soon {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--muted);
+  margin-left: 6px;
+}
+
+/* Pages put their own context here, e.g. Focus's setup tags; it takes the room between the games and the toggles. */
+.header-slot {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.header-slot:empty {
+  flex-grow: 0;
+}
+
+.toggles {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.hdr-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-strong);
+  color: var(--muted);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.hdr-btn:hover,
+.hdr-btn[aria-expanded='true'] {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.hdr-btn svg {
+  transition: transform 0.25s var(--ease);
+}
+
+.hdr-btn.settings[aria-expanded='true'] svg {
+  transform: rotate(45deg);
+}
+
+/* Header sheets under ⓘ and ⚙: the site info, and the language, units and angle. */
+.sheet {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 32px;
+  display: grid;
+  gap: 12px;
+  min-width: 240px;
+  padding: 16px;
+}
+
+/* Opaque: a backdrop blur inside the blurred header samples only the header, so it would not hide the page.
+   Absolute again: ui.css loads later and .panel { position: relative } would otherwise win the tie and make the
+   sheet a flex item of the header, pushing ⓘ and ⚙ aside (like .popover.panel in menus.css). */
+.sheet.panel {
+  position: absolute;
+  background: var(--panel);
+}
+
+.sheet-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* The ⓘ sheet: what the site is, its data and credits. */
+.info-sheet {
+  max-width: 420px;
+}
+
+.info-body {
+  display: grid;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.info-body a {
+  color: var(--fg);
+}
+
+.info-body a:hover {
+  color: var(--accent);
+}
+
+/* Pages -------------------------------------------------------------------- */
+.coming-soon,
+.placeholder {
+  padding: 96px 32px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.coming-soon h1 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 96px;
+  line-height: 0.86;
+  text-transform: uppercase;
+  color: var(--fg-strong);
+  margin-bottom: 16px;
+}
+
+/* Phone: one row; the logo keeps only its mark. */
+@media (max-width: 699px) {
+  .app-header {
+    gap: 10px;
+    padding: 0 16px;
+  }
+
+  .logo > span {
+    display: none;
+  }
+
+  .logo,
+  .games a {
+    min-height: 44px;
+  }
+
+  .header-slot {
+    display: none;
+  }
+
+  .hdr-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .sheet {
+    left: 16px;
+    right: 16px;
+  }
+
+  .coming-soon h1 {
+    font-size: 48px;
+  }
+}

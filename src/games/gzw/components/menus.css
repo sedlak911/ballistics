@@ -1,0 +1,32 @@
+.popover.weapon-menu {
+  max-width: min(400px, calc(100vw - 32px));
+}
+
+.ammo-menu .row-after {
+  width: 96px;
+}
+
+.ammo-menu .pen-strip.small {
+  margin-top: 0;
+}
+
+.popover.parts-menu {
+  width: min(400px, calc(100vw - 32px));
+}
+
+.parts-menu .field > .label {
+  display: block;
+  margin-bottom: 7px;
+}
+
+.parts-menu .hint {
+  display: block;
+  margin-top: 7px;
+}
+
+.zero-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}

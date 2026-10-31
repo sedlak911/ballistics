@@ -1,0 +1,303 @@
+/* Toolbar (DESIGN.md, Layout → Toolbar): rows of .tool segments that fill the column edge to edge, each led by its word.
+   Range: distance (or the figure's height), certainty and my stance. Target: posture or movement, direction, angle and
+   speed. */
+.toolbar {
+  display: grid;
+  gap: 8px;
+}
+
+.tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* From 1200px the two rows always fit: when a row runs short, the longer words wrap to two lines instead. */
+@media (min-width: 1200px) {
+  .tool-row {
+    flex-wrap: nowrap;
+  }
+}
+
+/* Every segment grows to fill its row; the slider and the movement take most of the slack. Only the words give way. */
+.tool {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-height: 38px;
+  border: 1px solid var(--border-strong);
+  background: rgb(0 0 0 / 0.5);
+  backdrop-filter: blur(12px);
+}
+
+.tool > button {
+  flex: 1;
+  justify-content: center;
+}
+
+.tool.move {
+  flex-grow: 6;
+}
+
+.tool.move.me {
+  flex-grow: 3;
+}
+
+.tool > .label {
+  padding: 0 12px;
+  text-wrap: balance;
+}
+
+.tool > button,
+.tool.move > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--fg-strong) 60%, transparent);
+  transition: color 0.15s;
+}
+
+.tool > button + button {
+  border-left: 1px solid var(--border);
+}
+
+.tool > button:hover:not(:disabled) {
+  color: var(--fg-strong);
+}
+
+.tool > button[aria-pressed='true'] {
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+/* Unavailable (a still target has no direction or crossing): muted words that stay legible, no opacity fade; the
+   choice keeps a hairline mark so it reads again once the target moves. */
+.tool > button:disabled {
+  cursor: default;
+  color: var(--muted);
+}
+
+.tool > button:disabled[aria-pressed='true'] {
+  box-shadow: inset 0 -2px 0 var(--border-strong);
+}
+
+.tool.move svg {
+  opacity: 0.7;
+}
+
+.tool.move button[aria-pressed='true'] svg {
+  opacity: 1;
+}
+
+.tool .readout {
+  padding: 0 12px;
+  font-size: 13px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* The assumed speed: the crossing tool's trailing figure, under its own word. */
+.tool > .speed-label {
+  padding-right: 0;
+  border-left: 1px solid var(--border);
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+
+.tool .readout.speed {
+  padding-left: 8px;
+  color: var(--fg-strong);
+}
+
+.tool.still .readout.speed {
+  color: var(--muted);
+}
+
+.chips-tool {
+  padding-right: 5px;
+}
+
+.chips-tool .chips {
+  flex: 1;
+  flex-wrap: nowrap;
+}
+
+.chips-tool .chips button {
+  flex: 1;
+}
+
+/* Distance slider: a 2px track, the accent fill and a diamond thumb. */
+.tool.range-tool {
+  flex: 4 1 auto;
+  padding-right: 0;
+}
+
+.range-tool input[type='range'] {
+  flex: 1;
+  min-width: 120px;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 36px;
+  background: transparent;
+}
+
+.range-tool input[type='range']::-webkit-slider-runnable-track {
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent) var(--p, 50%), var(--border-strong) var(--p, 50%));
+}
+
+.range-tool input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 11px;
+  margin-top: -4.5px;
+  background: var(--bg);
+  border: 1.5px solid var(--accent);
+  transform: rotate(45deg);
+}
+
+.range-tool input[type='range']::-moz-range-track {
+  height: 2px;
+  background: var(--border-strong);
+}
+
+.range-tool input[type='range']::-moz-range-progress {
+  height: 2px;
+  background: var(--accent);
+}
+
+.range-tool input[type='range']::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+  background: var(--bg);
+  border: 1.5px solid var(--accent);
+  border-radius: 0;
+  transform: rotate(45deg);
+}
+
+/* Distance or the target's height: the unit switch at the head of the distance tool. */
+.range-tool .segmented.by {
+  align-self: stretch;
+  border: 0;
+  border-right: 1px solid var(--border);
+}
+
+.range-tool .segmented.by button {
+  min-width: 40px;
+  padding: 0 10px;
+}
+
+.range-tool .readout.derived {
+  padding-left: 0;
+  color: var(--fg-strong);
+}
+
+/* Phone: distance and movement in a bar fixed to the bottom; everything else in the page. */
+.dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: grid;
+  gap: 6px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-strong);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.dock .tool,
+.dock .tool > button {
+  min-height: 44px;
+  height: 44px;
+}
+
+.dock .range-tool input[type='range'] {
+  height: 44px;
+}
+
+.dock-row {
+  display: flex;
+  gap: 6px;
+}
+
+.dock .move {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.dock .move button {
+  flex: 1;
+  min-width: 0;
+  justify-content: center;
+  padding: 0 4px;
+  letter-spacing: 0.06em;
+}
+
+/* Five targets in one row: icons, and the word only on the chosen one. */
+.dock .move button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dock .move button:not([aria-pressed='true']) {
+  flex: 0 0 40px;
+}
+
+.dock .move button:not([aria-pressed='true']) span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* The dock's distance and target tools: no words, only the controls. */
+.dock .range-tool > .label,
+.dock .move > .label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.dock .dir-toggle {
+  flex: none;
+  justify-content: center;
+  width: 52px;
+  font-size: 18px;
+  color: var(--accent);
+}
+
+.dock .dir-toggle:disabled {
+  color: var(--muted);
+}
+
+body:has(> .dock) .app {
+  padding-bottom: 112px;
+}
+
+@media (max-width: 699px) {
+  .tool > button,
+  .tool.move > button {
+    height: 44px;
+  }
+
+  .tool-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+}

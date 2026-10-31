@@ -1,0 +1,23 @@
+/* GZW palette: ours, the owner's pick on 2026-10-31 (previously grayzonewarfare.com's yellow). A jungle / night-vision
+   phosphor green on a near-black ground with a faint green cast, the same build as REAL's cyan so the switcher shows
+   one family: REAL cyan, GZW green, WARDOGS gold. Contrast table: DESIGN.md. */
+[data-game='gzw'] {
+  --bg: #0b0e0b;
+  --panel: #151a15;
+  --panel-2: #252d25;
+  --border: rgb(220 242 220 / 0.09);
+  --border-strong: rgb(220 242 220 / 0.18);
+  --fg: #e3eae3;
+  --fg-strong: #ffffff;
+  --muted: #99a99a;
+  --faint: #647264;
+  --accent: #5fd35a;
+  --accent-hi: #8fe68a;
+  --on-accent: #000000;
+
+  /* Scope scene greys, neutral with a green cast (derived; lightness at or above the old greys so the target keeps its contrast) */
+  --scene-sky-1: #5b645b;
+  --scene-sky-2: #889288;
+  --scene-hill: #6e776e;
+  --scene-ground: #626b62;
+}

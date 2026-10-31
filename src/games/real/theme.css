@@ -1,0 +1,22 @@
+/* REAL palette: ours, no game site to copy from. A cool signal cyan on a near-black ground with a faint blue-green cast,
+   so the switcher tells it from GZW (orange) and WARDOGS (gold) at a glance. Contrast table: DESIGN.md. */
+[data-game='real'] {
+  --bg: #0b0d0e;
+  --panel: #15191b;
+  --panel-2: #262c2f;
+  --border: rgb(214 238 242 / 0.09);
+  --border-strong: rgb(214 238 242 / 0.18);
+  --fg: #e4eaec;
+  --fg-strong: #ffffff;
+  --muted: #9aa8ad;
+  --faint: #667276;
+  --accent: #3cc8d8;
+  --accent-hi: #7ce0ec;
+  --on-accent: #000000;
+
+  /* Scope scene greys, cool with a green cast (derived; same lightness as GZW's so the target keeps its contrast) */
+  --scene-sky-1: #5b6264;
+  --scene-sky-2: #889093;
+  --scene-hill: #6e7679;
+  --scene-ground: #62696c;
+}

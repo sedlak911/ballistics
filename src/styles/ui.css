@@ -1,0 +1,651 @@
+/* Shared surfaces and controls (DESIGN.md, Surfaces and Components). Square corners, hairlines, no shadows. */
+
+/* Panels: translucent, blurred, with accent corner marks ----------------------- */
+.panel {
+  position: relative;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.panel::before,
+.panel::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 0 solid color-mix(in srgb, var(--accent) 75%, transparent);
+  pointer-events: none;
+}
+
+.panel::before {
+  top: -1px;
+  left: -1px;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+
+.panel::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+
+.panel + .panel {
+  margin-top: 16px;
+}
+
+.panel-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 16px 10px;
+}
+
+.panel-b {
+  padding: 0 16px 16px;
+}
+
+/* The glow: one per screen, behind the hero. */
+.glow {
+  position: absolute;
+  pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 11%, transparent), transparent);
+}
+
+/* Tags ---------------------------------------------------------------------- */
+.tag {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--fg) 75%, transparent);
+  white-space: nowrap;
+}
+
+.tag.acc {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tag.muted {
+  color: var(--muted);
+}
+
+.tag.solid {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Buttons ------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.btn.primary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.btn.primary:hover {
+  background: var(--accent-hi);
+}
+
+.btn.ghost {
+  border: 1px solid var(--border-strong);
+  background: rgb(0 0 0 / 0.4);
+  color: var(--fg-strong);
+}
+
+.btn.ghost:hover {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.btn:disabled {
+  cursor: default;
+  color: var(--muted);
+}
+
+/* Segmented: toolbar-style options, selected = accent text and an inset bottom bar --------- */
+.segmented {
+  display: flex;
+  border: 1px solid var(--border-strong);
+}
+
+.segmented button {
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  transition: color 0.15s;
+}
+
+.segmented button + button {
+  border-left: 1px solid var(--border);
+}
+
+.segmented button:hover {
+  color: var(--fg-strong);
+}
+
+.segmented button[aria-pressed='true'] {
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+/* Options that are words use the label role. */
+.segmented.words button {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Preset chips: selected = filled accent ------------------------------------------ */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.chips button {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  background: rgb(0 0 0 / 0.3);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg);
+  white-space: nowrap;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.chips button:hover {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.chips button[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Estimate note --------------------------------------------------------------- */
+.est {
+  padding: 7px 10px;
+  border: 1px dashed var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.est b {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Section headings inside panels and columns. */
+h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+/* Fields ------------------------------------------------------------------------ */
+.field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.field > span:first-child,
+.field > label:first-child {
+  display: block;
+  margin-bottom: 7px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.field .inline {
+  display: flex;
+  gap: 6px;
+}
+
+.field .inline button {
+  border: 1px solid var(--border-strong);
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+input[type='text'],
+input[type='number'],
+input[type='search'] {
+  width: 100%;
+  height: 36px;
+  background: rgb(0 0 0 / 0.3);
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
+  color: var(--fg-strong);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 0 11px;
+  transition: border-color 0.15s;
+}
+
+input[type='text']:hover,
+input[type='number']:hover,
+input[type='search']:hover {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+input::placeholder {
+  color: var(--muted);
+}
+
+.sub,
+.hint {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.note {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+.note.warn {
+  color: var(--accent);
+}
+
+/* Legacy chip rows with a label in front, until each moves to ChipGroup. */
+.chips > span:first-child {
+  margin-right: 6px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Phone: every tap target at least 44px tall. */
+@media (max-width: 699px) {
+  .chips button {
+    height: 44px;
+  }
+
+  .segmented button {
+    min-height: 44px;
+  }
+
+  input[type='text'],
+  input[type='number'],
+  input[type='search'] {
+    height: 44px;
+  }
+}
+
+/* List rows (ListPicker): label left, figure right, the chosen row with a 2px accent bar ------------ */
+.rows {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  border-top: 1px solid var(--border);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  min-height: 32px;
+  padding: 0 10px 0 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 13px;
+  color: var(--fg);
+  transition: background-color 0.15s;
+}
+
+.row:hover {
+  background: color-mix(in srgb, var(--fg) 3%, transparent);
+}
+
+.row[aria-pressed='true'] {
+  box-shadow: inset 2px 0 0 var(--accent);
+  color: var(--fg-strong);
+}
+
+.row-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-meta {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.picker-filter {
+  margin-bottom: 6px;
+}
+
+.picker-none {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Stepper ------------------------------------------------------------------------ */
+.stepper {
+  display: inline-flex;
+  align-items: stretch;
+  height: 36px;
+  border: 1px solid var(--border-strong);
+  background: rgb(0 0 0 / 0.3);
+}
+
+.stepper button {
+  width: 36px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--fg-strong);
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.stepper button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fg) 6%, transparent);
+  color: var(--accent);
+}
+
+.stepper button:disabled {
+  color: var(--faint);
+  cursor: default;
+}
+
+.stepper output {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  padding: 0 8px;
+  border-inline: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--fg-strong);
+}
+
+@media (max-width: 699px) {
+  .stepper {
+    height: 44px;
+  }
+
+  .stepper button {
+    width: 44px;
+  }
+
+  .row {
+    min-height: 44px;
+  }
+}
+
+/* NumberField ---------------------------------------------------------------------- */
+.number-field-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.number-field-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.number-field-row .unit {
+  color: var(--muted);
+}
+
+.number-field input[aria-invalid='true'] {
+  border-color: var(--bad);
+}
+
+.number-field-error {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--bad);
+}
+
+/* WindClock: twelve hours round a dial, the target at the top ---------------------- */
+.wind-clock-dial {
+  position: relative;
+  width: min(100%, 240px);
+  aspect-ratio: 1;
+  margin-top: 6px;
+  outline-offset: 4px;
+}
+
+.wind-clock-dial svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.wind-clock-face {
+  fill: var(--panel-2);
+  stroke: var(--border-strong);
+}
+
+.wind-clock-arrow {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.wind-clock-speed {
+  fill: var(--fg-strong);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+/* 4.5 of the 100-unit dial is 10.8px at its 240px size: the smallest text DESIGN.md allows. */
+.wind-clock-unit {
+  fill: var(--muted);
+  font-size: 4.5px;
+}
+
+.wind-clock-hour {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+}
+
+.wind-clock-hour:hover {
+  color: var(--fg-strong);
+}
+
+.wind-clock-hour[data-on] {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+@media (max-width: 699px) {
+  .wind-clock-dial {
+    width: min(100%, 264px);
+  }
+
+  .wind-clock-hour {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Setup tags and their menus, shared by GZW and REAL (DESIGN.md, Components → Setup tags, Setup menus) ----- */
+/* The setup tags: in the header on desktop, a scrolling strip under it on a phone. */
+.setup-tags {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.setup-tags .tag {
+  flex: none;
+  font-size: 11px;
+  padding: 4px 9px;
+}
+
+.setup-tags .tag b {
+  font-weight: 500;
+  color: var(--fg-strong);
+}
+
+.tag-btn {
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.tag-btn:hover,
+.tag-btn[aria-expanded='true'] {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  color: var(--fg-strong);
+}
+
+/* The weapon and its cog read as one tag. */
+.tag-pair {
+  display: inline-flex;
+  flex: none;
+}
+
+.tag-pair .cog {
+  margin-left: -1px;
+  color: var(--muted);
+}
+
+.tag-pair .cog:hover,
+.tag-pair .cog[aria-expanded='true'] {
+  color: var(--accent);
+}
+
+.popover {
+  position: fixed;
+  z-index: 40;
+  display: grid;
+  gap: 16px;
+  width: max-content;
+  min-width: 260px;
+  max-width: min(440px, calc(100vw - 32px));
+  /* Never taller than before, and never past the screen: Popover sets --popover-room from its own top (M11). */
+  max-height: min(calc(100dvh - 96px), var(--popover-room, 100dvh));
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 16px;
+}
+
+/* Opaque, like the header sheets; fixed over .panel's relative position, which loads later. */
+.popover.panel {
+  position: fixed;
+  background: var(--panel);
+}
+
+@media (max-width: 699px) {
+  .popover {
+    width: auto;
+    max-width: none;
+  }
+
+  /* The tags are buttons: touch targets. */
+  .setup-tags .tag-btn {
+    min-height: 44px;
+    padding: 0 12px;
+  }
+
+  .tag-pair .cog {
+    min-width: 44px;
+    justify-content: center;
+  }
+}
+
+/* The legend and the scope's zoom, focal plane and unit (DESIGN.md, Scope view 8). */
+.scope-caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0 16px;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--muted);
+}
+
+.scope-caption > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.scope-caption svg {
+  flex: none;
+}

@@ -1,0 +1,66 @@
+/* Penetration colours of the strip. */
+.pen-2 {
+  background: var(--pen-2);
+}
+
+.pen-1 {
+  background: var(--pen-1);
+}
+
+.pen-0 {
+  background: var(--pen-0);
+}
+
+.pen-unknown {
+  background: transparent;
+  border: 1px dashed var(--faint);
+}
+
+/* Penetration strip (DESIGN.md, Pen strip) ----------------------------------- */
+.pen-strip .segs {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+}
+
+.pen-strip.small {
+  margin-top: 7px;
+}
+
+.pen-strip .segs i {
+  display: block;
+  height: 3px;
+}
+
+.pen-strip.large .segs {
+  gap: 3px;
+}
+
+.pen-strip.large .segs i {
+  height: 8px;
+}
+
+.pen-strip .segs i.sel {
+  outline: 1px solid var(--fg-strong);
+  outline-offset: 2px;
+}
+
+.pen-strip .segs i.disagree {
+  box-shadow: inset 0 -1px 0 var(--fg);
+}
+
+.pen-strip .labels {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.pen-strip .labels .sel {
+  color: var(--fg-strong);
+}

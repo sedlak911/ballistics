@@ -1,0 +1,585 @@
+{{Ambox
+ | icon     = Icon-boilerplate.png
+ | type     = '''Warning'''
+ | info     = This page is still heavily in '''work in progress'''. Some information might be wrong/untested or unconfirmed.
+ | border   = red
+}}
+<br>
+<br>
+{{PAGENAME}} are an important part of [[Gray Zone Warfare]]. They play a big role in firefights and often determine the outcome. Choosing the right [[Weapons|weapon]], [[Ammunition|ammo]] and gear is one of the most important parts in winning gunfights.
+
+==Flight ballistics==
+Bullet flight is simulated realistically in [[Gray Zone Warfare]]. Bullets have speed, are affected by gravity and air friction and can penetrate or ricochet when hitting objects. The specific flight characteristics of a bullet are determined by the ammo type, and the chance of a bullet penetrating or ricocheting off of an object is determined by the material of the object and the type of bullet. Bullets lose both damage and penetration power as they lose speed from air friction over long distances.
+
+==Armor and penetration==
+===NIJ Protection Level===
+[[Gray Zone Warfare]] uses the [https://en.wikipedia.org/wiki/List_of_body_armor_performance_standards#NIJ_armor_standard_(United_States) American NIJ system], the Protection Level is related to how well the vest protects from bullet penetration. When inspecting a vest, the top left of the preview image, you can see where the vest has plates. The locations of these plates are important, these are where you are protected from penetration.
+<br>
+'''The folowing levels are sorted in order of effectiveness (Worst to Best)'''<br>
+I, IIA, IIA+, IIIA, IIIA+, III, III+, III++
+
+==Armor materials==
+Armor durability does not change the performance of the armor. But the armor material does matter a lot.
+{| class="sortable fandom-table"
+!Material
+!Resistance
+|-
+|UHMWPE
+|Low resistance
+|-
+|Ceramic
+|Medium resistance
+|-
+|Steel
+|Higher resistance
+|}
+
+==Angles and ricochets==
+The angle of impact has no effect on armor except for helmets, which bullets can ricochet off of. If a bullet strikes a helmet within a certain range of angles, the round has a chance to ricochet determined by how shallow the angle is.
+
+==Ammo and Penetration chart==
+===How to read===
+The penetration ratings below are derived from each round's maximum effective armor class. Ratings reflect typical engagement distances.
+{|class="wikitable"
+! colspan="2" |Effectiveness level
+!Explanation
+|-
+| {{PenRating|0}}
+| style="background-color:#b3242580;" | Pointless
+| rowspan="1" |Can't penetrate in any reasonable amount of hits
+|-
+| {{PenRating|1}}
+| style="background-color:#EB6C0D80;" | Magdump only
+| rowspan="1" |Has a very low or no penetration chance initially and very slowly gains chance
+|-
+| {{PenRating|2}}
+| style="background-color:#00990080;" | Usually ignores
+| rowspan="1" |Initially penetrates >80% of the time.
+|}
+
+====Denotation notes====
+'''<sup>S</sup> Denotes Round is Subsonic'''<br/>
+'''<sup>T</sup> Denotes Round is a Tracer'''<br/>
+<tabber>
+All=
+{| class="wikitable sortable stickyheader"
+! rowspan="2" |Caliber
+! rowspan="2" |Name
+! rowspan="2" |Speed<br/>m/s
+! rowspan="2" |Acc Mod
+! rowspan="2" |Dur Mod %
+! colspan="8" |Bullet effectiveness against armor class
+|-
+!I
+!IIA
+!IIA+
+!IIIA
+!IIIA+
+!III
+!III+
+!III++
+|-
+| rowspan="9" | [[5.56x45mm NATO]] || [[5.56x45mm_SP|5.56x45mm SP]] || 930 m/s || -3 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.56x45mm_HPBT|5.56x45mm HPBT]] || 861 m/s || -3 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.56x45mm_FMJ|5.56x45mm FMJ]] || 880 m/s ||  ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.56x45mm Tracer (M856)|5.56x45mm Tracer (M856)]]<sup>T</sup> || 917 m/s || -3 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.56x45mm_M193|5.56x45mm M193]] || 1006 m/s || +2 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.56x45mm_AP_(M855)|5.56x45mm AP (M855)]] || 920 m/s || +2 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|-
+| [[5.56x45mm Tracer (M856A1)|5.56x45mm Tracer (M856A1)]]<sup>T</sup> || 945 m/s || -4 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|-
+| [[5.56x45mm_AP_(M855A1)|5.56x45mm AP (M855A1)]] || 970 m/s || +7 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}}
+|-
+| [[5.56x45mm_AP_(M995)|5.56x45mm AP (M995)]] || 1030 m/s || +5 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}}
+|-
+| rowspan="9" | [[5.45x39mm]] || [[5.45x39mm_WOLF|5.45x39mm WOLF]] || 840 m/s || -2 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.45x39mm_US_(7U1)|5.45x39mm US (7U1)]] || 303 m/s || -6 ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.45x39mm_HP|5.45x39mm HP]] || 880 m/s || -6 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.45x39mm_FMJ|5.45x39mm FMJ]] || 855 m/s ||  || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.45x39mm_PS_(7N6)|5.45x39mm PS (7N6)]] || 900 m/s || -2 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.45x39mm_BT_(7BT4)|5.45x39mm BT (7BT4)]] || 915 m/s || +2 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}}
+|-
+| [[5.45x39mm_PP_(7N10)|5.45x39mm PP (7N10)]] || 870 m/s || +2 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}}
+|-
+| [[5.45x39mm_BP_(7N22)|5.45x39mm BP (7N22)]] || 860 m/s || +1 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}}
+|-
+| [[5.45x39mm_BS_(7N24)|5.45x39mm BS (7N24)]] || 840 m/s || +6 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|-
+| rowspan="7" | [[7.62x39mm]] || [[7.62x39mm_SP|7.62x39mm SP]] || 743 m/s || -2 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[7.62x39mm_US|7.62x39mm US]] || 310 m/s || -6 ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[7.62x39mm_Tracer_(57-N-231P)|7.62x39mm Tracer (57-N-231P)]] || 725 m/s || -3 ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}}
+|-
+| [[7.62x39mm_PS_(57-N-231C)|7.62x39mm PS (57-N-231C)]] || 725 m/s || +1 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}}
+|-
+| [[7.62x39mm_BP_(7N23)|7.62x39mm BP (7N23)]] || 740 m/s || +2 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|-
+| [[7.62x39mm_FMJ|7.62x39mm FMJ]] || 738 m/s || -6 ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[7.62x39mm_PP_(7N27)|7.62x39mm PP (7N27)]] || 740 m/s || +1 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|-
+| rowspan="5" | [[.300 AAC Blackout]] || [[.300_AAC_Blackout_Subsonic|.300 AAC Blackout Subsonic]]<sup>S</sup> || 310 m/s || -6 ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.300_AAC_Blackout_FMJ|.300 AAC Blackout FMJ]] || 633 m/s ||  ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.300_AAC_Blackout_V-MAX|.300 AAC Blackout V-MAX]] || 724 m/s || +2 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.300_AAC_Blackout_CQ|.300 AAC Blackout CQ]] || 853 m/s || +1 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.300_AAC_Blackout_AP|.300 AAC Blackout AP]] || 725 m/s || +4 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}}
+|-
+| rowspan="5" | [[7.62x51mm NATO]] || [[7.62x51mm_FMJ_(M80)|7.62x51mm FMJ (M80)]] || 817 m/s ||  ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[7.62x51mm_HPBT|7.62x51mm HPBT]] || 800 m/s || +4 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[7.62x51mm_FMJ_(M80A1)|7.62x51mm FMJ (M80A1)]] || 835 m/s || +3 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|-
+| [[7.62x51mm_Tracer_(M62)|7.62x51mm Tracer (M62)]] || 820 m/s || -4 ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|-
+| [[7.62x51mm_AP_(M61)|7.62x51mm AP (M61)]] || 838 m/s || +4 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}}
+|-
+| rowspan="4" | [[7.62x54mm R|7.62x54mmR]] || [[7.62x54R_LPS_(57-N-323S)|7.62x54R LPS (57-N-323S)]] || 828 m/s || +1 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}}
+|-
+| [[7.62x54R_Tracer_(T-46M)|7.62x54R Tracer (T-46M)]]<sup>T</sup> || 830 m/s || -3 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}}
+|-
+| [[7.62x54R_Sniper_Round_(7N1)|7.62x54R Sniper Round (7N1)]] || 830 m/s || +5 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|-
+| [[7.62x54R_AP_(7N13)|7.62x54R AP (7N13)]] || 828 m/s || +2 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}}
+|-
+| rowspan="5" | [[9x19mm]] || [[9x19mm_FMJ|9x19mm FMJ]] || 390 m/s ||  ||  || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[9x19mm_HP|9x19mm HP]] || 377 m/s || -3 ||  || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[9x19mm_Tracer|9x19mm Tracer]]<sup>T</sup> || 342 m/s || -4 ||  || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[9x19mm_Xtreme_Penetrator_P+|9x19mm Xtreme Penetrator P+]] || 381 m/s || +2 ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[9x19mm_Libra_Snail|9x19mm Libra Snail]] || 700 m/s ||  || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| rowspan="5" | [[4.6x30mm|4.6x30mm HK]] || [[4.6x30mm_Subsonic_SX|4.6x30mm Subsonic SX]]<sup>S</sup> || 290 m/s ||  ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[4.6x30mm_FMJ_SX|4.6x30mm FMJ SX]] || 620 m/s ||  ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[4.6x30mm_Action_SX|4.6x30mm Action SX]] || 690 m/s ||  ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[4.6x30mm_AP_SX|4.6x30mm AP SX]] || 680 m/s ||  || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[4.6x30mm_V-MAX|4.6x30mm V-MAX]] || 640 m/s ||  || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| rowspan="4" | [[.45 ACP]] || [[.45_ACP_JHP_+P|.45 ACP JHP +P]] || 290 m/s || -2 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.45_ACP_FMJ|.45 ACP FMJ]] || 260 m/s ||  ||  || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.45_ACP_Hydra-Shok|.45 ACP Hydra-Shok]] || 274 m/s ||  || -15 || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.45_ACP_AP|.45 ACP AP]] || 450 m/s ||  || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| rowspan="3" | [[7.62x25mm|7.62x25mm Tokarev]] || FMJ || 430 m/s ||  ||  || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| PT || 415 m/s || -2 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| Pst || 430 m/s || -2 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| rowspan="3" | [[7.65mm Browning]] || [[7.65_Browning_JHP|7.65 Browning JHP]] || 276 m/s || -4 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[7.65_Browning_FMJ|7.65 Browning FMJ]] || 318 m/s ||  ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[7.65_Browning_Xtreme_Defender|7.65 Browning Xtreme Defender]] || 290 m/s || -2 || -15 || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| rowspan="4" | [[12 Gauge]] || [[12GA_00_Buckshot|12GA 00 Buckshot]] || 370 m/s || +38 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[12GA_FC_00_Buckshot|12GA FC 00 Buckshot]] || 349 m/s || +27 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[12GA_Slug|12GA Slug]] || 420 m/s || +42 || -15 || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[12GA_SST_Sabot_Slug|12GA SST Sabot Slug]] || 609 m/s || +50 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| rowspan="4" | [[.222 Remington]] || [[.222_Remington_SP|.222 Remington SP]] || 970 m/s || -5 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.222_Remington_FMJ|.222 Remington FMJ]] || 970 m/s ||  ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.222_Remington_HP|.222 Remington HP]] || 966 m/s || -2 || -15 || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.222_Remington_VMax|.222 Remington VMax]] || 1020 m/s || +7 || -15 || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|}
+|-|
+5.56x45mm NATO=
+{| class="wikitable sortable"
+! rowspan="2" |Name
+! rowspan="2" |Speed<br/>m/s
+! rowspan="2" |Acc Mod
+! rowspan="2" |Dur Mod %
+! colspan="8" |Bullet effectiveness against armor class
+|-
+!I
+!IIA
+!IIA+
+!IIIA
+!IIIA+
+!III
+!III+
+!III++
+|-
+| [[5.56x45mm_SP|5.56x45mm SP]] || 930 m/s || -3 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.56x45mm_HPBT|5.56x45mm HPBT]] || 861 m/s || -3 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.56x45mm_FMJ|5.56x45mm FMJ]] || 880 m/s ||  ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.56x45mm_Tracer_(M856)|5.56x45mm Tracer (M856)]]<sup>T</sup> || 917 m/s || -3 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.56x45mm_M193|5.56x45mm M193]] || 1006 m/s || +2 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.56x45mm_AP_(M855)|5.56x45mm AP (M855)]] || 920 m/s || +2 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|-
+| [[5.56x45mm_Tracer_(M856A1)|5.56x45mm Tracer (M856A1)]]<sup>T</sup> || 945 m/s || -4 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|-
+| [[5.56x45mm_AP_(M855A1)|5.56x45mm AP (M855A1)]] || 970 m/s || +7 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}}
+|-
+| [[5.56x45mm_AP_(M995)|5.56x45mm AP (M995)]] || 1030 m/s || +5 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}}
+|}
+|-|
+5.45x39mm=
+{| class="wikitable sortable"
+! rowspan="2" |Name
+! rowspan="2" |Speed<br/>m/s
+! rowspan="2" |Acc Mod
+! rowspan="2" |Dur Mod %
+! colspan="8" |Bullet effectiveness against armor class
+|-
+!I
+!IIA
+!IIA+
+!IIIA
+!IIIA+
+!III
+!III+
+!III++
+|-
+| [[5.45x39mm_WOLF|5.45x39mm WOLF]] || 840 m/s || -2 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.45x39mm_US_(7U1)|5.45x39mm US (7U1)]] || 303 m/s || -6 ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.45x39mm_HP|5.45x39mm HP]] || 880 m/s || -6 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.45x39mm_FMJ|5.45x39mm FMJ]] || 855 m/s ||  || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.45x39mm_PS_(7N6)|5.45x39mm PS (7N6)]] || 900 m/s || -2 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[5.45x39mm_BT_(7BT4)|5.45x39mm BT (7BT4)]] || 915 m/s || +2 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}}
+|-
+| [[5.45x39mm_PP_(7N10)|5.45x39mm PP (7N10)]] || 870 m/s || +2 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}}
+|-
+| [[5.45x39mm_BP_(7N22)|5.45x39mm BP (7N22)]] || 860 m/s || +1 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}}
+|-
+| [[5.45x39mm_BS_(7N24)|5.45x39mm BS (7N24)]] || 840 m/s || +6 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|}
+|-|
+7.62x39mm=
+{| class="wikitable sortable"
+! rowspan="2" |Name
+! rowspan="2" |Speed<br/>m/s
+! rowspan="2" |Acc Mod
+! rowspan="2" |Dur Mod %
+! colspan="8" |Bullet effectiveness against armor class
+|-
+!I
+!IIA
+!IIA+
+!IIIA
+!IIIA+
+!III
+!III+
+!III++
+|-
+| [[7.62x39mm_SP|7.62x39mm SP]] || 743 m/s || -2 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[7.62x39mm_US|7.62x39mm US]] || 310 m/s || -6 ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[7.62x39mm_Tracer_(57-N-231P)|7.62x39mm Tracer (57-N-231P)]] || 725 m/s || -3 ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}}
+|-
+| [[7.62x39mm_PS_(57-N-231C)|7.62x39mm PS (57-N-231C)]] || 725 m/s || +1 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}}
+|-
+| [[7.62x39mm_BP_(7N23)|7.62x39mm BP (7N23)]] || 740 m/s || +2 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|-
+| [[7.62x39mm_FMJ|7.62x39mm FMJ]] || 738 m/s || -6 ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[7.62x39mm_PP_(7N27)|7.62x39mm PP (7N27)]] || 740 m/s || +1 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|}
+|-|
+.300 AAC Blackout=
+{| class="wikitable sortable"
+! rowspan="2" |Name
+! rowspan="2" |Speed<br/>m/s
+! rowspan="2" |Acc Mod
+! rowspan="2" |Dur Mod %
+! colspan="8" |Bullet effectiveness against armor class
+|-
+!I
+!IIA
+!IIA+
+!IIIA
+!IIIA+
+!III
+!III+
+!III++
+|-
+| [[.300_AAC_Blackout_Subsonic|.300 AAC Blackout Subsonic]]<sup>S</sup> || 310 m/s || -6 ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.300_AAC_Blackout_FMJ|.300 AAC Blackout FMJ]] || 633 m/s ||  ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.300_AAC_Blackout_V-MAX|.300 AAC Blackout V-MAX]] || 724 m/s || +2 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.300_AAC_Blackout_CQ|.300 AAC Blackout CQ]] || 853 m/s || +1 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.300_AAC_Blackout_AP|.300 AAC Blackout AP]] || 725 m/s || +4 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}}
+|}
+|-|
+7.62x51mm NATO=
+{| class="wikitable sortable"
+! rowspan="2" |Name
+! rowspan="2" |Speed<br/>m/s
+! rowspan="2" |Acc Mod
+! rowspan="2" |Dur Mod %
+! colspan="8" |Bullet effectiveness against armor class
+|-
+!I
+!IIA
+!IIA+
+!IIIA
+!IIIA+
+!III
+!III+
+!III++
+|-
+| [[7.62x51mm_FMJ_(M80)|7.62x51mm FMJ (M80)]] || 817 m/s ||  ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[7.62x51mm_HPBT|7.62x51mm HPBT]] || 800 m/s || +4 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[7.62x51mm_FMJ_(M80A1)|7.62x51mm FMJ (M80A1)]] || 835 m/s || +3 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|-
+| [[7.62x51mm_Tracer_(M62)|7.62x51mm Tracer (M62)]] || 820 m/s || -4 ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|-
+| [[7.62x51mm_AP_(M61)|7.62x51mm AP (M61)]] || 838 m/s || +4 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}}
+|}
+|-|
+7.62x54mmR=
+{| class="wikitable sortable"
+! rowspan="2" |Name
+! rowspan="2" |Speed<br/>m/s
+! rowspan="2" |Acc Mod
+! rowspan="2" |Dur Mod %
+! colspan="8" |Bullet effectiveness against armor class
+|-
+!I
+!IIA
+!IIA+
+!IIIA
+!IIIA+
+!III
+!III+
+!III++
+|-
+| [[7.62x54R_LPS_(57-N-323S)|7.62x54R LPS (57-N-323S)]] || 828 m/s || +1 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}}
+|-
+| [[7.62x54R_Tracer_(T-46M)|7.62x54R Tracer (T-46M)]]<sup>T</sup> || 830 m/s || -3 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}}
+|-
+| [[7.62x54R_Sniper_Round_(7N1)|7.62x54R Sniper Round (7N1)]] || 830 m/s || +5 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}}
+|-
+| [[7.62x54R_AP_(7N13)|7.62x54R AP (7N13)]] || 828 m/s || +2 || -100 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}}
+|}
+|-|
+9x19mm=
+{| class="wikitable sortable"
+! rowspan="2" |Name
+! rowspan="2" |Speed<br/>m/s
+! rowspan="2" |Acc Mod
+! rowspan="2" |Dur Mod %
+! colspan="8" |Bullet effectiveness against armor class
+|-
+!I
+!IIA
+!IIA+
+!IIIA
+!IIIA+
+!III
+!III+
+!III++
+|-
+| [[9x19mm_FMJ|9x19mm FMJ]] || 390 m/s ||  ||  || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[9x19mm_HP|9x19mm HP]] || 377 m/s || -3 ||  || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[9x19mm_Tracer|9x19mm Tracer]]<sup>T</sup> || 342 m/s || -4 ||  || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[9x19mm_Xtreme_Penetrator_P+|9x19mm Xtreme Penetrator P+]] || 381 m/s || +2 ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[9x19mm_Libra_Snail|9x19mm Libra Snail]] || 700 m/s ||  || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|}
+|-|
+4.6x30mm HK=
+{| class="wikitable sortable"
+! rowspan="2" |Name
+! rowspan="2" |Speed<br/>m/s
+! rowspan="2" |Acc Mod
+! rowspan="2" |Dur Mod %
+! colspan="8" |Bullet effectiveness against armor class
+|-
+!I
+!IIA
+!IIA+
+!IIIA
+!IIIA+
+!III
+!III+
+!III++
+|-
+| [[4.6x30mm_Subsonic_SX|4.6x30mm Subsonic SX]]<sup>S</sup> || 290 m/s ||  ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[4.6x30mm_FMJ_SX|4.6x30mm FMJ SX]] || 620 m/s ||  ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[4.6x30mm_Action_SX|4.6x30mm Action SX]] || 690 m/s ||  ||  || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[4.6x30mm_AP_SX|4.6x30mm AP SX]] || 680 m/s ||  || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[4.6x30mm_V-MAX|4.6x30mm V-MAX]] || 640 m/s ||  || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|}
+|-|
+.45 ACP=
+{| class="wikitable sortable"
+! rowspan="2" |Name
+! rowspan="2" |Speed<br/>m/s
+! rowspan="2" |Acc Mod
+! rowspan="2" |Dur Mod %
+! colspan="8" |Bullet effectiveness against armor class
+|-
+!I
+!IIA
+!IIA+
+!IIIA
+!IIIA+
+!III
+!III+
+!III++
+|-
+| [[.45_ACP_JHP_+P|.45 ACP JHP +P]] || 290 m/s || -2 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.45_ACP_FMJ|.45 ACP FMJ]] || 260 m/s ||  ||  || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.45_ACP_Hydra-Shok|.45 ACP Hydra-Shok]] || 274 m/s ||  || -15 || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.45_ACP_AP|.45 ACP AP]] || 450 m/s ||  || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|}
+|-|
+7.62x25mm Tokarev=
+{| class="wikitable sortable"
+! rowspan="2" |Name
+! rowspan="2" |Speed<br/>m/s
+! rowspan="2" |Acc Mod
+! rowspan="2" |Dur Mod %
+! colspan="8" |Bullet effectiveness against armor class
+|-
+!I
+!IIA
+!IIA+
+!IIIA
+!IIIA+
+!III
+!III+
+!III++
+|-
+| FMJ || 430 m/s ||  ||  || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| PT || 415 m/s || -2 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| Pst || 430 m/s || -2 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|}
+|-|
+7.65mm Browning=
+{| class="wikitable sortable"
+! rowspan="2" |Name
+! rowspan="2" |Speed<br/>m/s
+! rowspan="2" |Acc Mod
+! rowspan="2" |Dur Mod %
+! colspan="8" |Bullet effectiveness against armor class
+|-
+!I
+!IIA
+!IIA+
+!IIIA
+!IIIA+
+!III
+!III+
+!III++
+|-
+| [[7.65_Browning_JHP|7.65 Browning JHP]] || 276 m/s || -4 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[7.65_Browning_FMJ|7.65 Browning FMJ]] || 318 m/s ||  ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[7.65_Browning_Xtreme_Defender|7.65 Browning Xtreme Defender]] || 290 m/s || -2 || -15 || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|}
+|-|
+12 Gauge=
+{| class="wikitable sortable"
+! rowspan="2" |Name
+! rowspan="2" |Speed<br/>m/s
+! rowspan="2" |Acc Mod
+! rowspan="2" |Dur Mod %
+! colspan="8" |Bullet effectiveness against armor class
+|-
+!I
+!IIA
+!IIA+
+!IIIA
+!IIIA+
+!III
+!III+
+!III++
+|-
+| [[12GA_00_Buckshot|12GA 00 Buckshot]] || 370 m/s || +38 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[12GA_FC_00_Buckshot|12GA FC 00 Buckshot]] || 349 m/s || +27 || -15 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[12GA_Slug|12GA Slug]] || 420 m/s || +42 || -15 || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[12GA_SST_Sabot_Slug|12GA SST Sabot Slug]] || 609 m/s || +50 || -40 || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|2}} || {{PenRating|1}} || {{PenRating|0}} || {{PenRating|0}}
+|}
+|-|
+.222 Remington=
+{| class="wikitable sortable"
+! rowspan="2" |Name
+! rowspan="2" |Speed<br/>m/s
+! rowspan="2" |Acc Mod
+! rowspan="2" |Dur Mod %
+! colspan="8" |Bullet effectiveness against armor class
+|-
+!I
+!IIA
+!IIA+
+!IIIA
+!IIIA+
+!III
+!III+
+!III++
+|-
+| [[.222_Remington_SP|.222 Remington SP]] || 970 m/s || -5 ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.222_Remington_FMJ|.222 Remington FMJ]] || 970 m/s ||  ||  || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.222_Remington_HP|.222 Remington HP]] || 966 m/s || -2 || -15 || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|-
+| [[.222_Remington_VMax|.222 Remington VMax]] || 1020 m/s || +7 || -15 || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}} || {{PenRating|0}}
+|}
+</tabber>
+[[Category:Game System]]

@@ -1,0 +1,372 @@
+/* Focus view (DESIGN.md, Views and Layout): the setup tags in the header, then scope and answer on one screen,
+   then the mid-fight inputs and a foot row with the import, Change setup and the estimate note. */
+.focus {
+  --focus-max: 1640px;
+  padding-bottom: 20px;
+}
+
+.focus-grid,
+.focus-toolbar,
+.focus-foot,
+.first-setup-slot {
+  width: 100%;
+  max-width: var(--focus-max);
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.strip {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Scope and answer: from 700px wide the view takes the screen under the header, and the scope takes the height
+   the toolbar leaves, up to 55 % of the width. */
+.focus-grid {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 56px;
+  align-items: center;
+  padding-top: 20px;
+}
+
+/* `--scope` is the lens's square; the caption (one 16px line and a 6px gap) sits under it. */
+.focus-scope {
+  position: relative;
+  width: var(--scope);
+}
+
+@media (min-width: 700px) {
+  .focus:not(.first) {
+    display: flex;
+    flex-direction: column;
+    height: max(calc(100dvh - 64px), 660px);
+  }
+
+  .focus:not(.first) .focus-grid {
+    flex: 1 1 0;
+    min-height: 0;
+    container-type: size;
+    --scope: min(100cqh - 22px, 55cqw, 880px);
+  }
+
+  .focus.first .focus-grid {
+    --scope: 470px;
+  }
+}
+
+/* Portrait: the answer under the scope. */
+@media (min-width: 700px) and (max-aspect-ratio: 1/1) {
+  .focus:not(.first) .focus-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-content: center;
+    justify-items: center;
+    gap: 28px;
+    --scope: min(100cqw, 62cqh - 22px, 880px);
+  }
+
+  .focus:not(.first) .answer {
+    width: min(100%, 880px);
+  }
+}
+
+/* The glow centres on the lens, not on the lens and caption. */
+.focus-scope .glow {
+  top: calc(var(--scope) * -0.3);
+  left: calc(var(--scope) * -0.3);
+  width: calc(var(--scope) * 1.6);
+  height: calc(var(--scope) * 1.6);
+}
+
+.focus-scope .scope {
+  position: relative;
+  margin: 0;
+}
+
+.focus-scope .scope-view {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.answer-k {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+/* The aim zone on the right of the verdict key, under its word. */
+.answer-opts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.answer-opts > .label {
+  white-space: nowrap;
+}
+
+.verdict-big {
+  margin-top: 12px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 64px;
+  line-height: 0.88;
+  /* A two-line verdict ("Risky. 50 % at 240 m or closer") breaks evenly instead of leaving one word on the second line. */
+  text-wrap: balance;
+  text-transform: uppercase;
+  color: var(--fg-strong);
+}
+
+.verdict-sub {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.verdict-sub .num {
+  color: var(--fg-strong);
+}
+
+.verdict-sub .warn {
+  color: var(--accent);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.pair .v {
+  margin-top: 8px;
+  font-weight: 500;
+  font-size: 64px;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  color: var(--fg-strong);
+}
+
+.pair .v .unit {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.pair .s {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Armor line: the class on the aim zone, whether the round gets through, and the pen strip. */
+/* "Usually penetrates up to" | class | strip; the energy note, when there is one, gets its own line under them. */
+.armor-line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(280px, 300px);
+  grid-template-areas:
+    'what c strip'
+    'energy energy energy';
+  align-items: center;
+  gap: 6px 14px;
+  margin-top: 24px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+}
+
+.armor-line .c {
+  grid-area: c;
+  min-width: 52px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 36px;
+  line-height: 0.8;
+}
+
+.armor-line .c.pen {
+  color: var(--accent);
+}
+
+.armor-line .c.none {
+  color: var(--muted);
+}
+
+.armor-line .c.word {
+  font-size: 24px;
+}
+
+.armor-line .what {
+  grid-area: what;
+  min-width: 0;
+}
+
+.armor-line .energy {
+  grid-area: energy;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.armor-line .what b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-strong);
+}
+
+.armor-line .what span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.armor-line .pen-strip {
+  grid-area: strip;
+  margin: 0;
+}
+
+/* Inputs, then the foot row. */
+.focus-toolbar {
+  margin-top: 18px;
+}
+
+.focus-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 10px;
+}
+
+.focus-foot .import {
+  margin: 0;
+}
+
+.focus-foot .import button,
+.focus-foot .btn {
+  width: auto;
+  height: 36px;
+  padding: 0 14px;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+}
+
+.focus-foot .est {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+@media (max-width: 699px) {
+  .focus-grid,
+  .focus-toolbar,
+  .focus-foot {
+    padding: 0 20px;
+  }
+
+  .focus-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    padding-top: 16px;
+    --scope: min(470px, calc(100vw - 40px));
+  }
+
+  .focus-scope {
+    margin: 0 auto;
+  }
+
+  .focus-foot {
+    flex-wrap: wrap;
+  }
+
+  .focus-foot .import,
+  .focus-foot .btn {
+    flex: 1;
+  }
+
+  .focus-foot .est {
+    flex-basis: 100%;
+  }
+
+  .focus-foot .import button,
+  .focus-foot .btn {
+    width: 100%;
+    height: 44px;
+  }
+
+  .verdict-big {
+    font-size: 40px;
+  }
+
+  .armor-line {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'what c'
+      'strip strip'
+      'energy energy';
+  }
+
+  .pair .v {
+    font-size: 40px;
+  }
+
+}
+
+/* First visit: a weapon pick, or a screenshot, before anything else. */
+.first-setup-slot {
+  padding-top: 18px;
+}
+
+.first-setup .panel-b {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+.first-setup .note {
+  margin: 0;
+}
+
+.fs-or {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  width: 100%;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 699px) {
+  .first-setup-slot {
+    padding: 16px 20px 0;
+  }
+
+  .fs-or .import,
+  .fs-or .import button {
+    width: 100%;
+  }
+}
+
+/* The verdict in its colour: shoot is the accent, key and line; no good shot has a red key over a muted line;
+   risky and close in stay white under an accent key. */
+.key.v-shoot,
+.verdict-big.v-shoot {
+  color: var(--accent);
+}
+
+.key.v-noGood {
+  color: var(--bad);
+}
+
+.verdict-big.v-noGood {
+  color: var(--muted);
+}

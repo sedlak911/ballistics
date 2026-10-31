@@ -1,0 +1,22 @@
+/* WARDOGS palette, from wardogs.com: the logo badge gold, the Steam button gold and the site's warm greys
+   (see DESIGN.md, Per-game palettes). */
+[data-game='wardogs'] {
+  --bg: #000000;
+  --panel: #151513;
+  --panel-2: #3e3d3b;
+  --border: rgb(246 243 237 / 0.09);
+  --border-strong: rgb(246 243 237 / 0.18);
+  --fg: #f6f3ed;
+  --fg-strong: #ffffff;
+  --muted: #b9b6b2;
+  --faint: #7b7a77;
+  --accent: #e2ac2b;
+  --accent-hi: #ffdc6d;
+  --on-accent: #000000;
+
+  /* Scope scene greys, warm (derived) */
+  --scene-sky-1: #625e57;
+  --scene-sky-2: #908b83;
+  --scene-hill: #75726d;
+  --scene-ground: #686560;
+}

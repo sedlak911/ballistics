@@ -1,0 +1,561 @@
+/* REAL main screen (spec → The main screen; DESIGN.md → The one view, Layout and the phone): the answer, the scope in
+   hold mode, then the bottom bar: the toolbar on desktop, a bar fixed to the bottom on a phone. */
+.real {
+  padding-bottom: 20px;
+}
+
+.real-grid,
+.real-bar-slot {
+  width: 100%;
+  max-width: 1640px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.real-strip {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Under the tags when the view shows a shared link's values (I3): a hint in the tag face, not a control. */
+.real-note {
+  margin: 0;
+  padding: 6px 20px 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  text-align: center;
+}
+
+/* The way back to the stored values: a chip in the note's line (28px tall, 44px on a phone, like the chips). */
+.real-note-btn {
+  min-height: 28px;
+  margin-left: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  background: rgb(0 0 0 / 0.3);
+  color: var(--fg-strong);
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+@media (max-width: 699px) {
+  .real-note-btn {
+    min-height: 44px;
+  }
+}
+
+/* From 700px wide the view is one screen under the header: the answer, and the scope in hold mode, take what the
+   bar leaves. */
+@media (min-width: 700px) {
+  .real {
+    display: flex;
+    flex-direction: column;
+    height: max(calc(100dvh - 64px), 660px);
+  }
+
+  .real-grid {
+    flex: 1 1 0;
+    min-height: 0;
+    container-type: size;
+    display: grid;
+    align-items: center;
+    padding-top: 20px;
+  }
+
+  .real.mode-dial .real-grid,
+  .real.mode-none .real-grid {
+    justify-items: center;
+  }
+
+  .real.mode-hold .real-grid {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 56px;
+    --scope: min(100cqh - 22px, 55cqw, 880px);
+  }
+}
+
+/* Portrait: the answer under the scope. */
+@media (min-width: 700px) and (max-aspect-ratio: 1/1) {
+  .real.mode-hold .real-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-content: center;
+    justify-items: center;
+    gap: 28px;
+    --scope: min(100cqw, 62cqh - 22px, 880px);
+  }
+
+  .real.mode-hold .real-answer {
+    width: min(100%, 880px);
+  }
+}
+
+/* The scope in hold mode, with its glow centred on the lens. */
+.real-scope {
+  position: relative;
+  width: var(--scope);
+}
+
+.real-scope .glow {
+  top: calc(var(--scope) * -0.3);
+  left: calc(var(--scope) * -0.3);
+  width: calc(var(--scope) * 1.6);
+  height: calc(var(--scope) * 1.6);
+}
+
+.real-scope .scope {
+  position: relative;
+  margin: 0;
+}
+
+.real-scope .scope-view {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+/* The answer ------------------------------------------------------------------------------------------------- */
+.real-answer {
+  display: grid;
+  gap: 16px;
+  align-content: center;
+  min-width: 0;
+}
+
+.real.mode-dial .real-answer,
+.real.mode-none .real-answer {
+  width: min(100%, 960px);
+}
+
+/* Dial mode: elevation and windage side by side; hold mode: the pair under the scope. */
+.real-figs {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 48px;
+  align-items: start;
+}
+
+.real-figs > section {
+  position: relative;
+  min-width: 0;
+}
+
+.real-figs .glow {
+  top: -50%;
+  left: -15%;
+  width: 130%;
+  height: 200%;
+}
+
+.real-figs.real-pair {
+  gap: 24px;
+  padding-bottom: 4px;
+}
+
+.real .key em {
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+}
+
+.real-hero {
+  margin-top: 10px;
+  font-weight: 500;
+  font-size: 64px;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  color: var(--fg-strong);
+}
+
+.real-hero .unit {
+  margin-left: 6px;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.real-sub {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.real-dial-instead {
+  margin: 0;
+  color: var(--fg);
+}
+
+/* Three wind columns: the hold for less, the same and more wind; the middle one marked like a chosen option. */
+.real-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 360px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+}
+
+.real-cols li {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  padding: 7px 10px;
+  font-size: 15px;
+  color: var(--fg);
+}
+
+.real-cols li + li {
+  border-left: 1px solid var(--border);
+}
+
+.real-cols li[aria-current] {
+  color: var(--fg-strong);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.real-col-speed {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.real-unreached {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 64px;
+  line-height: 0.88;
+  text-wrap: balance;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* The hit line, the warnings and the calculation button, under a hairline. */
+.real-hit {
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--fg);
+}
+
+.real-hit p {
+  margin: 0;
+}
+
+.real-group {
+  margin-top: 4px !important;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.real-warnings {
+  display: grid;
+  gap: 8px;
+}
+
+.real-warnings .est {
+  margin: 0;
+}
+
+.real-calc {
+  justify-self: start;
+}
+
+.real-calc .tag {
+  margin-left: 4px;
+}
+
+/* The bottom bar ----------------------------------------------------------------------------------------------- */
+/* Desktop: one toolbar row of segments that fill it edge to edge, each led by its word. */
+.real-bar-slot {
+  margin-top: 18px;
+}
+
+.real-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.real-tool {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: stretch;
+  min-height: 40px;
+  border: 1px solid var(--border-strong);
+  background: rgb(0 0 0 / 0.5);
+  backdrop-filter: blur(12px);
+}
+
+.real-tool > .label,
+.real-tool .number-field > .label {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+/* The distance: its word, −, the typed figure and its unit, +. */
+.real-distance .number-field,
+.real-slope .number-field {
+  display: contents;
+}
+
+.real-distance .number-field > .label {
+  order: -1;
+}
+
+/* The typed figure and its unit fill the segment between its word and the buttons, the unit right after the figure. */
+.real-tool .number-field-row {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  border-left: 1px solid var(--border);
+}
+
+.real-tool .number-field-row input {
+  flex: 1 1 auto;
+  width: 64px;
+  height: 100%;
+  padding: 0 2px 0 10px;
+  border: 0;
+  background: none;
+  text-align: right;
+  font-size: 15px;
+}
+
+.real-tool .number-field-row .unit {
+  flex: 1 1 auto;
+  padding: 0 12px 0 5px;
+}
+
+.real-tool input[aria-invalid='true'] {
+  box-shadow: inset 0 0 0 1px var(--bad);
+}
+
+/* A refused figure says why above the bar, so the row keeps its height. */
+.real-tool .number-field-error {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 6px);
+  z-index: 5;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--bad);
+  background: var(--panel);
+  white-space: nowrap;
+}
+
+.real-step {
+  flex: none;
+  width: 40px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--fg-strong);
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.real-step:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fg) 6%, transparent);
+  color: var(--accent);
+}
+
+.real-step:disabled {
+  cursor: default;
+  color: var(--faint);
+}
+
+.real-distance .real-step:last-child {
+  border-left: 1px solid var(--border);
+}
+
+/* Steppers sit in their segment without a box of their own, and stretch to fill it. */
+.real-tool .stepper {
+  flex: 1 1 auto;
+  height: auto;
+  border: 0;
+  border-left: 1px solid var(--border);
+  background: none;
+}
+
+.real-tool .stepper output {
+  flex: 1 1 auto;
+  min-width: 76px;
+  font-size: 15px;
+}
+
+.real-clock-btn {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-left: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--fg);
+  white-space: nowrap;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.real-clock-btn:hover,
+.real-clock-btn[aria-expanded='true'] {
+  color: var(--fg-strong);
+  background: color-mix(in srgb, var(--fg) 6%, transparent);
+}
+
+.real-mini-face {
+  fill: none;
+  stroke: var(--border-strong);
+}
+
+.real-mini-tick {
+  stroke: var(--faint);
+}
+
+.real-mini-arrow {
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.real-clock-menu {
+  justify-items: center;
+}
+
+.real-clock-menu .wind-clock {
+  display: grid;
+  justify-items: center;
+  width: 240px;
+}
+
+/* Phone: one column, and the bar fixed to the bottom in two 44px rows ---------------------------------------- */
+.real-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: grid;
+  gap: 6px;
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-strong);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.real-dock-row {
+  display: flex;
+  gap: 6px;
+}
+
+/* 44px controls inside the segment's 1px borders. */
+.real-dock .real-tool {
+  min-height: 46px;
+  height: 46px;
+}
+
+.real-dock .real-step {
+  width: 44px;
+}
+
+.real-dock .stepper button {
+  width: 44px;
+}
+
+.real-dock .real-tool .number-field-row input {
+  width: 48px;
+}
+
+.real-dock .real-tool .stepper output {
+  min-width: 64px;
+}
+
+.real-dock .real-slope .number-field-row input {
+  width: 40px;
+}
+
+/* The distance and the wind speed read by their units; their words stay for screen readers. */
+.real-dock .real-distance .number-field > .label,
+.real-dock .real-wind > .label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.real-dock .real-slope {
+  flex-grow: 0;
+}
+
+.real-dock .real-clock-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+body:has(> .real-dock) .app {
+  padding-bottom: 120px;
+}
+
+@media (max-width: 699px) {
+  .real-grid {
+    padding: 16px 20px 0;
+    display: grid;
+    gap: 20px;
+    --scope: min(470px, calc(100vw - 40px));
+  }
+
+  .real-scope {
+    margin: 0 auto;
+  }
+
+  .real-figs {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .real-figs.real-pair {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .real-hero {
+    font-size: 40px;
+  }
+
+  .real-unreached {
+    font-size: 40px;
+  }
+
+  .real-calc {
+    justify-self: stretch;
+  }
+
+  .real-bar-slot {
+    display: none;
+  }
+
+  /* The strip wraps to two rows, so every tag is whole on screen (I5): the scope tag is the way to the unit, the
+     click and the zero. GZW's strip still scrolls sideways. */
+  .real-strip .setup-tags {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .real-strip .setup-tags .tag-btn {
+    max-width: 100%;
+    padding: 0 10px;
+  }
+}

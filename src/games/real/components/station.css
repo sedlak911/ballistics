@@ -1,0 +1,132 @@
+/* The station line under the tags and the sheet that edits it (DESIGN.md → Setup menus). */
+.real-station {
+  display: flex;
+  justify-content: center;
+  padding: 6px 20px 0;
+}
+
+.real-station-btn {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.real-station-btn:hover,
+.real-station-btn[aria-expanded='true'] {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  color: var(--fg-strong);
+}
+
+.popover.st-sheet {
+  width: min(440px, calc(100vw - 32px));
+}
+
+.st-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.st-head h2 {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* By location: the button, its one-time note, the status and the attribution. */
+.st-slot {
+  display: grid;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.st-loc {
+  justify-self: start;
+}
+
+.st-note,
+.st-status {
+  display: grid;
+  gap: 8px;
+}
+
+.st-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.st-status .btn {
+  justify-self: start;
+}
+
+.st-attr {
+  display: grid;
+  gap: 2px;
+}
+
+.st-attr p {
+  margin: 0;
+}
+
+.st-attr a {
+  color: var(--accent);
+}
+
+.st-kind {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.st-with {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.st-with > .number-field {
+  width: 100%;
+  min-width: 0;
+}
+
+.st-head .btn {
+  height: 36px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+.st-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+@media (max-width: 699px) {
+  .real-station {
+    padding-top: 4px;
+  }
+
+  .real-station-btn {
+    min-height: 44px;
+  }
+
+  .st-head .btn {
+    height: 44px;
+  }
+}

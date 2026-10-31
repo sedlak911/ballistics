@@ -1,0 +1,164 @@
+/* REAL's setup menus (DESIGN.md → Setup menus). The popover, the tags and the strip are shared (src/styles/ui.css). */
+.popover.rm-menu {
+  width: min(440px, calc(100vw - 32px));
+}
+
+.popover.rm-narrow {
+  width: min(360px, calc(100vw - 32px));
+}
+
+.rm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 16px;
+  align-items: start;
+}
+
+.rm-wide {
+  grid-column: 1 / -1;
+}
+
+.rm-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  align-content: start;
+}
+
+.rm-field > .number-field {
+  min-width: 0;
+}
+
+.rm-field .number-field-row {
+  margin-top: 6px;
+}
+
+.rm-field .label,
+.rm-title .label {
+  display: block;
+}
+
+.rm-read {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--fg-strong);
+}
+
+.rm-note,
+.rm-prompt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* After a field: where its value comes from; an estimate has a dashed outline and may ask for a measurement. */
+.rm-src {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.rm-src .tag {
+  min-width: 0;
+  max-width: 100%;
+  /* A long maker's name wraps rather than being cut at the menu's edge (Czech at 1440). */
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.tag.rm-est {
+  border-style: dashed;
+}
+
+.rm-true {
+  display: grid;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.rm-true .btn {
+  justify-self: start;
+}
+
+.rm-true .rm-grid {
+  align-items: end;
+}
+
+.rm-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.rm-msg {
+  margin: 0;
+  font-size: 12px;
+  color: var(--fg);
+}
+
+.rm-msg.bad {
+  color: var(--bad);
+}
+
+.rm-read-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 0;
+}
+
+.rm-read-line .label {
+  margin-right: 4px;
+}
+
+.rm-menu .btn {
+  width: 100%;
+}
+
+.rm-true .btn {
+  width: auto;
+}
+
+.rm-field .segmented {
+  justify-self: start;
+}
+
+.rm-field .segmented button {
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.rm-field .segmented.rm-mode {
+  justify-self: stretch;
+}
+
+.rm-mode button {
+  flex: 1;
+  white-space: normal;
+}
+
+@media (max-width: 699px) {
+  .rm-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rm-menu .number-field input {
+    height: 44px;
+  }
+
+  .rm-menu .segmented button {
+    min-height: 44px;
+  }
+
+  /* The shared stepper is 44px with its border inside, so its buttons come to 42. */
+  .rm-menu .stepper {
+    height: 46px;
+  }
+}
