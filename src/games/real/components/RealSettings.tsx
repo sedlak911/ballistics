@@ -20,7 +20,7 @@ import type { RealSetup } from '../setup'
 import { trueReal } from '../solve'
 import type { Station } from '../station'
 import type { Sourced } from '../types'
-import { CartridgeIcon, ReticleIcon, RifleIcon } from './icons'
+import { CartridgeIcon, CloseIcon, ReticleIcon, RifleIcon } from './icons'
 import { clickLabel, sectionSummary, sourceMaker } from './realText'
 import './menus.css'
 import './settings.css'
@@ -137,8 +137,8 @@ export function RealSettings({ initial, onClose, returnFocus, setup, update, pre
         <div className="rs-head">
           <h2 id={titleId}>{t('rs.title')}</h2>
           {headerAction}
-          <button type="button" className="rs-close" aria-label={t('rs.close')} onClick={onClose}>
-            <span aria-hidden="true">✕</span>
+          <button type="button" className="icon-btn" aria-label={t('rs.close')} title={t('rs.close')} onClick={onClose}>
+            <CloseIcon />
           </button>
         </div>
         <div className="rs-body">

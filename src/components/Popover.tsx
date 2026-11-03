@@ -33,11 +33,11 @@ export function Popover({ open, onClose, anchorRef, hangFrom, label, className, 
     const update = () => {
       const a = (hangFrom ?? anchorRef).current?.getBoundingClientRect()
       if (!a) return
-      // From its own edge, top or bottom, the room to the far side of the screen less the gutter: ui.css caps the height
+      // From its own edge, top or bottom, the room to the far side of the screen less the gutter and that side's safe-area inset: ui.css caps the height
       // to it, so a menu hung low still ends on screen and scrolls inside (M11).
       const at = placement === 'above' ? window.innerHeight - a.top + GAP_PX : a.bottom + GAP_PX
       const edge = placement === 'above' ? { bottom: at } : { top: at }
-      const room = { '--popover-room': `calc(100dvh - ${at + GUTTER_PX}px)` } as CSSProperties
+      const room = { '--popover-room': `calc(100dvh - ${at + GUTTER_PX}px - var(--${placement === 'above' ? 'safe-top' : 'safe-bottom'}))` } as CSSProperties
       if (phone) return setPlace({ ...edge, ...room, left: GUTTER_PX, right: GUTTER_PX })
       const width = ref.current?.offsetWidth ?? 0
       setPlace({ ...edge, ...room, left: Math.max(GUTTER_PX, Math.min(a.left, window.innerWidth - width - GUTTER_PX)) })

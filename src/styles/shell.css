@@ -1,4 +1,6 @@
+/* The contour lines span the whole page, the transparent header included. */
 .app {
+  position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -9,9 +11,11 @@
   flex: 1;
   position: relative;
   overflow: clip;
+  /* Landscape: the device's side insets (0 elsewhere). */
+  padding: 0 var(--safe-right) 0 var(--safe-left);
 }
 
-.app-main > :not(.topo) {
+.app-main > * {
   position: relative;
 }
 
@@ -31,11 +35,21 @@
   display: flex;
   align-items: center;
   gap: 28px;
-  height: 64px;
-  padding: 0 32px;
-  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  height: calc(64px + var(--safe-top));
+  padding: var(--safe-top) max(32px, var(--safe-right)) 0 max(32px, var(--safe-left));
+  transition: transform 0.25s var(--ease), background-color 0.15s;
+}
+
+/* Transparent over the page's own background; once the page scrolls under it, a ground of that background, so its
+   tags and buttons never sit on the page's text. The ground is a layer of its own: a blur on the header itself would
+   make it a backdrop root, and the glass of its ⓘ and ⚙ sheets would then blur the header alone, not the page. */
+.app-header.over::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(12px);
-  transition: transform 0.25s var(--ease);
 }
 
 /* An open ⓘ or ⚙ sheet goes over a phone's dock (z-index 20), so its end is never hidden under it; menus (40) and the
@@ -46,7 +60,7 @@
 
 /* Out of the way while the page scrolls down; back on the way up (useHiddenOnScrollDown). */
 .app-header.hidden {
-  transform: translateY(-100%);
+  transform: translateY(calc(-100% + var(--safe-top)));
 }
 
 .logo {
@@ -132,22 +146,6 @@
   margin-left: auto;
 }
 
-.hdr-btn {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--border-strong);
-  color: var(--muted);
-  transition: color 0.15s, border-color 0.15s;
-}
-
-.hdr-btn:hover,
-.hdr-btn[aria-expanded='true'] {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
-}
-
 .hdr-btn svg {
   transition: transform 0.25s var(--ease);
 }
@@ -160,19 +158,19 @@
 .sheet {
   position: absolute;
   top: calc(100% + 8px);
-  right: 32px;
+  right: max(32px, var(--safe-right));
   display: grid;
   gap: 12px;
   min-width: 240px;
   padding: 16px;
 }
 
-/* Opaque: a backdrop blur inside the blurred header samples only the header, so it would not hide the page.
-   Absolute again: ui.css loads later and .panel { position: relative } would otherwise win the tie and make the
-   sheet a flex item of the header, pushing ⓘ and ⚙ aside (like .popover.panel in menus.css). */
+/* Glass (DESIGN.md → Surfaces). Absolute again: ui.css loads later and .panel { position: relative } would otherwise
+   win the tie and make the sheet a flex item of the header, pushing ⓘ and ⚙ aside (like .popover.panel). */
 .sheet.panel {
   position: absolute;
-  background: var(--panel);
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
 }
 
 .sheet-row {
@@ -186,7 +184,7 @@
    itself once help is open on a short screen. */
 .info-sheet {
   max-width: 420px;
-  max-height: calc(100dvh - 88px);
+  max-height: calc(100dvh - 88px - var(--safe-top) - var(--safe-bottom));
   overflow-y: auto;
 }
 
@@ -229,7 +227,7 @@
 @media (max-width: 699px) {
   .app-header {
     gap: 10px;
-    padding: 0 16px;
+    padding: var(--safe-top) max(16px, var(--safe-right)) 0 max(16px, var(--safe-left));
   }
 
   .logo > span {
@@ -245,14 +243,9 @@
     display: none;
   }
 
-  .hdr-btn {
-    width: 44px;
-    height: 44px;
-  }
-
   .sheet {
-    left: 16px;
-    right: 16px;
+    left: max(16px, var(--safe-left));
+    right: max(16px, var(--safe-right));
   }
 
   .coming-soon h1 {
@@ -265,7 +258,7 @@
 .version-mark {
   position: fixed;
   right: 8px;
-  bottom: 4px;
+  bottom: calc(4px + var(--safe-bottom));
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.04em;
@@ -323,6 +316,10 @@
 .info-more dl {
   display: grid;
   gap: 10px;
+}
+
+.info-more .btn {
+  margin-top: 10px;
 }
 
 .info-more dt {

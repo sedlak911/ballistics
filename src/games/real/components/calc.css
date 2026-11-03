@@ -1,5 +1,5 @@
-/* The calculation sheet (spec → The calculation view; DESIGN.md → Dialog): a panel with an opaque ground over the page
-   dimmed to 60 % black, on the right on desktop and the whole screen on a phone. Each step: number, title, ⓘ and the
+/* The calculation sheet (spec → The calculation view; DESIGN.md → Dialog): a glass panel over the page
+   dimmed to 25 % black, on the right on desktop and the whole screen on a phone. Each step: number, title, ⓘ and the
    result on the right in mono; under it the working, mono 11px. */
 .calc-backdrop {
   position: fixed;
@@ -7,7 +7,7 @@
   z-index: 50;
   display: flex;
   justify-content: flex-end;
-  background: rgb(0 0 0 / 0.6);
+  background: rgb(0 0 0 / 0.25);
 }
 
 /* The head stays, the body scrolls: the panel's corner marks stay on its corners. */
@@ -18,15 +18,16 @@
   height: 100%;
   border-width: 0 0 0 1px;
   border-color: var(--border-strong);
-  background: var(--panel);
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
 }
 
 .calc-head {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 64px;
-  padding: 0 16px 0 20px;
+  min-height: calc(64px + var(--safe-top));
+  padding: var(--safe-top) 16px 0 20px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -51,23 +52,7 @@
 }
 
 .calc-close {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 36px;
-  height: 36px;
   margin-left: auto;
-  border: 1px solid var(--border-strong);
-  background: rgb(0 0 0 / 0.4);
-  color: var(--muted);
-  font-size: 14px;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.calc-close:hover {
-  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
-  color: var(--fg-strong);
 }
 
 .calc-body {
@@ -75,7 +60,7 @@
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  padding-bottom: 24px;
+  padding-bottom: calc(24px + var(--safe-bottom));
 }
 
 .calc-note {
@@ -336,7 +321,7 @@
   }
 
   .calc-head {
-    padding: 0 16px;
+    padding: var(--safe-top) 16px 0;
   }
 
   .calc-note,
@@ -344,11 +329,6 @@
   .calc-unreached {
     padding-left: 16px;
     padding-right: 16px;
-  }
-
-  .calc-close {
-    width: 44px;
-    height: 44px;
   }
 
   .calc-q {

@@ -282,6 +282,14 @@ export const cs: Record<keyof typeof en, string> = {
   // the toast
   'toast.undo': 'Zpět',
   'toast.close': 'Zavřít',
+  'install.title': 'Přidej si Ballistics na plochu',
+  'install.ios': 'V Safari klepni na Sdílet (v iOS 26 pod •••) a pak na Přidat na plochu.',
+  'install.android': 'V Chromu otevři menu ⋮ a zvol Instalovat aplikaci nebo Přidat na plochu.',
+  'install.own': 'Na iPhonu má aplikace z plochy vlastní nastavení, oddělené od Safari. Nainstaluj ji proto dřív, než si ji nastavíš.',
+  'install.button': 'Instalovat',
+  'install.why': 'Z plochy se otevře bez lišty prohlížeče a na iPhonu jí Safari nesmaže nastavení po týdnu bez návštěvy.',
+  'install.iphone': 'iPhone',
+  'install.androidName': 'Android',
   // station line and sheet
   'st.line': 'Atmosféra: {line}',
   'st.sheet': 'Atmosféra',

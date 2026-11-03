@@ -284,6 +284,15 @@ export const en = {
   // the toast
   'toast.undo': 'Undo',
   'toast.close': 'Close',
+  // the install note
+  'install.title': 'Add Ballistics to your home screen',
+  'install.ios': 'In Safari, tap Share (under ••• on iOS 26), then Add to Home Screen.',
+  'install.android': 'In Chrome, open the menu ⋮ and choose Install app or Add to Home screen.',
+  'install.own': "On an iPhone the home-screen app keeps its own settings, apart from Safari's, so install it before you set it up.",
+  'install.button': 'Install',
+  'install.why': "From the home screen it opens without the browser's bar, and on an iPhone Safari can't clear its settings after a week without a visit.",
+  'install.iphone': 'iPhone',
+  'install.androidName': 'Android',
   // station line and sheet
   'st.line': 'Atmosphere: {line}',
   'st.sheet': 'Atmosphere',

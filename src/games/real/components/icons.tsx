@@ -32,14 +32,25 @@ export function ReticleIcon() {
   )
 }
 
+// The settings sheet's icon buttons: 20px glyphs like the header's ⓘ and ⚙ (DESIGN.md, Components → Icon buttons).
+
 /** A share glyph: three nodes joined by two lines. */
 export function ShareIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" {...line}>
-      <circle cx="12" cy="3.5" r="2" />
-      <circle cx="4" cy="8" r="2" />
-      <circle cx="12" cy="12.5" r="2" />
-      <path d="M5.8 7L10.2 4.5M5.8 9L10.2 11.5" />
+    <svg width="20" height="20" viewBox="0 0 20 20" {...line}>
+      <circle cx="14.6" cy="4.6" r="2.4" />
+      <circle cx="5.4" cy="10" r="2.4" />
+      <circle cx="14.6" cy="15.4" r="2.4" />
+      <path d="M7.5 8.8L12.5 5.8M7.5 11.2L12.5 14.2" />
+    </svg>
+  )
+}
+
+/** A close glyph: two crossed lines. */
+export function CloseIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" {...line}>
+      <path d="M4.5 4.5L15.5 15.5M15.5 4.5L4.5 15.5" />
     </svg>
   )
 }

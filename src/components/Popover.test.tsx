@@ -87,12 +87,12 @@ describe('Popover', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Tag' }))
     const menu = screen.getByRole('dialog', { name: 'Menu' })
     expect(menu.style.top).toBe('185px')
-    expect(menu.style.getPropertyValue('--popover-room')).toBe('calc(100dvh - 201px)')
+    expect(menu.style.getPropertyValue('--popover-room')).toBe('calc(100dvh - 201px - var(--safe-bottom))')
     cleanup()
     render(<InBar />)
     screen.getByTestId('bar').getBoundingClientRect = rectAt(600)
     fireEvent.click(screen.getByRole('button', { name: 'Tag' }))
-    expect(screen.getByRole('dialog', { name: 'Menu' }).style.getPropertyValue('--popover-room')).toBe(`calc(100dvh - ${window.innerHeight - 600 + 8 + 16}px)`)
+    expect(screen.getByRole('dialog', { name: 'Menu' }).style.getPropertyValue('--popover-room')).toBe(`calc(100dvh - ${window.innerHeight - 600 + 8 + 16}px - var(--safe-top))`)
   })
 
   it('gives the focus back to its tag when a pick inside closes it', () => {

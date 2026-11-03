@@ -38,6 +38,7 @@ npm run dev        # dev server
 npm test           # vitest
 npm run build      # typecheck + production build into dist/
 npm run data:gzw   # refresh src/games/gzw/data/gzw-data.json (needs network)
+npm run icons      # regenerate the four app icon PNGs (scripts/make-icons.mjs); favicon.svg is hand-written
 python3 -m unittest scripts/test_build_gzw_data.py -v   # data build tests
 ```
 
@@ -57,6 +58,10 @@ The app makes no network requests on its own. The one exception is REAL's `By lo
 - [gzw-data.dev](https://gzw-data.dev): weapons, parts and ammo.
 - [GZW Fandom wiki](https://gray-zone-warfare.fandom.com/wiki/Ballistics) (CC BY-SA 3.0): the penetration chart, which also gives each round's muzzle velocity and accuracy modifier (these win over gzw-data, whose accuracy signs are flipped for about 20 rounds), and the barrel pages' muzzle-velocity modifiers that gzw-data lacks.
 - Ballistic coefficients: published real-world values, listed with sources in `src/games/gzw/data/ballistics-constants.json`.
+
+## Installing
+
+The app can be added to a phone's home screen: `public/manifest.webmanifest` (name `Ballistics`, `standalone`, one app for both languages) and the icons from `npm run icons`. A phone's first browser visit shows a one-time note (`gb.install`), and ⓘ keeps the steps. There is no service worker and no offline mode yet; an installed app loads the current site when it starts fresh. GitHub Pages lets browsers cache the page for up to 10 minutes, and iOS may resume a suspended app without reloading it, so a new release can take a little while to show. `--safe-top` and `--safe-bottom` keep the header, docks and sheets clear of the notch and home bar.
 
 ## Weather (REAL, `By location`)
 

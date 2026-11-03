@@ -211,7 +211,7 @@
   z-index: 20;
   display: grid;
   gap: 6px;
-  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  padding: 8px max(12px, var(--safe-right)) calc(8px + var(--safe-bottom)) max(12px, var(--safe-left));
   border-top: 1px solid var(--border-strong);
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(12px);
@@ -286,7 +286,7 @@
 }
 
 body:has(> .dock) .app {
-  padding-bottom: 112px;
+  padding-bottom: calc(112px + var(--safe-bottom));
 }
 
 @media (max-width: 699px) {

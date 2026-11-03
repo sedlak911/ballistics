@@ -47,13 +47,18 @@ function InfoIcon() {
 
 type Sheet = 'settings' | 'info'
 
-/** Slides the header away while the page scrolls down and back on the way up; always shown near the top. */
-function useHiddenOnScrollDown(pinned: boolean): boolean {
+/**
+ * Slides the header away while the page scrolls down and back on the way up; always shown near the top. `over`: the
+ * page has scrolled under the header, which then needs a ground of its own.
+ */
+function useHeaderScroll(pinned: boolean): { hidden: boolean; over: boolean } {
   const [hidden, setHidden] = useState(false)
+  const [over, setOver] = useState(() => window.scrollY > 0)
   useEffect(() => {
     let last = window.scrollY
     const onScroll = () => {
       const y = window.scrollY
+      setOver(y > 0)
       if (Math.abs(y - last) < 4) return
       setHidden(y > last && y > 64)
       last = y
@@ -61,7 +66,7 @@ function useHiddenOnScrollDown(pinned: boolean): boolean {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
-  return hidden && !pinned
+  return { hidden: hidden && !pinned, over }
 }
 
 export function AppHeader({ route, games, display, setDisplay, t, slotRef, info, extraSettings }: {
@@ -79,7 +84,7 @@ export function AppHeader({ route, games, display, setDisplay, t, slotRef, info,
 }) {
   const href = (patch: Partial<Route>) => buildHash({ ...route, ...patch })
   const [open, setOpen] = useState<Sheet | null>(null)
-  const hidden = useHiddenOnScrollDown(open !== null)
+  const { hidden, over } = useHeaderScroll(open !== null)
   const phone = useMedia(PHONE)
   const settingsRef = useRef<HTMLButtonElement>(null)
   const infoRef = useRef<HTMLButtonElement>(null)
@@ -107,7 +112,7 @@ export function AppHeader({ route, games, display, setDisplay, t, slotRef, info,
   }, [open])
 
   return (
-    <header className={`app-header${hidden ? ' hidden' : ''}`}>
+    <header className={`app-header${hidden ? ' hidden' : ''}${over ? ' over' : ''}`}>
       <a className="logo" href={href({ page: 'workbench' })}>
         <Logo />
         <span>
@@ -126,11 +131,11 @@ export function AppHeader({ route, games, display, setDisplay, t, slotRef, info,
       </nav>
       <div className="header-slot" ref={slotRef} />
       <div className="toggles">
-        <button ref={infoRef} type="button" className="hdr-btn info" aria-label={t('hdr.info')} title={t('hdr.info')}
+        <button ref={infoRef} type="button" className="icon-btn hdr-btn info" aria-label={t('hdr.info')} title={t('hdr.info')}
           aria-expanded={open === 'info'} onClick={() => toggle('info')}>
           <InfoIcon />
         </button>
-        <button ref={settingsRef} type="button" className="hdr-btn settings" aria-label={t('hdr.settings')} title={t('hdr.settings')}
+        <button ref={settingsRef} type="button" className="icon-btn hdr-btn settings" aria-label={t('hdr.settings')} title={t('hdr.settings')}
           aria-expanded={open === 'settings'} onClick={() => toggle('settings')}>
           <GearIcon />
         </button>

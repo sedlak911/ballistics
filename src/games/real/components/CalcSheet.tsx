@@ -10,6 +10,7 @@ import { useRealProfile, type Effect } from '../profile'
 import { LINK_SOURCE } from '../profiles'
 import type { RealInput, RealShare, RealSolution } from '../solve'
 import { angleLabel, fix, inputValue, len, num, shareLines, term } from './calcText'
+import { CloseIcon } from './icons'
 import {
   arrowed, chanceText, clickDigits, clicksText, LEFT_RIGHT, lengthText, NBSP, rounded, sensitivityWind, SENSITIVITY_STEP, sourceMaker, UP_DOWN, windText,
 } from './realText'
@@ -491,8 +492,8 @@ export function CalcSheet({ solution: s, onClose, returnFocus }: {
         <div ref={ref} className="calc-sheet panel" role="dialog" aria-modal="true" aria-labelledby="calc-title" tabIndex={-1} onKeyDown={trap}>
           <div className="calc-head">
             <h2 id="calc-title">{t('calc.title')} <span className="calc-dist num">· {fmtDistance(d, sys)}</span></h2>
-            <button ref={closeRef} type="button" className="calc-close" aria-label={t('calc.close')} onClick={onClose}>
-              <span aria-hidden="true">✕</span>
+            <button ref={closeRef} type="button" className="icon-btn calc-close" aria-label={t('calc.close')} title={t('calc.close')} onClick={onClose}>
+              <CloseIcon />
             </button>
           </div>
           <div className="calc-body">

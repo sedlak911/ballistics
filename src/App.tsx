@@ -10,6 +10,7 @@ import type { DataInfo } from './components/InfoSheet'
 import { GAMES, type GameId } from './games/registry'
 import { ComingSoon } from './pages/ComingSoon'
 import { useRoute } from './router'
+import { InstallNote } from './components/InstallNote'
 import { SettingsProvider, useSettings } from './settings/SettingsContext'
 import { APP_VERSION } from './version'
 import './games/gzw/theme.css'
@@ -33,16 +34,17 @@ function Shell() {
   }, [route.game])
   return (
     <div className="app">
+      <Backdrop />
       <AppHeader route={route} games={GAMES} display={display} setDisplay={setDisplay} t={t} slotRef={setSlot}
         info={INFO[game.id]} extraSettings={game.id === 'real' ? <RealDisplaySettings /> : undefined} />
       <main className="app-main">
-        <Backdrop />
         <HeaderSlotContext.Provider value={slot}>
           <ToastSlotContext.Provider value={toastSlotValue}>
             {game.id === 'real' ? <RealApp /> : game.id === 'gzw' ? <GzwApp /> : <ComingSoon game={game.name} url={game.url} />}
           </ToastSlotContext.Provider>
         </HeaderSlotContext.Provider>
       </main>
+      <InstallNote t={t} />
       <div className="version-mark" aria-hidden="true">v{APP_VERSION}</div>
     </div>
   )

@@ -40,7 +40,7 @@
   .focus:not(.first) {
     display: flex;
     flex-direction: column;
-    height: max(calc(100dvh - 64px), 660px);
+    height: max(calc(100dvh - 64px - var(--safe-top)), 660px);
   }
 
   .focus:not(.first) .focus-grid {

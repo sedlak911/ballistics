@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 
 const dist = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 const PAGES = ['index.html', 'cs/index.html', 'en/index.html']
-const REQUIRED = ['ocr/worker.min.js', 'ocr/eng.traineddata.gz']
+const REQUIRED = ['ocr/worker.min.js', 'ocr/eng.traineddata.gz', 'manifest.webmanifest']
 // Any host and subpath will do; only what stays under it counts.
 const SITE = 'https://pages.invalid/app/'
 
@@ -34,6 +34,26 @@ for (const page of PAGES) {
     const inside = url.href.startsWith(SITE)
     const target = inside ? decodeURIComponent(url.pathname.slice(new URL(SITE).pathname.length)) : ''
     if (!inside || !isPage(join(dist, target))) fail(`dist/${page}: ${m[1]}="${ref}" does not resolve to a file under dist/`)
+  }
+}
+// The manifest's references resolve against the manifest's own URL, and each must stay under the site.
+if (isFile(join(dist, 'manifest.webmanifest'))) {
+  let manifest
+  try { manifest = JSON.parse(readFileSync(join(dist, 'manifest.webmanifest'), 'utf8')) } catch { fail('dist/manifest.webmanifest is not valid JSON') }
+  const base = SITE + 'manifest.webmanifest'
+  const sitePath = new URL(SITE).pathname.length
+  const inSite = (key, ref) => {
+    refs++
+    const url = new URL(ref, base)
+    if (!url.href.startsWith(SITE)) fail(`dist/manifest.webmanifest: ${key}="${ref}" leaves the site`)
+    return decodeURIComponent(url.pathname.slice(sitePath))
+  }
+  for (const key of ['start_url', 'scope']) {
+    if (typeof manifest[key] !== 'string') fail(`dist/manifest.webmanifest: ${key} is missing`)
+    if (!isPage(join(dist, inSite(key, manifest[key])))) fail(`dist/manifest.webmanifest: ${key}="${manifest[key]}" does not resolve under dist/`)
+  }
+  for (const icon of manifest.icons ?? []) {
+    if (!isFile(join(dist, inSite('icons[].src', icon.src)))) fail(`dist/manifest.webmanifest: icons[].src="${icon.src}" is not a file under dist/`)
   }
 }
 for (const path of REQUIRED) if (!isFile(join(dist, path))) fail(`dist/${path} is missing`)

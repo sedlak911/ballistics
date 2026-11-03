@@ -126,7 +126,7 @@ export function RealMenus({ setup, update, preset, own, save, station, onReset, 
       {/* Keyed by the section, so each opening is a fresh sheet that returns the focus to its own tag. */}
       {open && (
         <RealSettings key={open} initial={open} onClose={() => { setOpen(null); onSheetClosed() }} returnFocus={tags[open]}
-          headerAction={<button type="button" className="rs-close" aria-label={t('rs.share')} title={t('rs.share')} onClick={share}><ShareIcon /></button>}
+          headerAction={<button type="button" className="icon-btn" aria-label={t('rs.share')} title={t('rs.share')} onClick={share}><ShareIcon /></button>}
           setup={setup} update={update} preset={preset} own={own} save={save} station={station}
           sectionFoot={(s) => sectionKeysIn(own, s).length > 0 && <SectionReset label={t(RESET[s])} onReset={() => onReset(s)} />} />
       )}

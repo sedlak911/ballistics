@@ -16,7 +16,7 @@ body {
 
 /* In-page jumps (the mil-dot guide) land under the sticky header. */
 html {
-  scroll-padding-top: 64px;
+  scroll-padding-top: calc(64px + var(--safe-top));
 }
 
 body {

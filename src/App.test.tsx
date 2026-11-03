@@ -77,12 +77,21 @@ describe('App shell', () => {
   })
 
   it('shows GZW under its short name on a phone', () => {
+    localStorage.setItem('gb.install', '{"noteShown":true}')
     vi.stubGlobal('matchMedia', (query: string) => ({
       matches: query === PHONE, media: query, addEventListener: () => {}, removeEventListener: () => {},
     }))
     open('#/gzw/workbench')
     const nav = screen.getByRole('navigation', { name: 'Game' })
     expect(within(nav).getAllByRole('link').map((a) => a.textContent)).toEqual(['REAL', 'GZW', 'WARDOGS' + 'soon'])
+  })
+
+  it('shows the install note on a phone with empty storage', () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query === PHONE, media: query, addEventListener: () => {}, removeEventListener: () => {},
+    }))
+    open('#/real/workbench')
+    expect(screen.getByRole('status')).toHaveTextContent('Add Ballistics to your home screen')
   })
 
   it('opens REAL on a bare URL and GZW on its own route', () => {
@@ -122,6 +131,51 @@ describe('App shell', () => {
     const cs = screen.getByRole('dialog', { name: 'O webu' })
     expect(cs).toHaveTextContent('Odhady z fyziky a zveřejněných údajů. Než se na ně spolehneš, ověř je střelbou na papírový terč.')
     expect(cs).not.toHaveTextContent(/MADFINGER|BULKHEAD|Hra/)
+  })
+})
+
+describe('The header', () => {
+  const scrollTo = (y: number) => {
+    Object.defineProperty(window, 'scrollY', { value: y, configurable: true })
+    fireEvent.scroll(window)
+  }
+  afterEach(() => scrollTo(0))
+
+  it('has the contour lines under it: they span the whole page, not only the part below it', () => {
+    open('#/real/workbench')
+    const topo = document.querySelector('.topo')!
+    expect(topo.parentElement).toHaveClass('app')
+    expect(topo.compareDocumentPosition(document.querySelector('.app-header')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('lets the page show through at the top, and takes a ground only while the page scrolls under it', () => {
+    open('#/real/workbench')
+    const header = document.querySelector('.app-header')!
+    expect(header).not.toHaveClass('over')
+    scrollTo(30)
+    expect(header).toHaveClass('over')
+    scrollTo(0)
+    expect(header).not.toHaveClass('over')
+  })
+
+  it('draws ⓘ, ⚙ and the sheets’ share and ✕ as one icon button, each with a line glyph', () => {
+    open('#/real/workbench?p=p7&d=800')
+    const iconButton = (el: HTMLElement) => {
+      expect(el).toHaveClass('icon-btn')
+      expect(el.querySelector('svg')).not.toBeNull()
+      expect(el).not.toHaveTextContent('✕')
+    }
+    iconButton(screen.getByRole('button', { name: 'About this site' }))
+    iconButton(screen.getByRole('button', { name: 'Settings' }))
+
+    fireEvent.click(within(screen.getByTestId('real-strip')).getByRole('button', { name: /^Rifle:/ }))
+    const sheet = screen.getByRole('dialog', { name: 'Settings' })
+    iconButton(within(sheet).getByRole('button', { name: 'Share settings' }))
+    iconButton(within(sheet).getByRole('button', { name: 'Close settings' }))
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Close settings' }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'How it’s calculated' }))
+    iconButton(within(screen.getByRole('dialog', { name: /How it’s calculated/ })).getByRole('button', { name: 'Close' }))
   })
 })
 

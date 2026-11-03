@@ -11,6 +11,9 @@ import '@fontsource/geist-mono/400.css'
 import '@fontsource/geist-mono/500.css'
 import './styles/base.css'
 import App from './App.tsx'
+import { captureInstallPrompt } from './install'
+
+captureInstallPrompt()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

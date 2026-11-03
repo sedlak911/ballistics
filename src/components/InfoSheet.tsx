@@ -1,4 +1,5 @@
 import type { T, TKey } from '../i18n'
+import { isStandalone, useInstallPrompt } from '../install'
 import { APP_VERSION } from '../version'
 
 export interface DataInfo {
@@ -23,10 +24,12 @@ const PRIVACY: TKey[] = ['info.privacy.storage', 'info.privacy.location', 'info.
 
 /**
  * What the site is and where its data comes from: the fan-project note, how to read the answer, the data version and
- * the credits, then privacy and the app's version. Help and privacy start closed, so the sheet stays short.
+ * the credits, how to install, then privacy and the app's version. Help and privacy start closed, so the sheet stays short.
  */
 export function InfoSheet({ info, t }: { info: DataInfo | null; t: T }) {
   const notes = info?.notes ?? GAME_NOTES
+  const prompt = useInstallPrompt()
+  const standalone = isStandalone()
   return (
     <div className="info-body">
       {notes.before && <p>{t(notes.before)}</p>}
@@ -59,6 +62,28 @@ export function InfoSheet({ info, t }: { info: DataInfo | null; t: T }) {
         </p>
       )}
       {notes.after && <p>{t(notes.after)}</p>}
+      {!standalone && (
+        <details className="info-more">
+          <summary>{t('install.title')}</summary>
+          <p>{t('install.why')}</p>
+          <dl>
+            <div>
+              <dt>{t('install.iphone')}</dt>
+              <dd>{t('install.ios')}</dd>
+            </div>
+            <div>
+              <dt>{t('install.androidName')}</dt>
+              <dd>{t('install.android')}</dd>
+            </div>
+          </dl>
+          <p>{t('install.own')}</p>
+          {prompt && (
+            <button type="button" className="btn ghost" onClick={prompt}>
+              {t('install.button')}
+            </button>
+          )}
+        </details>
+      )}
       <details className="info-more">
         <summary>{t('info.privacy')}</summary>
         {PRIVACY.map((k) => <p key={k}>{t(k)}</p>)}

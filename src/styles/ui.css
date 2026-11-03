@@ -128,6 +128,24 @@
   color: var(--muted);
 }
 
+/* Icon buttons: ⓘ and ⚙ in the header, a sheet's share and ✕. A hairline square round a 20px line glyph, no fill. */
+.icon-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-strong);
+  color: var(--muted);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.icon-btn:hover,
+.icon-btn[aria-expanded='true'] {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
 /* Segmented: toolbar-style options, selected = accent text and an inset bottom bar --------- */
 .segmented {
   display: flex;
@@ -311,6 +329,11 @@ input::placeholder {
 /* Phone: every tap target at least 44px tall. */
 @media (max-width: 699px) {
   .chips button {
+    height: 44px;
+  }
+
+  .icon-btn {
+    width: 44px;
     height: 44px;
   }
 
@@ -641,10 +664,11 @@ input::placeholder {
   padding: 16px;
 }
 
-/* Opaque, like the header sheets; fixed over .panel's relative position, which loads later. */
+/* Glass, like the header sheets; fixed over .panel's relative position, which loads later. */
 .popover.panel {
   position: fixed;
-  background: var(--panel);
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
 }
 
 @media (max-width: 699px) {
@@ -695,14 +719,15 @@ input::placeholder {
   position: fixed;
   z-index: 60;
   left: 50%;
-  bottom: calc(24px + env(safe-area-inset-bottom));
+  bottom: calc(24px + var(--safe-bottom));
   transform: translateX(-50%);
   display: grid;
   gap: 8px;
   width: max-content;
   max-width: min(440px, calc(100vw - 32px));
   padding: 8px 8px 8px 16px;
-  background: var(--panel);
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border-strong);
   color: var(--fg);
   font-size: 14px;
@@ -755,7 +780,7 @@ input::placeholder {
 }
 
 .toast-slot:not(:empty) {
-  padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+  padding: 8px 16px calc(8px + var(--safe-bottom));
 }
 
 .toast-slot > .toast {
@@ -764,10 +789,30 @@ input::placeholder {
   margin: 0 auto;
 }
 
+/* The one-time install note: the toast's box above the docks (20), under the raised header with its open sheet (30),
+   the menus (40), the full sheets (50) and the page toast (60). */
+.install-note {
+  z-index: 25;
+}
+
+/* A page toast on <body> (the Undo after a reset, say) lands in the same place: the note waits, and is back with the toast's end. */
+body:has(> .toast:not(.install-note)) > .install-note {
+  visibility: hidden;
+}
+
+.install-note-line {
+  margin: 0;
+  padding-right: 8px;
+}
+
+.install-note-own {
+  color: var(--muted);
+}
+
 @media (max-width: 699px) {
   .toast {
     /* Over the phone dock, 8px clear of it: its 1px border, 8px padding, two 46px rows 6px apart and 8px padding
        (115px), then the safe area. */
-    bottom: calc(123px + env(safe-area-inset-bottom));
+    bottom: calc(123px + var(--safe-bottom));
   }
 }

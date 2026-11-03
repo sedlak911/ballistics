@@ -48,6 +48,7 @@ The app is one page, the workbench, with one view: the answer and the inputs tha
 - **Hold over and lead:** a pair of large figures.
 - **Armor line:** armor by class alone, since nobody can tell which piece the enemy wears: `Usually penetrates up to` and the highest class the round usually gets through at this distance, the pen strip for the other classes, and the energy note when the round has lost enough energy to count armor tougher. The charted pen values hold to 150 m; beyond that the round's energy is measured against its energy at 150 m (a quarter lost: one class tougher; half: two).
 - **Toolbar:** the range row with my stance, and the target row (see Layout).
+- **Install note** (`InstallNote`): shown once, on a phone's first browser visit, never from the home screen (`gb.install` remembers it). It is the toast's box (glass, 1px `--border-strong`, 14px body font) at z-index 25, with a `✕` and no timeout, over the dock and below the open sheets. It carries the iPhone and Android steps, and a 44px `Install` button (`--accent` text) only when the browser has offered its prompt.
 - **Foot row:** the `Import from clipboard (Ctrl+V)` button and the estimate note.
 
 **Fit:** on desktop the view is one screen: header, scope, answer, toolbar and foot row, without scrolling, from 1366×768 up and at 1080×1920. The scope grows with the window rather than leaving empty space.
@@ -156,8 +157,8 @@ The default page (`#/real/workbench`, and the bare URL): the first-shot scope se
   - **A failure** shows its line: insecure (HTTPS only), denied (blocked, allow it or enter by hand), unavailable (also a timeout, the only one with `Try again`), offline, service. After a denial, a later tap checks the permission without asking: still blocked shows the text again, allowed tries again.
   - **Offline and service add a second line.** With no usable cache it is `Using the standard atmosphere for your altitude.`, and the model temperature, pressure and humidity go back to standard. With a cache under 3 hours old it is `Using the last weather instead ({age}).`
   - **A value the forecast lacked** adds `The forecast had no pressure: using the standard one.` (two values in one line), shown while that field is still standard.
-- **Settings sheet:** a rifle, round or scope tag opens it: a right side sheet on desktop (600px), full screen on a phone, opaque `--panel`.
-  - **Header** 52px: the title, a share icon button (`Share settings`) and `✕` at 44px. The body scrolls as one page with the safe-area inset in its bottom padding. Escape and `✕` return focus to the tag that opened it, also after the sheet was reopened from another tag.
+- **Settings sheet:** a rifle, round or scope tag opens it: a right side sheet on desktop (600px), full screen on a phone, glass over the page dimmed to 25% black.
+  - **Header** 52px: the title, then two icon buttons (see Components), share (`Share settings`) and `✕`. The body scrolls as one page with the safe-area inset in its bottom padding. Escape and `✕` return focus to the tag that opened it, also after the sheet was reopened from another tag.
   - **Sections** `Rifle`, `Round`, `Scope`: a header row at least 60px tall, one button with `aria-expanded`: icon, title, a `{n} yours` chip when above 0, a chevron, and a mono 11px `--muted` summary of two lines at most. Only an open header has `--accent` (icon, title) and the `--panel-2` ground. Several sections can be open; the tag's own is open and in view.
   - **Fields** put the label left and the source tag right on one row above the input. `True the muzzle velocity ›` is collapsed inside the Round section.
   - **Reset** ends an open section, after a 1px rule: a right-aligned 44px `--muted` text button (`↺ Reset the round to the preset`), shown while that section has any override key. It clears only that section's keys, so the other sections keep their values (on a shared-link view too: their tags turn from `from link` to `yours`). It raises a toast with `Undo`.
@@ -167,7 +168,7 @@ The default page (`#/real/workbench`, and the bare URL): the first-shot scope se
 - **Pressure kind:** a model pressure converts with the Station/QNH toggle.
 - **Bottom bar:** distance, slope, wind (a typed field with − and + buttons, and the `WindClock`) and target size, labelled fields on one row; on a phone it is a two-row dock fixed to the bottom.
 - **ⓘ sheet:** REAL's credits, and in place of the game notes its own: "Estimates from physics and published data. Check them on paper before relying on them." No fan-project line: there is no game to disclaim. It leads with `How to read the answer`: each term as the page shows it (`Elevation, Windage`, `dial`, `hold`, `left over`, the three wind columns, the hit chance, the warnings, `How it's calculated`) with what it means.
-- **Calculation sheet:** a side sheet (opaque `--panel`, full width on a phone) with the steps in order: air, muzzle velocity, flight, elevation, wind, spin drift and the rest. Each step shows its inputs with a tag for where each came from (`preset`, `estimate`, `standard`), its formula with the numbers, and its effect on the hit in cm and MRAD. An effect that can be left out carries a switch.
+- **Calculation sheet:** a side sheet (glass over the page dimmed to 25% black, full width on a phone) with the steps in order: air, muzzle velocity, flight, elevation, wind, spin drift and the rest. Each step shows its inputs with a tag for where each came from (`preset`, `estimate`, `standard`), its formula with the numbers, and its effect on the hit in cm and MRAD. An effect that can be left out carries a switch.
 
 **New components** (game-agnostic, in `src/components/`):
 - **`WindClock`:** a 12-position dial for where the wind blows from, the target at the top; one `role="slider"` control, arrow keys step the hour and wrap.
@@ -212,7 +213,8 @@ Case comes from CSS `text-transform`. i18n strings stay in sentence case in `en.
   - header padding 14px 16px 10px, body padding 0 16px 16px, 16px between stacked panels.
 
   Corner marks belong to panels. Items inside a panel (cards, rows) use the selection states below.
-- **Depth:** comes from borders and translucency (the header is the exception: a band, no line). Surfaces carry no box shadows.
+- **Glass:** every surface that opens over the page (the ⓘ and ⚙ sheets, the settings and calculation sheets, setup menus, dialogs, toasts and the install note) is frosted glass: `--glass`, `--panel` at 50%, with `--glass-blur`, `blur(10px) saturate(1.5)`, both in `tokens.css`. The page shows through as soft shapes and the text on top stays legible. Under `prefers-reduced-transparency: reduce` the glass is plain `--panel`. A side sheet or dialog dims the page under it to 25% black, not more, so the glass still shows. An element with a backdrop blur is a backdrop root, so nothing that holds a glass surface may carry a blur of its own (the header puts its ground on `::before`). `glass.test.ts` checks every open surface.
+- **Depth:** comes from borders and translucency. Surfaces carry no box shadows.
 - **Background:** two layers behind the content, both `aria-hidden`.
   - **Contour lines:** concentric, wobbly topographic lines, in white at 4–5% opacity, generated as SVG, across the page.
   - **Glow:** one radial glow per screen, behind the hero object (the scope view), with `--accent` at 10–12% in the middle fading to transparent.
@@ -243,6 +245,7 @@ A setup choice sits in a **popover menu** under the tag that names it (see Setup
 - **Buttons, 44px tall:**
   - **Primary:** `--accent` with `--on-accent` text, `--accent-hi` on hover. One per screen.
   - **Ghost:** 1px `--border-strong`, background black at 40%, `--fg-strong` text.
+- **Icon buttons** (`.icon-btn`): ⓘ and ⚙ in the header, and a sheet's share and `✕`, all alike. A 36px square (44px on a phone) with a 1px `--border-strong` and no fill, round a 20px line glyph (stroke 1.3) in `--muted`; hover or an open sheet turns the glyph `--accent` and the border `--accent` at 60%. The `✕` is a drawn glyph, not the text character. Each has an accessible name and a matching `title`.
 - **Chips:** 28px tall on desktop and 44px on a phone, padding 0 10px, 1px `--border-strong`, background black at 30%, display 12px/600 at .12em, uppercase.
 - **List rows (`ListPicker`):**
   - 32px rows (44px on a phone) between `--border` hairlines: the name in body 14px, an optional tag, a mono figure right-aligned (after the tag, so figures share one right edge whether a row has a tag or not), an optional element after it (the round's pen strip);
@@ -256,27 +259,28 @@ A setup choice sits in a **popover menu** under the tag that names it (see Setup
   - in the armor line, mono 10px class labels sit below it and the highest class the round usually penetrates gets a 1px `--fg-strong` outline at offset 2px;
   - in the round menu, one beside each round, without labels.
 - **Setup tags:** one row of tag buttons with the key word bold in `--fg-strong`: the weapon with its barrel length (`M700 · 22"`) joined to a cog, the round, and the scope with its zero. Each opens its own menu, so no two tags do the same thing. (REAL's tags differ: they open the settings sheet, see REAL.) Hover or an open menu turns the border `--accent` at 60%. On desktop they sit in the header's slot, between the game switcher and the ⓘ and ⚙ buttons, and truncate before they wrap; on a phone they are a strip under the header that scrolls sideways, each tag 44px tall.
-- **Setup menus** (`Popover`): an opaque `--panel` panel, 16px padding, 260–440px wide, hung 8px under the tag that opens it and placed on `<body>` so nothing clips it; on a phone it spans the width inside the 16px gutters. It ends at least 16px from the screen's edge, however low it hangs, and scrolls inside. It takes the focus on opening (on the chosen option) and gives it back to the tag on closing; Escape, a press outside it or its tag close it.
+- **Setup menus** (`Popover`): a glass panel, 16px padding, 260–440px wide, hung 8px under the tag that opens it and placed on `<body>` so nothing clips it; on a phone it spans the width inside the 16px gutters. It ends at least 16px from the screen's edge, however low it hangs, and scrolls inside. It takes the focus on opening (on the chosen option) and gives it back to the tag on closing; Escape, a press outside it or its tag close it.
   - **Weapon:** the weapon chips; a pick closes the menu and brings the weapon's best round.
   - **Round:** list rows, each with its pen strip; a pick closes the menu.
   - **Cog:** the barrel list rows and the real-accuracy field (only the field on a weapon without barrels). A barrel whose muzzle-velocity change no source gives carries a `--muted` `MV unknown` tag; the app then uses the round's own speed.
   - **Scope tag:** the scope list rows (each with an `FFP`/`SFP` tag) and the zero.
   - These two stay open while you set them.
-- **Toast** (`Toast`, `useToast`): one status at a time, `role="status"`, an opaque `--panel` box with a 1px `--border-strong`, 14px in the body font (the action button is mono 13px). It has an optional body (a field to copy from), an optional action button (`Undo`, 44px, `--accent` text) and a duration: 6 s by default, or `null`, which adds a `✕` and keeps it until closed. A new toast replaces the old one. It renders into the open sheet's slot (`toastSlot`), its own row at the foot of the sheet's column so it covers none of its controls, else on `<body>` at the bottom, above the dock on a phone. It closes on its action or its `✕`.
+- **Toast** (`Toast`, `useToast`): one status at a time, `role="status"`, a glass box with a 1px `--border-strong`, 14px in the body font (the action button is mono 13px). It has an optional body (a field to copy from), an optional action button (`Undo`, 44px, `--accent` text) and a duration: 6 s by default, or `null`, which adds a `✕` and keeps it until closed. A new toast replaces the old one. It renders into the open sheet's slot (`toastSlot`), its own row at the foot of the sheet's column so it covers none of its controls, else on `<body>` at the bottom, above the dock on a phone. It closes on its action or its `✕`.
 - **Foot row:** the import ghost button, then the estimate note filling the rest of the row.
 - **Import:** one ghost button, `Import from clipboard (Ctrl+V)`. Its title carries the help; Ctrl+V works anywhere on the page and a screenshot can be dropped on the button. Without the Clipboard API the button opens a file picker. A status line shows only while reading or after a failure.
-- **Dialog (import):** a panel with an opaque `--panel` ground over the page dimmed to 60% black; ticks and radios in hairline rows; ghost and primary buttons at 44px.
+- **Dialog (import):** a glass panel over the page dimmed to 25% black; ticks and radios in hairline rows; ghost and primary buttons at 44px.
   - Several weapons the app can show are radios, the fastest muzzle velocity preselected; the round is radios over the rounds found that fit the chosen weapon, the best preselected, `keep the current one` last.
   - The barrel, scope and read accuracy are ticks, shown only for the weapon they belong to.
-- **Info sheet:** the ⓘ `About this site` button opens an opaque sheet like the settings one. In order:
+- **Info sheet:** the ⓘ `About this site` button opens a glass sheet like the settings one. In order:
   - the fan-project line;
   - `How to read the answer`, on a page that gives one (REAL);
   - the data version with its sources;
   - the estimates note;
+  - `Add Ballistics to your home screen`: why, the iPhone and Android steps, and an `Install` button only when the browser offers one; hidden when the page runs from the home screen;
   - `Privacy`: what stays in the browser and what leaves it (By location to Open-Meteo, the screenshot read in the browser, the IP address GitHub Pages sees), and "No cookies, no analytics, no tracking.";
   - `Version {v}`, the app's version.
 
-  Help and privacy are `<details>`, closed until asked for: a label-role summary in `--fg` (`--accent` on hover) with a `›` that turns down when open, so the sheet stays short. Its text is mono 12px `--muted`, a term `--fg`. The sheet scrolls inside itself (at most the screen's height less 88px). While a sheet is open the header sits over a phone's dock, so the sheet's end is never hidden under it.
+  Help, install and privacy are `<details>`, closed until asked for: a label-role summary in `--fg` (`--accent` on hover) with a `›` that turns down when open, so the sheet stays short. Its text is mono 12px `--muted`, a term `--fg`. The sheet scrolls inside itself (at most the screen's height less 88px). While a sheet is open the header sits over a phone's dock, so the sheet's end is never hidden under it.
 - **Version mark:** the app's version (`v` and the `package.json` version), mono 10px `--muted` at 60%, fixed 8px from the right and 4px from the bottom of the screen. It moves nothing, takes no clicks and is `aria-hidden` (ⓘ gives it). On a phone the dock fills that corner, so it shows only in ⓘ.
 - **Estimate note:** a 1px dashed `--border-strong` box, mono 11px `--muted`, led by an accent `≈`.
 
@@ -341,11 +345,12 @@ The scope view is the hero. It shows which point of the reticle goes on the targ
 ## Layout and the phone
 
 - **Spacing:** a 4px base, with steps of 4, 8, 12, 16, 24, 32 and 48. The page gutter is 32px on desktop and 20px on a phone. Columns are 24px apart.
-- **Header:** 64px tall, on a `--panel` band at 92 % with blur, no bottom line.
+- **Edges:** `--safe-top`/`--safe-bottom`/`--safe-left`/`--safe-right` (the device's safe-area insets, 0 in a browser tab) pad the header and anything fixed to the screen's edges; the side ones matter in landscape (the header, the docks and `.app-main` take `max(<usual padding>, var(--safe-left/right))`).
+- **Header:** 64px tall, transparent with no bottom line: the page's own background, contour lines included, shows through. Only while the page scrolls under it does it take a ground of `--bg` at 88% with blur, so its tags and buttons never sit on the page's text.
   - **Left:** the logo and the game switcher.
   - **Middle:** a slot that the view fills through a portal (`HeaderSlot`) with its setup tags.
   - **Language:** it is in the path, `…/cs/#/…` or `…/en/#/…`. The ⚙ language switch goes to the other path with the same hash, and a new link doesn't write `l=`. The root `index.html` only redirects (an old link's `l=`, then the stored language, then the browser's), keeping the hash.
-  - **Right:** an ⓘ `About this site` button, then a ⚙ `Settings` button. Each opens an opaque panel sheet, the info sheet or the language, unit and angle controls; Escape, an outside click or the button close it.
+  - **Right:** an ⓘ `About this site` button, then a ⚙ `Settings` button. Each opens a glass sheet, the info sheet or the language, unit and angle controls; Escape, an outside click or the button close it.
   - **Out of the way:** it slides up while the page scrolls down and comes back on the way up; it stays while the sheet is open. `scroll-padding-top` is 64px, so in-page jumps land under it.
 - **The view:** one screen tall from 700px wide (`max(100dvh − 64px, 660px)`), at most 1640px wide:
   - a grid of scope and answer that takes the height left after the toolbar and the foot row; it is a size container, and the scope is `min(100cqh − 22px, 55cqw, 880px)` square with its caption line under it;

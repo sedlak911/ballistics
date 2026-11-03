@@ -1,5 +1,5 @@
-/* The REAL settings sheet (spec §1; the "after" mockup in 2026-11-01-real-settings-review.html): an opaque --panel
-   over the page dimmed to 60 % black, as wide as the calculation sheet on the right of a desktop and the whole screen
+/* The REAL settings sheet (spec §1; the "after" mockup in 2026-11-01-real-settings-review.html): a glass panel
+   over the page dimmed to 25 % black, as wide as the calculation sheet on the right of a desktop and the whole screen
    on a phone, over the dock. A 52px head, then one scrolling page of three sections that expand in place. The fields
    reuse the setup menus' grid (menus.css), each with its label and source on one row above the control. */
 .rs-backdrop {
@@ -8,7 +8,7 @@
   z-index: 50;
   display: flex;
   justify-content: flex-end;
-  background: rgb(0 0 0 / 0.6);
+  background: rgb(0 0 0 / 0.25);
 }
 
 /* The head stays, the body scrolls: the panel's corner marks stay on its corners. */
@@ -19,7 +19,8 @@
   height: 100%;
   border-width: 0 0 0 1px;
   border-color: var(--border-strong);
-  background: var(--panel);
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
 }
 
 .rs-head {
@@ -27,8 +28,8 @@
   align-items: center;
   gap: 8px;
   flex: none;
-  height: 52px;
-  padding: 0 12px 0 20px;
+  height: calc(52px + var(--safe-top));
+  padding: var(--safe-top) 12px 0 20px;
   border-bottom: 1px solid var(--border-strong);
 }
 
@@ -40,25 +41,6 @@
   letter-spacing: 0.18em;
   line-height: 1.2;
   text-transform: uppercase;
-  color: var(--fg-strong);
-}
-
-.rs-close {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--border-strong);
-  background: rgb(0 0 0 / 0.4);
-  color: var(--fg);
-  font-size: 15px;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.rs-close:hover {
-  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
   color: var(--fg-strong);
 }
 
@@ -81,7 +63,7 @@
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  padding-bottom: calc(24px + var(--safe-bottom));
 }
 
 /* Sections ------------------------------------------------------------------------ */
@@ -352,7 +334,7 @@
   }
 
   .rs-head {
-    padding: 0 12px 0 16px;
+    padding: var(--safe-top) 12px 0 16px;
   }
 
   .rs-sec-h {
