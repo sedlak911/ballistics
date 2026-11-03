@@ -9,6 +9,8 @@ export type PresetDrag = { model: 'G1' | 'G7'; bc: number } | { table: DragTable
 
 export interface RealPreset {
   id: string
+  /** The built-in rifle's stable id, shared by its rounds; never starts with `u-`. */
+  rifleId: string
   /** Groups rounds under one rifle tag, e.g. 'Desert Tech HTI'. */
   rifle: string
   round: string

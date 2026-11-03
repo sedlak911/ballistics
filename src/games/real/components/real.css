@@ -307,6 +307,24 @@
   margin: 0;
 }
 
+/* A line that opens the settings sheet at what it names: the estimate note's box as a button. The add line leads the
+   warnings; the incomplete line stands in for the answer, so it takes the sentence size in the body colour. */
+.real-ask {
+  width: 100%;
+  text-align: left;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.real-ask:hover {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  color: var(--fg);
+}
+
+.real-todo {
+  font-size: 13px;
+  color: var(--fg);
+}
+
 .real-calc {
   justify-self: start;
 }
@@ -605,6 +623,10 @@ body:has(> .real-dock) .app {
 
   .real-calc {
     justify-self: stretch;
+  }
+
+  .real-ask {
+    min-height: 44px;
   }
 
   .real-bar-slot {

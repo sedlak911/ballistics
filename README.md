@@ -13,7 +13,10 @@ The first-shot scope setting for a real rifle at 100–2000 m, from presets of t
 - **Sharing:** the share button in the sheet copies the link (the setup, the preset's changes and the language path, never the station), or shows it in a field to copy by hand when the browser refuses the clipboard.
 - **Big figure:** value or clicks when dialling, in the ⚙ sheet.
 - **Wind:** type the speed (a decimal comma works) or press or drag anywhere on the wind clock.
-- State is kept in `gb.real.setup`, `gb.real.profiles`, `gb.real.profile` and `gb.real.station`.
+- **Your own rifles, rounds and scopes:** each picker in the settings sheet lists them first with a `custom` tag and ends with `+ Add …`, which opens a form in place. Required fields come first, the optional ones after a hairline, each marked `optional`. An optional field left empty switches its effect off, and the calculation sheet and the main screen say so (`For a more precise answer, add: …`, `wind not set`). Delete has an undo. On a round, a hint offers a muzzle velocity for a barrel of another length (7.5 m/s per inch, a rough rule you accept or not). A custom scope's unit sets the display angle.
+- **Where they are kept:** `gb.real.library` in the browser (`{ v: 1, rifles, rounds, scopes }`), across releases, never sent anywhere. Clearing the site's data deletes them. The same key holds `migratedCustomEntry`, the text of the old Custom entry the migrated items came from.
+- **The old `Custom` preset:** on the first load of 0.1.4, the overrides stored for `Custom` in `gb.real.profiles` move into the library as a rifle and a round named `Custom`, and a scope `Custom` when scope values were stored. Only the values you had overridden move, never the old preset's placeholders, so the items can be incomplete: the page then asks for what is missing (`To compute, add: …`). The `custom` entry leaves `gb.real.profiles` once the library holds them, and a stored setup or a link with `p=custom` opens them.
+- State is kept in `gb.real.setup`, `gb.real.profiles`, `gb.real.profile` (with `addNoteSeen`), `gb.real.station`, `gb.real.library` and, per tab in sessionStorage, `gb.real.written`.
 
 ## GZW
 

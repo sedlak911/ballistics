@@ -153,6 +153,12 @@
   color: var(--muted);
 }
 
+/* An effect or input that is off, and why: the status colour, like the ≈ note. */
+.calc-off {
+  font-size: 11px;
+  color: var(--accent);
+}
+
 /* The switch: a 30 × 16 track in a larger button; on, the accent with the knob right. */
 .calc-sw {
   display: grid;

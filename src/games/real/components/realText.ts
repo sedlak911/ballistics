@@ -4,6 +4,8 @@ import type { T } from '../../../i18n'
 import type { Lang } from '../../../settings/url'
 import type { WindUnit } from '../profile'
 import { scopeValues, type ResolvedPreset, type Section } from '../profiles'
+import { lacks, PLACEHOLDER_SOURCE, type FieldRef } from '../selection'
+import type { Sourced } from '../types'
 
 // Formatting for the REAL answer. Directions come from the value as rounded for display, `> 0` or `< 0`, so a value
 // that rounds to zero prints as a plain 0 with no arrow and no sign: never "-0" or "↑0.0".
@@ -110,47 +112,55 @@ export function sourceMaker(source: string): string {
 }
 
 /** A number inside a summary as typed or stored, without trailing zeros: Czech writes a decimal comma. */
-const plain = (v: number, lang: Lang): string => {
+export const plain = (v: number, lang: Lang): string => {
   const s = String(+v.toPrecision(6))
   return lang === 'cs' ? s.replace('.', ',') : s
 }
+
+/** What a summary or a tag prints for a required value the selection lacks, in place of its stand-in. */
+export const MISSING = '—'
+/** A stand-in for a missing required value (selection.ts), which nobody is meant to read. */
+const standIn = (s: Sourced<unknown>): boolean => s.source === PLACEHOLDER_SOURCE
 
 /**
  * A settings section's header line (spec §1), its items joined by ` · `, a number never split from its unit:
  * - rifle: the name without its trailing length (not cut at ` / `), the barrel, the twist and the accuracy;
  * - round: the short name, the drag (`G7 0.322`, or the measured-curve word for a Cd table) and the MV;
  * - scope: the unit, the click, the zero and the sight height.
+ * A required value the selection lacks (`incomplete`, or a stand-in's source) prints as `—`, never as its stand-in.
  */
-export function sectionSummary(s: Section, p: ResolvedPreset, unit: AngleUnit, sys: UnitSystem, t: T, lang: Lang): string {
+export function sectionSummary(
+  s: Section, p: ResolvedPreset, unit: AngleUnit, sys: UnitSystem, t: T, lang: Lang, incomplete: readonly FieldRef[] = [],
+): string {
   const n = (v: number) => plain(v, lang)
   let items: string[]
   if (s === 'rifle') {
-    // The length as the tag finds it, else the barrel as given (`475 mm`); Custom's `—` (none) is left out.
+    // The length as the tag finds it, else the barrel as given (`475 mm`); a custom rifle's `—` (none) is left out.
     const barrel = barrelInches(p.rifle, p.barrel.value) ?? (p.barrel.value === '—' ? null : p.barrel.value)
     // `27″`, `16,5″` in Czech, `475 mm` with the unit held to its figure.
     const barrelText = (b: string) => b.replace(/^(\d+(?:\.\d+)?)(\s*)/, (_m, v: string, gap: string) => `${n(Number(v))}${gap ? NBSP : ''}`)
     items = [
       p.rifle.replace(INCHES_AT_END, '').trim(),
       ...(barrel ? [barrelText(barrel)] : []),
-      `1:${n(p.twistIn.value)}″`,
-      `${n(p.accuracyMoa.value)}${NBSP}MOA`,
+      ...(p.twistIn ? [`1:${n(p.twistIn.value)}″`] : []),
+      ...(p.accuracyMoa ? [`${n(p.accuracyMoa.value)}${NBSP}MOA`] : []),
     ]
   } else if (s === 'round') {
     const drag = p.drag.value
     items = [
       p.short,
-      'table' in drag ? t('rm.curve') : `${drag.model} ${n(drag.bc)}`,
-      `${Math.round(p.muzzleVelocityMs.value)}${NBSP}m/s`,
+      standIn(p.drag) ? MISSING : 'table' in drag ? t('rm.curve') : `${drag.model} ${n(drag.bc)}`,
+      standIn(p.muzzleVelocityMs) ? MISSING : `${Math.round(p.muzzleVelocityMs.value)}${NBSP}m/s`,
     ]
   } else {
-    const click = clickLabel(scopeValues(p, unit).clickValue)
+    const click = lacks(incomplete, 'scope', 'clickValue') ? MISSING : clickLabel(scopeValues(p, unit).clickValue)
     const len = sys === 'metric' ? 'mm' : 'in'
     const sight = p.sightHeightMm.value / LENGTH_TO_MM[len]
     items = [
       unit === 'mil' ? 'MRAD' : 'MOA',
       t('rs.sum.click', { v: lang === 'cs' ? click.replace('.', ',') : click }),
-      t('rs.sum.zero', { v: fmtDistance(p.zeroM, sys) }),
-      t('rs.sum.sight', { v: `${n(len === 'mm' ? Math.round(sight) : rounded(sight, 2))}${NBSP}${len}` }),
+      t('rs.sum.zero', { v: lacks(incomplete, 'scope', 'zeroM') ? MISSING : fmtDistance(p.zeroM, sys) }),
+      t('rs.sum.sight', { v: standIn(p.sightHeightMm) ? MISSING : `${n(len === 'mm' ? Math.round(sight) : rounded(sight, 2))}${NBSP}${len}` }),
     ]
   }
   return items.join(' · ')

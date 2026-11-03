@@ -1,0 +1,7 @@
+{
+  "v": 1,
+  "presets": {
+    "p7": { "zeroM": 300, "mvSdMs": 6 },
+    "custom": { "twistIn": 11, "massGr": 180, "muzzleVelocityMs": 790, "bc": 0.25, "dragModel": "G7", "zeroM": 200, "sightHeightMm": 55 }
+  }
+}

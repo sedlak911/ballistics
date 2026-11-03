@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 import type { AngleUnit } from '../../engine/units'
 import { translate } from '../../i18n'
 import { PRESETS } from './data/presets'
+import type { CustomRound } from './library'
 import { DEFAULT_REAL_PROFILE, EFFECTS, type Effect, type RealProfile } from './profile'
-import { resolvePreset, type Overrides } from './profiles'
+import { resolvePreset, type Overrides, type ResolvedPreset } from './profiles'
+import { resolveSelection } from './selection'
 import { DEFAULT_SETUP, type RealSetup } from './setup'
 import { solveReal, trueReal, type RealSolution } from './solve'
 import { STANDARD_STATION, type Station } from './station'
@@ -13,6 +15,8 @@ const ALL = { shares: true, hit: true }
 interface Case {
   id?: string
   o?: Overrides
+  /** A load resolved elsewhere (a custom one), in place of `id` and `o`. */
+  preset?: ResolvedPreset
   setup?: Partial<RealSetup>
   effects?: Partial<Record<Effect, boolean>>
   profile?: Partial<Omit<RealProfile, 'effects'>>
@@ -23,12 +27,25 @@ interface Case {
 
 // P7 with no overrides, ISA at 0 m, 50° N, dial mode, MRAD, unless the case says otherwise.
 function solve(c: Case = {}): RealSolution {
-  const p = resolvePreset(PRESETS.find((x) => x.id === (c.id ?? 'p7'))!, c.o)
+  const p = c.preset ?? resolvePreset(PRESETS.find((x) => x.id === (c.id ?? 'p7'))!, c.o)
   const profile = { ...DEFAULT_REAL_PROFILE, ...c.profile, effects: { ...DEFAULT_REAL_PROFILE.effects, ...c.effects } }
   return solveReal(p, { ...DEFAULT_SETUP, ...c.setup }, profile, { ...STANDARD_STATION, ...c.station }, c.unit ?? 'mil', c.need ?? ALL)
 }
 
 const manual = (value: number) => ({ value, source: 'manual' as const })
+
+/** A custom rifle and round with the old Custom preset's values (a .308 175 gr), and `round` on top, resolved as the page does. */
+function customLoad(round: Partial<CustomRound>): ResolvedPreset {
+  const library = {
+    v: 1 as const,
+    rifles: [{ id: 'u-rifle', name: 'Custom', twistIn: 10, accuracyMoa: 1 }],
+    rounds: [{ id: 'u-round', rifleId: 'u-rifle', name: 'Custom', massGr: 175, diameterIn: 0.308, lengthMm: 31.5, mvRefTempC: 15, powderSensMsPerC: 0, ...round }],
+    scopes: [],
+  }
+  return resolveSelection({ ...DEFAULT_SETUP, roundId: 'u-round', customRifleId: 'u-rifle' }, library, {}, undefined, new Set(), false).preset
+}
+/** A slow, draggy load that doesn't reach 2500 m. */
+const SLOW = customLoad({ muzzleVelocityMs: 300, bc: 0.15, dragModel: 'G1' })
 
 function numbersIn(v: unknown, path = ''): [string, number][] {
   if (typeof v === 'number') return [[path, v]]
@@ -275,7 +292,7 @@ describe('solveReal: what is asked for', () => {
   })
 
   it('refuses when the bullet doesn’t reach the distance', () => {
-    const s = solve({ id: 'custom', o: { muzzleVelocityMs: 300, bc: 0.15, dragModel: 'G1' }, setup: { distanceM: 2500 } })
+    const s = solve({ preset: SLOW, setup: { distanceM: 2500 } })
     expect(s.reached).toBe(false)
     expect(s.shares).toBeNull()
     expect(s.hit).toBeNull()
@@ -439,7 +456,7 @@ describe('solveReal: what the calculation view explains', () => {
   it('comes only with the shares, and not for an unreached distance', () => {
     expect(solve({ ...windy, need: { shares: false, hit: true } }).explain).toBeNull()
     expect(solve(windy).explain).not.toBeNull()
-    expect(solve({ id: 'custom', o: { muzzleVelocityMs: 300, bc: 0.15, dragModel: 'G1' }, setup: { distanceM: 2500 } }).explain).toBeNull()
+    expect(solve({ preset: SLOW, setup: { distanceM: 2500 } }).explain).toBeNull()
   })
 
   it('the hit against the line of sight is the answer: −hit / D is the elevation, and the windage', () => {
@@ -549,5 +566,70 @@ describe('solveReal: what the calculation view explains', () => {
     expect(Math.abs(2 * x.cantPerDegM - 0.35)).toBeLessThan(0.01)
     // Its rifleman's rule at 15°, −17 cm, doesn't say how its air changes along the path; ours thins with height.
     expect(Math.abs(solve({ o, setup: { distanceM: D, slopeDeg: 15 }, effects: { coriolis: false } }).explain!.slope!.differenceM + 0.17)).toBeLessThan(0.03)
+  })
+})
+
+describe('solveReal: an optional input that is missing switches its effect off', () => {
+  const hot = { ...STANDARD_STATION, tempC: manual(35) }
+  const run = (nulls: Partial<Record<'twistIn' | 'mvRefTempC' | 'powderSensMsPerC' | 'accuracyMoa', null>> & { diameterIn?: null; lengthMm?: null }, o?: Overrides, effects?: Partial<Record<Effect, boolean>>) => {
+    const base = resolvePreset(PRESETS.find((x) => x.id === 'p7')!, o)
+    const { diameterIn, lengthMm, ...top } = nulls
+    const p = {
+      ...base,
+      ...top,
+      bullet: { ...base.bullet, ...(diameterIn === null ? { diameterIn: null } : {}), ...(lengthMm === null ? { lengthMm: null } : {}) },
+    }
+    const profile = { ...DEFAULT_REAL_PROFILE, effects: { ...DEFAULT_REAL_PROFILE.effects, ...effects } }
+    return solveReal(p, { ...DEFAULT_SETUP, distanceM: 800, windMs: 3, windClock: 9 }, profile, hot, 'mil', ALL)
+  }
+  const has = (s: RealSolution, key: string) => s.inputs.some((i) => i.key === key)
+  const mvUsed = (s: RealSolution) => s.inputs.find((i) => i.key === 'mvUsedMs')!.value
+
+  it('leaves the MV unshifted and says why when the powder sensitivity is missing', () => {
+    const s = run({ powderSensMsPerC: null })
+    expect(s.shares!.powderTemp).toEqual({ missing: 'powderSens' })
+    expect(mvUsed(s)).toBe(900)
+    expect(has(s, 'powderSensMsPerC')).toBe(false)
+  })
+
+  it("the same when the MV's reference temperature is missing", () => {
+    const s = run({ mvRefTempC: null }, { powderSensMsPerC: 1.5 })
+    expect(s.shares!.powderTemp).toEqual({ missing: 'mvRefTemp' })
+    expect(mvUsed(s)).toBe(900)
+    expect(has(s, 'mvRefTempC')).toBe(false)
+  })
+
+  it('switches spin drift and the jump off without the twist', () => {
+    const s = run({ twistIn: null })
+    expect(s.shares!.spinDrift).toEqual({ missing: 'twist' })
+    expect(s.shares!.aeroJump).toEqual({ missing: 'twist' })
+    expect(has(s, 'sg')).toBe(false)
+    const off = run({}, undefined, { spinDrift: false, aeroJump: false })
+    expect(s.windage).toBeCloseTo(off.windage, 12)
+    expect(s.elevation).toBeCloseTo(off.elevation, 12)
+  })
+
+  it('the same without the diameter, or without the length: twist, then length, then diameter', () => {
+    expect(run({ diameterIn: null }).shares!.spinDrift).toEqual({ missing: 'diameter' })
+    expect(run({ diameterIn: null }).shares!.aeroJump).toEqual({ missing: 'diameter' })
+    expect(run({ lengthMm: null }).shares!.spinDrift).toEqual({ missing: 'bulletLength' })
+    expect(run({ lengthMm: null, diameterIn: null }).shares!.spinDrift).toEqual({ missing: 'bulletLength' })
+    expect(run({ twistIn: null, lengthMm: null, diameterIn: null }).shares!.spinDrift).toEqual({ missing: 'twist' })
+    expect(has(run({ diameterIn: null }), 'diameterIn')).toBe(false)
+  })
+
+  it('leaves the rifle out of the hit chance without the accuracy', () => {
+    const s = run({ accuracyMoa: null })
+    expect(s.hit!.group).toBeNull()
+    expect(s.hit!.x.rifle).toBeUndefined()
+    expect(has(s, 'accuracyMoa')).toBe(false)
+  })
+
+  it('keeps every built-in preset with all its inputs, none null', () => {
+    for (const preset of PRESETS) {
+      const p = resolvePreset(preset, undefined)
+      expect([p.twistIn, p.mvRefTempC, p.powderSensMsPerC, p.accuracyMoa, p.bullet.diameterIn].every((v) => v !== null)).toBe(true)
+      expect(p.magnification).toBeNull()
+    }
   })
 })

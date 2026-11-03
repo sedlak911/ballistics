@@ -31,7 +31,15 @@ export interface Overrides {
   truedAtM?: number
 }
 
-export interface ResolvedPreset extends RealPreset {
+/** A preset with its overrides applied. The optional inputs can be null: a custom item may lack them, a built-in never does. */
+export interface ResolvedPreset extends Omit<RealPreset, 'twistIn' | 'mvRefTempC' | 'powderSensMsPerC' | 'accuracyMoa' | 'bullet'> {
+  twistIn: Sourced<number> | null
+  mvRefTempC: Sourced<number> | null
+  powderSensMsPerC: Sourced<number> | null
+  accuracyMoa: Sourced<number> | null
+  bullet: { massGr: Sourced<number>; diameterIn: Sourced<number> | null; lengthMm: Sourced<number> | null }
+  /** The scope's magnification; null for every built-in preset. */
+  magnification: number | null
   zeroM: number
   clickValue: number
   travelUp: number | null
@@ -97,6 +105,7 @@ export function resolvePreset(p: RealPreset, o: Overrides | undefined, linkKeys:
     travelUp: ov.travelUp ?? null,
     scopeUnit: ov.scopeUnit ?? null,
     truedAtM: ov.truedAtM ?? null,
+    magnification: null,
     linkKeys,
   }
 }
@@ -132,7 +141,7 @@ export const OVERRIDE_RANGES: Record<NumericOverride, { min: number; max: number
 export const TRAVEL_RANGES: Record<AngleUnit, { min: number; max: number }> = { mil: { min: 1, max: 60 }, moa: { min: 3.44, max: 200 } }
 
 /** Field by field: a value outside its range is dropped, not clamped, since a clamped value isn't one the user set (M7). */
-function cleanOverrides(raw: unknown): Overrides {
+export function cleanOverrides(raw: unknown): Overrides {
   if (!isRecord(raw)) return {}
   const out: Record<string, unknown> = {}
   for (const [k, { min, max }] of Object.entries(OVERRIDE_RANGES)) {
@@ -154,11 +163,16 @@ function cleanOverrides(raw: unknown): Overrides {
   return out as Overrides
 }
 
+/** The stored presets' entries as they are, by preset id: `{ v: 1, presets }`, or an older map of presets at the top. */
+export function storedPresets(raw: unknown): Record<string, unknown> {
+  const src = isRecord(raw) && isRecord(raw.presets) ? raw.presets : raw
+  return isRecord(src) ? src : {}
+}
+
 /** Anything stored is validated field by field: an unknown preset, a non-number and an out-of-range value are dropped, the rest is kept. */
 export function readOverrides(raw: unknown): Record<string, Overrides> {
-  const src = isRecord(raw) && isRecord(raw.presets) ? raw.presets : raw
+  const src = storedPresets(raw)
   const out: Record<string, Overrides> = {}
-  if (!isRecord(src)) return out
   for (const p of PRESETS) {
     if (!(p.id in src)) continue
     const o = cleanOverrides(src[p.id])
@@ -261,29 +275,31 @@ export function resetPatch(own: Overrides | undefined, s: Section): { patch: Ove
   return { patch: patch as Overrides, undo: undo as Overrides }
 }
 
-const STORAGE_KEY = 'gb.real.profiles'
+export const PROFILES_KEY = 'gb.real.profiles'
 const listeners = new Set<() => void>()
 let cached: { raw: string | null; value: Record<string, Overrides> } | null = null
 
-function readRaw(): string | null {
+/** The stored text; null when there is none or storage is blocked. */
+export function readProfilesRaw(): string | null {
   try {
-    return localStorage.getItem(STORAGE_KEY)
+    return localStorage.getItem(PROFILES_KEY)
   } catch {
     return null
   }
 }
 
-function snapshot(): Record<string, Overrides> {
-  const raw = readRaw()
-  if (cached?.raw !== raw) {
-    let parsed: unknown = null
-    try {
-      parsed = raw === null ? null : JSON.parse(raw)
-    } catch {
-      // Corrupt storage: nothing overridden.
-    }
-    cached = { raw, value: readOverrides(parsed) }
+function parse(raw: string | null): unknown {
+  try {
+    return raw === null ? null : JSON.parse(raw)
+  } catch {
+    // Corrupt storage: nothing overridden.
+    return null
   }
+}
+
+function snapshot(): Record<string, Overrides> {
+  const raw = readProfilesRaw()
+  if (cached?.raw !== raw) cached = { raw, value: readOverrides(parse(raw)) }
   return cached.value
 }
 
@@ -291,6 +307,16 @@ function subscribe(listener: () => void): () => void {
   listeners.add(listener)
   return () => listeners.delete(listener)
 }
+
+const isPreset = (id: string) => PRESETS.some((p) => p.id === id)
+
+/** What storage holds: its root when it is today's `{ v: 1, presets }` (a field this build doesn't know stays), and its presets' entries as stored. */
+function stored(): { root: Record<string, unknown>; presets: Record<string, unknown> } {
+  const parsed = parse(readProfilesRaw())
+  return { root: isRecord(parsed) && isRecord(parsed.presets) ? parsed : {}, presets: storedPresets(parsed) }
+}
+
+const storedText = (root: Record<string, unknown>, presets: Record<string, unknown>) => JSON.stringify({ ...root, v: 1, presets })
 
 /**
  * Merge a patch into one preset's overrides (an `undefined` field is removed); null resets the preset. Gives back the
@@ -306,16 +332,37 @@ function save(presetId: string, patch: Overrides | null): Overrides | undefined 
     if (Object.keys(clean).length > 0) all[presetId] = clean
     else delete all[presetId]
   }
-  const raw = JSON.stringify({ v: 1, presets: all })
+  // An entry this build doesn't know (the retired `custom` until its migration, or a later build's preset) stays as stored.
+  const { root, presets } = stored()
+  const kept = Object.entries(presets).filter(([id, e]) => !isPreset(id) && isRecord(e))
+  const raw = storedText(root, { ...Object.fromEntries(kept), ...all })
   try {
-    localStorage.setItem(STORAGE_KEY, raw)
+    localStorage.setItem(PROFILES_KEY, raw)
     cached = { raw, value: all }
   } catch {
     // Blocked storage: keep it for this page view.
-    cached = { raw: readRaw(), value: all }
+    cached = { raw: readProfilesRaw(), value: all }
   }
   listeners.forEach((l) => l())
   return all[presetId]
+}
+
+/**
+ * Removes an entry this build doesn't read (the retired `custom`, once migrated) and keeps the rest as stored. The
+ * overrides on screen don't change, so nobody is told. False when storage refused it.
+ */
+export function forgetStoredPreset(id: string): boolean {
+  if (isPreset(id)) return false
+  const value = snapshot()
+  const { root, presets } = stored()
+  const raw = storedText(root, Object.fromEntries(Object.entries(presets).filter(([k]) => k !== id)))
+  try {
+    localStorage.setItem(PROFILES_KEY, raw)
+  } catch {
+    return false
+  }
+  cached = { raw, value }
+  return true
 }
 
 export function useOverrides(): [Record<string, Overrides>, (presetId: string, patch: Overrides | null) => Overrides | undefined] {

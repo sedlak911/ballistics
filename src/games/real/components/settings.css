@@ -57,6 +57,13 @@
   font-size: 13px;
 }
 
+/* The share toast's sentence for a selection with a custom item, under its text or the link field: the toast's
+   body text, kept 16px from the right edge as from the left. */
+.rs-share-note {
+  margin: 0;
+  padding-right: 8px;
+}
+
 /* The bottom padding takes the safe area, so the last control scrolls fully into view. */
 .rs-body {
   flex: 1 1 auto;
@@ -327,6 +334,60 @@
   color: var(--fg);
 }
 
+/* `+ Add …`: the list's last row, an action, so in the accent. While its form is open the list's rows step aside and
+   it stands alone, so it takes the list's top hairline. */
+/* Two classes, so it wins over the list row's own colour. */
+.rs-pick .rs-pick-add {
+  width: 100%;
+  color: var(--accent);
+}
+
+.rs-pick .rs-pick-add:first-child {
+  border-top: 1px solid var(--border);
+}
+
+/* The add form (LibraryForm), in place of a section's fields: the required fields, a hairline, the optional ones, a new
+   rifle's first round under its subheading, then Save and Cancel in one row. */
+.lib-form {
+  display: grid;
+  gap: 16px;
+}
+
+.lib-note {
+  display: grid;
+  gap: 12px;
+}
+
+.mv-hint {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.mv-hint p {
+  margin: 0;
+}
+
+.lib-optional {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.lib-form > .h-panel {
+  padding-top: 8px;
+}
+
+/* The click's message sits under its chips, as a field's under its box. */
+.rm-field > .number-field-error {
+  margin-top: 0;
+}
+
+.lib-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 @media (max-width: 699px) {
   .rs-sheet.panel {
     width: 100%;
@@ -357,5 +418,9 @@
 
   .rs-true .btn {
     justify-self: stretch;
+  }
+
+  .lib-actions .btn {
+    flex: 1;
   }
 }

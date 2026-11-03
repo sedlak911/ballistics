@@ -19,7 +19,7 @@ const g7 = (bc: number): PresetDrag => ({ model: 'G7', bc })
 
 export const PRESETS: RealPreset[] = [
   {
-    id: 'p1', rifle: 'CZ BREN 2 14″', round: 'S&B 5.56 SS109', short: '5.56 SS109 62', rifleShort: 'BREN 2 14″', calibre: '5.56', users: ['army'],
+    id: 'p1', rifleId: 'bren2-14', rifle: 'CZ BREN 2 14″', round: 'S&B 5.56 SS109', short: '5.56 SS109 62', rifleShort: 'BREN 2 14″', calibre: '5.56', users: ['army'],
     barrel: s('14″', 'S', 'CZ BREN 2 14″ (357 mm), Army contract 27/2023'),
     twistIn: s(7, 'V', 'CZ, 1:7″'), twist: 'right',
     sightHeightMm: s(65, 'N', SIGHT),
@@ -34,7 +34,7 @@ export const PRESETS: RealPreset[] = [
     powderSensMsPerC: NO_SENS, mvSdMs: null,
   },
   {
-    id: 'p2', rifle: 'HK416 11″', round: '5.56 SS109', short: '5.56 SS109 62', rifleShort: 'HK416 11″', calibre: '5.56', users: ['police'],
+    id: 'p2', rifleId: 'hk416-11', rifle: 'HK416 11″', round: '5.56 SS109', short: '5.56 SS109 62', rifleShort: 'HK416 11″', calibre: '5.56', users: ['police'],
     barrel: s('11″', 'S', 'Police contracts, HK416 11″ (279 mm)'),
     twistIn: s(7, 'S', 'HK416 1:7″'), twist: 'right',
     sightHeightMm: s(65, 'N', SIGHT),
@@ -49,7 +49,7 @@ export const PRESETS: RealPreset[] = [
     powderSensMsPerC: NO_SENS, mvSdMs: null,
   },
   {
-    id: 'p3', rifle: 'CZ BREN 2 PPS', round: 'S&B 7.62×51 FMJ NATO 147 gr', short: '7.62×51 FMJ 147', rifleShort: 'BREN 2 PPS', calibre: '7.62×51', users: ['army'],
+    id: 'p3', rifleId: 'bren2-pps', rifle: 'CZ BREN 2 PPS', round: 'S&B 7.62×51 FMJ NATO 147 gr', short: '7.62×51 FMJ 147', rifleShort: 'BREN 2 PPS', calibre: '7.62×51', users: ['army'],
     barrel: s('475 mm', 'S', 'CZ and 7th brigade page (Army news says 457 mm)'),
     twistIn: s(11, 'S', 'CZ, 1:11″'), twist: 'right',
     sightHeightMm: s(65, 'N', SIGHT),
@@ -64,7 +64,7 @@ export const PRESETS: RealPreset[] = [
     powderSensMsPerC: NO_SENS, mvSdMs: null,
   },
   {
-    id: 'p4', rifle: 'HK417 16.5″', round: 'S&B .308 HPBT 168 gr', short: '.308 HPBT 168', rifleShort: 'HK417', calibre: '.308', users: ['police'],
+    id: 'p4', rifleId: 'hk417', rifle: 'HK417 16.5″', round: 'S&B .308 HPBT 168 gr', short: '.308 HPBT 168', rifleShort: 'HK417', calibre: '.308', users: ['police'],
     barrel: s('16.5″', 'S', 'Police contracts, HK417 16.5″'),
     twistIn: s(11, 'N', 'Wikipedia, HK does not publish it'), twist: 'right',
     sightHeightMm: s(65, 'N', SIGHT),
@@ -79,7 +79,7 @@ export const PRESETS: RealPreset[] = [
     powderSensMsPerC: NO_SENS, mvSdMs: null,
   },
   {
-    id: 'p5', rifle: 'Sako TRG-22 A1', round: 'S&B .308 HPBT 175 gr', short: '.308 HPBT 175', rifleShort: 'TRG-22', calibre: '.308', users: ['police', 'army'],
+    id: 'p5', rifleId: 'trg-22', rifle: 'Sako TRG-22 A1', round: 'S&B .308 HPBT 175 gr', short: '.308 HPBT 175', rifleShort: 'TRG-22', calibre: '.308', users: ['police', 'army'],
     barrel: s('508 mm', 'S', 'Sako B2B catalogue (Army TRG-22 uses 510 mm)'),
     twistIn: s(11, 'V', 'Sako B2B catalogue, 1:11″'), twist: 'right',
     sightHeightMm: s(60, 'N', SIGHT),
@@ -94,7 +94,7 @@ export const PRESETS: RealPreset[] = [
     powderSensMsPerC: NO_SENS, mvSdMs: null,
   },
   {
-    id: 'p6', rifle: 'Sako TRG-42 A1 27″', round: 'Lapua Scenar 300 gr GB528', short: '.338 LM Scenar 300', rifleShort: 'TRG-42', calibre: '.338 LM', users: ['police'],
+    id: 'p6', rifleId: 'trg-42', rifle: 'Sako TRG-42 A1 27″', round: 'Lapua Scenar 300 gr GB528', short: '.338 LM Scenar 300', rifleShort: 'TRG-42', calibre: '.338 LM', users: ['police'],
     barrel: s('690 mm', 'V', 'Sako B2B catalogue, 690 mm'),
     twistIn: s(10, 'V', 'Sako B2B catalogue, 1:10″'), twist: 'right',
     sightHeightMm: s(60, 'N', SIGHT),
@@ -109,7 +109,7 @@ export const PRESETS: RealPreset[] = [
     powderSensMsPerC: NO_SENS, mvSdMs: null,
   },
   {
-    id: 'p7', rifle: 'AI AXSR / AXMC .338 27″', round: 'Lapua Scenar 250 gr GB488', short: '.338 LM Scenar 250', rifleShort: 'AXSR', calibre: '.338 LM', users: ['army', 'police'],
+    id: 'p7', rifleId: 'axsr', rifle: 'AI AXSR / AXMC .338 27″', round: 'Lapua Scenar 250 gr GB488', short: '.338 LM Scenar 250', rifleShort: 'AXSR', calibre: '.338 LM', users: ['army', 'police'],
     barrel: s('686 mm', 'V', 'AI AXSR/AXMC 27″; Lapua test barrel 680 mm'),
     twistIn: s(9.35, 'V', 'Accuracy International, 1:9.35″'), twist: 'right',
     sightHeightMm: s(60, 'N', SIGHT),
@@ -124,7 +124,7 @@ export const PRESETS: RealPreset[] = [
     powderSensMsPerC: NO_SENS, mvSdMs: null,
   },
   {
-    id: 'p8', rifle: 'Desert Tech HTI', round: 'DTM .375 CheyTac 352 gr', short: '.375 CheyTac DTM 352', rifleShort: 'HTI', calibre: '.375 CT', users: ['army'],
+    id: 'p8', rifleId: 'hti', rifle: 'Desert Tech HTI', round: 'DTM .375 CheyTac 352 gr', short: '.375 CheyTac DTM 352', rifleShort: 'HTI', calibre: '.375 CT', users: ['army'],
     barrel: s('29″', 'S', 'Desert Tech HTI 29″ (737 mm)'),
     twistIn: s(10.25, 'S', 'Desert Tech, 1:10.25″'), twist: 'right',
     sightHeightMm: s(70, 'N', SIGHT),
@@ -136,7 +136,7 @@ export const PRESETS: RealPreset[] = [
     powderSensMsPerC: NO_SENS, mvSdMs: null,
   },
   {
-    id: 'p9', rifle: 'Desert Tech HTI', round: '12.7×99 ball (M33)', short: '12.7×99 M33 647', rifleShort: 'HTI', calibre: '12.7×99', users: ['army'],
+    id: 'p9', rifleId: 'hti', rifle: 'Desert Tech HTI', round: '12.7×99 ball (M33)', short: '12.7×99 M33 647', rifleShort: 'HTI', calibre: '12.7×99', users: ['army'],
     barrel: s('29″', 'S', 'Desert Tech HTI 29″ (737 mm)'),
     twistIn: s(15, 'S', 'M2 barrel 1:15″, NATO standard'), twist: 'right',
     sightHeightMm: s(70, 'N', SIGHT),
@@ -158,27 +158,28 @@ export const PRESETS: RealPreset[] = [
     },
     powderSensMsPerC: NO_SENS, mvSdMs: null,
   },
-  {
-    id: 'custom', rifle: 'Custom', round: 'Custom', short: 'Custom', rifleShort: 'Custom', calibre: 'Custom', users: [],
-    barrel: s('—', 'N', 'your entry'),
-    twistIn: s(10, 'N', 'your entry'), twist: 'right',
-    sightHeightMm: s(60, 'N', 'your entry'),
-    accuracyMoa: s(1, 'N', 'your entry'), groupShots: 3,
-    muzzleVelocityMs: s(800, 'N', 'your entry'),
-    mvRefTempC: s(15, 'N', 'your entry'),
-    drag: s(g7(0.3), 'N', 'your entry'),
-    bullet: {
-      massGr: s(175, 'N', 'your entry'), diameterIn: s(0.308, 'N', 'your entry'), lengthMm: s(31.5, 'N', 'your entry'),
-    },
-    powderSensMsPerC: s(0, 'N', 'your entry'), mvSdMs: null,
-  },
 ]
 
 export const DEFAULT_PRESET_ID = 'p7'
 
+/**
+ * The id of the retired Custom preset. Its overrides became your own rifle, round and scope (migrate.ts), and an old
+ * link or stored setup with `p=custom` opens that round (selection.ts).
+ */
+export const LEGACY_CUSTOM_ID = 'custom'
+
 /** Distinct rifle names in PRESETS order. */
 export function rifles(): string[] {
   return [...new Set(PRESETS.map((p) => p.rifle))]
+}
+
+/** Distinct built-in rifle ids in PRESETS order. */
+export function rifleIds(): string[] {
+  return [...new Set(PRESETS.map((p) => p.rifleId))]
+}
+
+export function presetsOfRifle(rifleId: string): RealPreset[] {
+  return PRESETS.filter((p) => p.rifleId === rifleId)
 }
 
 export function roundsFor(rifle: string): RealPreset[] {

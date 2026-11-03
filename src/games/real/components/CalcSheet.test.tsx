@@ -3,6 +3,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../../App'
 import { PHONE } from '../../../components/useMedia'
 import * as solveModule from '../solve'
+import { PRESETS } from '../data/presets'
+import { DEFAULT_REAL_PROFILE } from '../profile'
+import { resolvePreset, type Overrides } from '../profiles'
+import { DEFAULT_SETUP } from '../setup'
+import { STANDARD_STATION } from '../station'
+import { SettingsProvider } from '../../../settings/SettingsContext'
+import { CalcSheet } from './CalcSheet'
 
 // Pass-through: every test runs the real solver; R9's test reads what the page asked it for.
 vi.mock('../solve', async (importOriginal) => {
@@ -40,6 +47,17 @@ function onPhone(run: () => void) {
 }
 
 const P7_1000_WIND = '#/real/workbench?p=p7&d=1000&ws=3&wc=9'
+
+/** A custom rifle and round with the old Custom preset's values (a .308 175 gr), slow and draggy: it doesn't reach 2500 m. */
+const SLOW_LOAD = {
+  v: 1,
+  rifles: [{ id: 'u-rifle', name: 'Custom', twistIn: 10, accuracyMoa: 1 }],
+  rounds: [{
+    id: 'u-round', rifleId: 'u-rifle', name: 'Custom', massGr: 175, diameterIn: 0.308, lengthMm: 31.5, mvRefTempC: 15, powderSensMsPerC: 0,
+    muzzleVelocityMs: 300, bc: 0.15, dragModel: 'G1',
+  }],
+  scopes: [],
+}
 
 afterEach(cleanup)
 
@@ -99,13 +117,13 @@ describe('CalcSheet: the steps', () => {
 
   it('an effect without its input says what is missing (P8 has no bullet length)', () => {
     const sheet = openSheet('#/real/workbench?p=p8&d=1000&ws=3&wc=9')
-    expect(step(sheet, 'Spin drift')).toHaveTextContent('missing: bullet length')
-    expect(step(sheet, 'Aerodynamic jump')).toHaveTextContent('missing: bullet length')
+    expect(step(sheet, 'Spin drift')).toHaveTextContent("Off: the bullet length isn't set.")
+    expect(step(sheet, 'Aerodynamic jump')).toHaveTextContent("Off: the bullet length isn't set.")
     for (const name of ['Spin drift', 'Aerodynamic jump']) {
       expect(step(sheet, name)).toHaveClass('off')
       const sw = within(sheet).getByRole('switch', { name })
       expect(sw).toBeDisabled()
-      expect(sw).toHaveAccessibleDescription('missing: bullet length')
+      expect(sw).toHaveAccessibleDescription("Off: the bullet length isn't set.")
     }
     expect(within(sheet).getByRole('switch', { name: 'Coriolis and Eötvös' })).toBeEnabled()
   })
@@ -121,8 +139,8 @@ describe('CalcSheet: the steps', () => {
   })
 
   it('out of range, it still shows what went in: the air and the muzzle velocity', () => {
-    localStorage.setItem('gb.real.profiles', JSON.stringify({ v: 1, presets: { custom: { muzzleVelocityMs: 300, bc: 0.15, dragModel: 'G1' } } }))
-    const sheet = openSheet('#/real/workbench?p=custom&d=2500')
+    localStorage.setItem('gb.real.library', JSON.stringify(SLOW_LOAD))
+    const sheet = openSheet('#/real/workbench?cr=u-round&cf=u-rifle&d=2500')
     expect(within(sheet).getAllByRole('listitem').map((li) => within(li).getByRole('heading').textContent)).toEqual(['Air', 'Muzzle velocity'])
     expect(step(sheet, 'Muzzle velocity')).toHaveTextContent('300 m/s')
     expect(within(sheet).getByText(/^Out of range for this load/)).toBeInTheDocument()
@@ -146,7 +164,7 @@ describe('CalcSheet: the steps', () => {
   })
 
   it('lists the MV spread with its value and source, or says it is unknown', () => {
-    expect(step(openSheet(P7_1000_WIND), 'Hit chance')).toHaveTextContent('MV spread (SD) unknown, left out')
+    expect(step(openSheet(P7_1000_WIND), 'Hit chance')).toHaveTextContent("Off: the MV SD isn't set, so it adds nothing to the hit chance.")
     cleanup()
     localStorage.setItem('gb.real.profiles', JSON.stringify({ v: 1, presets: { p7: { mvSdMs: 12 } } }))
     const hit = step(openSheet(P7_1000_WIND), 'Hit chance')
@@ -279,5 +297,112 @@ describe('CalcSheet: what the page computes (R9)', () => {
       expect(solveSpy.mock.lastCall![5]).toEqual({ shares: true, hit: true })
       expect(step(sheetOf(), 'Hit chance')).toHaveTextContent(/≈ 35/)
     })
+  })
+})
+
+describe('CalcSheet: says what is off', () => {
+  type Nulls = Partial<Record<'twistIn' | 'mvRefTempC' | 'powderSensMsPerC' | 'accuracyMoa' | 'mvSdMs' | 'travelUp', null>> & { diameterIn?: null; lengthMm?: null }
+
+  /** P7 with some optional inputs left out, its sheet rendered directly, in `lang`. */
+  function sheetWith(nulls: Nulls, o: Overrides = {}, { lang = 'en', customScope = false, azimuth = false } = {}) {
+    const base = resolvePreset(PRESETS.find((x) => x.id === 'p7')!, o)
+    const { diameterIn, lengthMm, ...top } = nulls
+    const p = {
+      ...base,
+      ...top,
+      bullet: { ...base.bullet, ...(diameterIn === null ? { diameterIn: null } : {}), ...(lengthMm === null ? { lengthMm: null } : {}) },
+    }
+    const setup = { ...DEFAULT_SETUP, distanceM: 800, windMs: 3, windClock: 9 }
+    const station = { ...STANDARD_STATION, tempC: { value: 35, source: 'manual' as const }, ...(azimuth ? { azimuthDeg: { value: 90, source: 'manual' as const } } : {}) }
+    const s = solveModule.solveReal(p, setup, DEFAULT_REAL_PROFILE, station, 'mil', { shares: true, hit: true })
+    const route = { game: 'real', page: 'workbench' as const, params: new URLSearchParams(`l=${lang}`) }
+    render(
+      <SettingsProvider route={route} navigate={() => {}}>
+        <CalcSheet solution={s} customScope={customScope} onClose={() => {}} returnFocus={{ current: null }} />
+      </SettingsProvider>,
+    )
+    return screen.getByRole('dialog')
+  }
+  const text = (sheet: HTMLElement, name: string) => step(sheet, name).textContent
+
+  it('says the powder temperature is off without the sensitivity', () => {
+    const sheet = sheetWith({ powderSensMsPerC: null })
+    expect(sheet).toHaveTextContent("Off: the powder sensitivity isn't set.")
+    cleanup()
+    expect(sheetWith({ powderSensMsPerC: null }, {}, { lang: 'cs' })).toHaveTextContent('Vypnuto: chybí citlivost prachu na teplotu.')
+  })
+
+  it('says the powder temperature is off without the reference temperature', () => {
+    expect(sheetWith({ mvRefTempC: null }, { powderSensMsPerC: 1.5 })).toHaveTextContent("Off: the MV's reference temperature isn't set.")
+    cleanup()
+    expect(sheetWith({ mvRefTempC: null }, { powderSensMsPerC: 1.5 }, { lang: 'cs' })).toHaveTextContent('Vypnuto: chybí teplota, pro kterou platí rychlost.')
+  })
+
+  it.each([
+    ['twist', { twistIn: null }, "Off: the twist isn't set.", 'Vypnuto: chybí stoupání drážek.'],
+    ['length', { lengthMm: null }, "Off: the bullet length isn't set.", 'Vypnuto: chybí délka střely.'],
+    ['diameter', { diameterIn: null }, "Off: the bullet diameter isn't set.", 'Vypnuto: chybí průměr střely.'],
+  ] as const)('says spin drift and the jump are off without the %s', (_n, nulls, en, cs) => {
+    const sheet = sheetWith(nulls)
+    for (const name of ['Spin drift', 'Aerodynamic jump']) {
+      expect(text(sheet, name)).toContain(en)
+      expect(within(sheet).getByRole('switch', { name })).toBeDisabled()
+    }
+    expect(within(step(sheet, 'Spin drift')).queryByText(/^Sg /)).not.toBeInTheDocument()
+    cleanup()
+    const sheetCs = sheetWith(nulls, {}, { lang: 'cs' })
+    expect(text(sheetCs, 'Spin drift')).toContain(cs)
+    expect(text(sheetCs, 'Aerodynamický skok')).toContain(cs)
+  })
+
+  it('names the first missing of twist, length and diameter', () => {
+    expect(text(sheetWith({ twistIn: null, lengthMm: null, diameterIn: null }), 'Spin drift')).toContain("Off: the twist isn't set.")
+  })
+
+  it('says the SD is left out of the hit chance', () => {
+    expect(text(sheetWith({ mvSdMs: null }), 'Hit chance')).toContain("Off: the MV SD isn't set, so it adds nothing to the hit chance.")
+    cleanup()
+    expect(text(sheetWith({ mvSdMs: null }, {}, { lang: 'cs' }), 'Šance na zásah')).toContain('Vypnuto: chybí SD rychlosti, do šance na zásah nevstupuje.')
+  })
+
+  it("says the rifle's accuracy is left out", () => {
+    expect(text(sheetWith({ accuracyMoa: null }), 'Hit chance')).toContain("Off: the rifle's accuracy isn't set, so it adds nothing to the hit chance.")
+    cleanup()
+    expect(text(sheetWith({ accuracyMoa: null }, {}, { lang: 'cs' }), 'Šance na zásah')).toContain('Vypnuto: chybí přesnost pušky, do šance na zásah nevstupuje.')
+  })
+
+  it('says the whole elevation is dialled without the travel (a built-in preset with unknown travel shows it too)', () => {
+    expect(text(sheetWith({}), 'Elevation')).toContain("Off: the turret travel isn't set, so the whole elevation is dialled.")
+    cleanup()
+    expect(text(sheetWith({}, {}, { lang: 'cs' }), 'Výška')).toContain('Vypnuto: chybí zdvih věžičky, točí se celá výška.')
+    cleanup()
+    const set = text(sheetWith({}, { travelUp: 20, scopeUnit: 'mil' }), 'Elevation')
+    expect(set).toMatch(/turret travel 20\sMRAD/)
+    expect(set).not.toContain('Off:')
+  })
+
+  it('says magnification has no model, only for a custom scope', () => {
+    expect(text(sheetWith({}, {}, { customScope: true }), 'Hit chance')).toContain('Off: magnification has no model yet.')
+    cleanup()
+    expect(text(sheetWith({}, {}, { customScope: true, lang: 'cs' }), 'Šance na zásah')).toContain('Vypnuto: zvětšení zatím nemá model.')
+    cleanup()
+    expect(text(sheetWith({}), 'Hit chance')).not.toContain('magnification')
+  })
+
+  it('says the vertical Coriolis is off without the azimuth', () => {
+    expect(text(sheetWith({}), 'Coriolis and Eötvös')).toContain("Off: the azimuth isn't set, so the vertical part of Coriolis is left out.")
+    cleanup()
+    expect(text(sheetWith({}, {}, { lang: 'cs' }), 'Coriolis a Eötvös')).toContain('Vypnuto: chybí azimut, svislá část Coriolise se nepočítá.')
+    cleanup()
+    expect(text(sheetWith({}, {}, { azimuth: true }), 'Coriolis and Eötvös')).not.toContain('azimuth isn')
+  })
+
+  it("keeps the effect's switch disabled with the sentence as its description", () => {
+    const sheet = sheetWith({ powderSensMsPerC: null, twistIn: null })
+    for (const [name, sentence] of [['Powder temperature', "Off: the powder sensitivity isn't set."], ['Spin drift', "Off: the twist isn't set."]]) {
+      const sw = within(sheet).getByRole('switch', { name })
+      expect(sw).toBeDisabled()
+      expect(sw).toHaveAccessibleDescription(sentence)
+    }
   })
 })

@@ -29,6 +29,14 @@ export interface NumberFieldProps {
   commitSame?: boolean
   /** At the end of the label's row, e.g. where the value comes from. */
   aside?: ReactNode
+  /** A short note after the label word, inside the label (e.g. `optional`). */
+  mark?: string
+  /**
+   * The value counts as missing where it is used (kept in storage under older bounds): shown as it is, flagged at once.
+   * The caller decides, against the stored value's own bounds: a shown value is rounded to the unit, and may fall just
+   * outside `min`–`max` while the stored one is fine.
+   */
+  outOfRange?: boolean
 }
 
 const show = (v: number | null) => (v === null ? '' : String(+v.toPrecision(10)))
@@ -45,23 +53,25 @@ function parse(text: string, min: number, max: number): number | null {
 /**
  * A typed number. It commits on blur or Enter and never passes on a bad value: empty, non-numeric or out of range
  * text keeps the last good value, and the bad text stays in the box beside `invalidText` (aria-invalid, tied with
- * aria-describedby) until the user corrects it. A new `value` or `unit` from outside replaces the text.
+ * aria-describedby) until the user corrects it. A new `value` or `unit` from outside replaces the text. A value
+ * `outOfRange` is shown as it is and flagged at once.
  */
-export function NumberField({ label, value, unit, units, onUnit, min, max, step = 1, onChange, invalidText, placeholder, onClear, needed = false, onDraft, commitSame = false, snap = false, aside }: NumberFieldProps) {
+export function NumberField({ label, value, unit, units, onUnit, min, max, step = 1, onChange, invalidText, placeholder, onClear, needed = false, onDraft, commitSame = false, snap = false, aside, mark, outOfRange = false }: NumberFieldProps) {
   const uid = useId()
   const inputId = `nf-${uid}`
   const errorId = `nf-err-${uid}`
+  const flagged = needed || outOfRange
   const [text, setText] = useState(() => (needed ? '' : show(value)))
-  const [invalid, setInvalid] = useState(needed)
+  const [invalid, setInvalid] = useState(flagged)
   // Whether the text was typed in since the last commit, so a mere tab through the box commits nothing.
   const [typed, setTyped] = useState(false)
 
   // A new value, unit or need from outside replaces the text (state adjusted during render, not in an effect).
-  const [seen, setSeen] = useState({ value, unit, needed })
-  if (seen.value !== value || seen.unit !== unit || seen.needed !== needed) {
-    setSeen({ value, unit, needed })
+  const [seen, setSeen] = useState({ value, unit, needed, outOfRange })
+  if (seen.value !== value || seen.unit !== unit || seen.needed !== needed || seen.outOfRange !== outOfRange) {
+    setSeen({ value, unit, needed, outOfRange })
     setText(needed ? '' : show(value))
-    setInvalid(needed)
+    setInvalid(flagged)
   }
 
   const commit = () => {
@@ -96,7 +106,7 @@ export function NumberField({ label, value, unit, units, onUnit, min, max, step 
     if (v !== value || needed) onChange(v)
   }
 
-  const labelEl = <label htmlFor={inputId} className="label">{label}</label>
+  const labelEl = <label htmlFor={inputId} className="label">{label}{mark && <> <span className="label-mark">{mark}</span></>}</label>
   return (
     <div className="number-field">
       {aside ? <div className="number-field-head">{labelEl}{aside}</div> : labelEl}

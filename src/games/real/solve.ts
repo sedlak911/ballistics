@@ -31,10 +31,11 @@ export type RealWarning = 'transonic' | 'subsonic' | 'estimate' | 'implausible'
 
 /**
  * How far an effect moves the hit at the target, m: + up, + right. `on` says whether the answer includes it; an
- * effect that is off still reports what it would add. Or the input it lacks: `twist` or `bulletLength` for spin drift
- * and aerodynamic jump, `reach` when the bullet doesn't get to the distance without (or with) the effect.
+ * effect that is off still reports what it would add. Or the input it lacks: `twist`, `bulletLength` or `diameter` for
+ * spin drift and aerodynamic jump, `powderSens` or `mvRefTemp` for the powder temperature, `reach` when the bullet doesn't get to the distance without (or with) the effect.
  */
-export type RealShare = { yM: number; xM: number; on: boolean } | { missing: 'twist' | 'bulletLength' | 'reach' }
+export type MissingInput = 'twist' | 'bulletLength' | 'diameter' | 'powderSens' | 'mvRefTemp' | 'reach'
+export type RealShare = { yM: number; xM: number; on: boolean } | { missing: MissingInput }
 
 export interface RealHit {
   /** P(hit) on the round target, 0–1. */
@@ -164,7 +165,11 @@ function flightBasis(preset: ResolvedPreset, profile: RealProfile, station: Stat
 
   const refMv = preset.muzzleVelocityMs.value
   const powderTempC = station.powderTempC?.value ?? station.tempC.value
-  const shiftedMv = muzzleVelocityAt(refMv, preset.mvRefTempC.value, powderTempC, preset.powderSensMsPerC.value)
+  // Without the sensitivity or the reference temperature there is no shift to make.
+  const shiftedMv =
+    preset.mvRefTempC === null || preset.powderSensMsPerC === null
+      ? refMv
+      : muzzleVelocityAt(refMv, preset.mvRefTempC.value, powderTempC, preset.powderSensMsPerC.value)
   const mv = fx.powderTemp ? shiftedMv : refMv
 
   const dragValue = preset.drag.value
@@ -222,19 +227,21 @@ export function solveReal(
   // Spin drift and aerodynamic jump, from Sg, as py-ballisticcalc adds them after the integration. Without the twist or
   // the bullet's length there is no Sg; Miller divides by both, and the override bounds keep them > 0 (R13).
   const length = preset.bullet.lengthMm
-  const twistIn = preset.twistIn.value
+  const diameter = preset.bullet.diameterIn
+  const twistIn = preset.twistIn === null ? null : preset.twistIn.value
   const bullet: Bullet | null =
-    twistIn > 0 && length !== null && length.value > 0
-      ? { massGr: preset.bullet.massGr.value, diameterIn: preset.bullet.diameterIn.value, lengthIn: length.value / MM_PER_IN }
+    twistIn !== null && twistIn > 0 && length !== null && length.value > 0 && diameter !== null && diameter.value > 0
+      ? { massGr: preset.bullet.massGr.value, diameterIn: diameter.value, lengthIn: length.value / MM_PER_IN }
       : null
-  const missingSpin = twistIn > 0 ? 'bulletLength' : 'twist'
+  // Ruling 12: the first missing one, in the order twist, bullet length, diameter.
+  const missingSpin: MissingInput = twistIn === null || !(twistIn > 0) ? 'twist' : length === null || !(length.value > 0) ? 'bulletLength' : 'diameter'
   const spin =
     bullet === null
       ? null
       : {
           // Miller takes station pressure, never QNH (R11).
           sgAt: (muzzleVelocityMs: number) =>
-            millerSg(bullet, twistIn, muzzleVelocityMs, measured.tempC, measured.stationPressureHPa),
+            millerSg(bullet, twistIn!, muzzleVelocityMs, measured.tempC, measured.stationPressureHPa),
           /** m, + right. */
           driftM: (sg: number, timeS: number) => spinDriftM(sg, timeS, preset.twist),
           /** m at the target, + up. */
@@ -387,6 +394,7 @@ export function solveReal(
         case 'humidity':
           return measured.humidityPct === 0 ? null : { ...base, ...withAir(fx.humidity ? dry : measured) }
         case 'powderTemp':
+          if (preset.powderSensMsPerC === null || preset.mvRefTempC === null) return null
           return shiftedMv === refMv ? null : { ...base, muzzleVelocityMs: fx.powderTemp ? refMv : shiftedMv }
         case 'coriolis':
           return { ...base, coriolis: fx.coriolis ? undefined : coriolis }
@@ -395,6 +403,8 @@ export function solveReal(
       }
     }
     const run = (e: RunEffect): RealShare => {
+      if (e === 'powderTemp' && preset.powderSensMsPerC === null) return { missing: 'powderSens' }
+      if (e === 'powderTemp' && preset.mvRefTempC === null) return { missing: 'mvRefTemp' }
       const i = flipped(e)
       // The flipped run would be the base itself: the effect adds nothing here.
       if (i === null) return { yM: 0, xM: 0, on: fx[e] }
@@ -420,7 +430,7 @@ export function solveReal(
     if (sens === null) return null
     const bi: BudgetInput = {
       distanceM: d,
-      rifleMoa: preset.accuracyMoa.value,
+      rifleMoa: preset.accuracyMoa?.value ?? null,
       groupShots: preset.groupShots,
       mvSdMs: preset.mvSdMs?.value ?? null,
       bcSdPct: profile.bcSdPct,
@@ -521,19 +531,19 @@ function listInputs(
 
   sourced('muzzleVelocityMs', preset.muzzleVelocityMs, 'm/s')
   if (preset.truedAtM !== null) add('truedAtM', preset.truedAtM, 'm', 'yours')
-  sourced('mvRefTempC', preset.mvRefTempC, '°C')
-  sourced('powderSensMsPerC', preset.powderSensMsPerC, 'm/s/°C')
+  if (preset.mvRefTempC !== null) sourced('mvRefTempC', preset.mvRefTempC, '°C')
+  if (preset.powderSensMsPerC !== null) sourced('powderSensMsPerC', preset.powderSensMsPerC, 'm/s/°C')
   if (preset.mvSdMs !== null) sourced('mvSdMs', preset.mvSdMs, 'm/s')
   const drag = preset.drag.value
   if ('table' in drag) add('sectionalDensity', drag.sectionalDensity, 'lb/in²', preset.drag.source, preset.drag.trust)
   else add('bc', drag.bc, 'lb/in²', preset.drag.source, preset.drag.trust)
   sourced('sightHeightMm', preset.sightHeightMm, 'mm')
   add('zeroM', preset.zeroM, 'm', 'scope')
-  sourced('twistIn', preset.twistIn, 'in')
+  if (preset.twistIn !== null) sourced('twistIn', preset.twistIn, 'in')
   sourced('massGr', preset.bullet.massGr, 'gr')
-  sourced('diameterIn', preset.bullet.diameterIn, 'in')
+  if (preset.bullet.diameterIn !== null) sourced('diameterIn', preset.bullet.diameterIn, 'in')
   if (preset.bullet.lengthMm !== null) sourced('lengthMm', preset.bullet.lengthMm, 'mm')
-  sourced('accuracyMoa', preset.accuracyMoa, 'MOA')
+  if (preset.accuracyMoa !== null) sourced('accuracyMoa', preset.accuracyMoa, 'MOA')
   add('groupShots', preset.groupShots, 'shots', 'preset')
   add('clickValue', x.clickValue, angle, x.clickKnown ? 'scope' : 'default')
   if (x.travelUp !== null) add('travelUp', x.travelUp, angle, 'scope')

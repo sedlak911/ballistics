@@ -19,6 +19,8 @@ export interface RealProfile {
   windUnit: WindUnit
   /** The one-time privacy note of By location has been confirmed. */
   locationNoteSeen: boolean
+  /** The iPhone's note before the first own item (home-screen storage is apart from Safari's) has been answered. */
+  addNoteSeen: boolean
 }
 
 export const DEFAULT_REAL_PROFILE: RealProfile = {
@@ -30,6 +32,7 @@ export const DEFAULT_REAL_PROFILE: RealProfile = {
   bcSdPct: 1,
   windUnit: 'm/s',
   locationNoteSeen: false,
+  addNoteSeen: false,
 }
 
 /** The wind uncertainty the stepper offers; storage accepts the same. */
@@ -56,6 +59,7 @@ export function readRealProfile(raw: unknown): RealProfile {
     bcSdPct: num(raw.bcSdPct, 0, 20, d.bcSdPct),
     windUnit: WIND_UNITS.includes(raw.windUnit as WindUnit) ? (raw.windUnit as WindUnit) : d.windUnit,
     locationNoteSeen: raw.locationNoteSeen === true,
+    addNoteSeen: raw.addNoteSeen === true,
   }
 }
 

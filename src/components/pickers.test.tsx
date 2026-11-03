@@ -83,6 +83,29 @@ describe('Stepper', () => {
     expect(onChange).toHaveBeenLastCalledWith(75)
   })
 
+  it('shows not set as —, flagged, and its first press of either button gives the start', () => {
+    const onChange = vi.fn()
+    render(<Stepper label="Zero" value={null} start={100} min={25} max={600} step={25} format={(v) => `${v} m`} onChange={onChange}
+      decLabel="Zero: less" incLabel="Zero: more" invalid invalidText="Set the zero" />)
+    const group = screen.getByRole('group', { name: 'Zero' })
+    expect(within(group).getByRole('status')).toHaveTextContent(/^—$/)
+    // In the placeholder colour, so it doesn't read as a third `−`.
+    expect(within(group).getByRole('status')).toHaveClass('unset')
+    expect(group).toHaveAttribute('aria-invalid', 'true')
+    expect(group).toHaveAccessibleDescription('Set the zero')
+    expect(screen.getByRole('alert')).toHaveTextContent('Set the zero')
+    fireEvent.click(screen.getByRole('button', { name: 'Zero: less' }))
+    expect(onChange).toHaveBeenLastCalledWith(100)
+    fireEvent.click(screen.getByRole('button', { name: 'Zero: more' }))
+    expect(onChange).toHaveBeenLastCalledWith(100)
+  })
+
+  it('flags nothing unless asked', () => {
+    stepper(100)
+    expect(screen.getByRole('group', { name: 'Zero' })).not.toHaveAttribute('aria-invalid')
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
   it('stops at the bounds', () => {
     stepper(600)
     expect(screen.getByRole('button', { name: 'Zero: more' })).toBeDisabled()

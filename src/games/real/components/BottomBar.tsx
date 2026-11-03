@@ -99,8 +99,9 @@ export function BottomBar({ setup, update, system, windUnit, phone }: {
       <span className="label" aria-hidden="true">{t('real.wind')}</span>
         <button type="button" className="real-step" aria-label={t('step.dec', { what: speedWord })} disabled={windShown <= 0}
           onClick={() => stepWind(-1)}>−</button>
+        {/* Until the wind is set, typing the calm it shows sets it too. */}
         <NumberField label={speedWord} value={rounded(windShown, 1)} unit={windUnit} min={0} max={windMax} step={windStep} snap
-          onChange={(v) => storeWind(v)}
+          commitSame={!setup.windSet} onChange={(v) => storeWind(v)}
           invalidText={t('real.windInvalid', { max: `${dec(windMax, 1, lang).replace(/[.,]0$/, '')}${NBSP}${windUnit}` })} />
         <button type="button" className="real-step" aria-label={t('step.inc', { what: speedWord })} disabled={windShown >= windMax}
           onClick={() => stepWind(1)}>+</button>

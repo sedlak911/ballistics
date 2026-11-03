@@ -208,7 +208,7 @@ describe('The version and the ⓘ sheet', () => {
     cleanup()
     open('#/gzw/workbench?l=cs')
     const cs = within(about('O webu')).getByText('Soukromí').closest('details')!
-    for (const text of ['neopustí', 'Open-Meteo', '90 dní', 'nikam se nenahrává', 'GitHub Pages', 'Žádné cookies, analytika ani sledování.'])
+    for (const text of ['nikam neodcházejí', 'Open-Meteo', '90 dní', 'nikam se nenahrává', 'GitHub Pages', 'Žádné cookies, analytika ani sledování.'])
       expect(cs).toHaveTextContent(text)
   })
 

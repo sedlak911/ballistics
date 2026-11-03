@@ -5,16 +5,35 @@ import { resolvePreset } from '../profiles'
 import { DEFAULT_SETUP } from '../setup'
 import { solveReal } from '../solve'
 import { STANDARD_STATION } from '../station'
-import { DEFAULT_PRESET_ID, PRESETS, rifles, roundsFor } from './presets'
+import { DEFAULT_PRESET_ID, LEGACY_CUSTOM_ID, PRESETS, presetsOfRifle, rifleIds, rifles, roundsFor } from './presets'
 
 const byId = (id: string) => PRESETS.find((p) => p.id === id)!
 const isPositive = (n: number) => Number.isFinite(n) && n > 0
 
 describe('REAL presets', () => {
-  it('has P1-P9 then custom with unique ids', () => {
-    expect(PRESETS.map((p) => p.id)).toEqual(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'custom'])
+  it('has P1-P9 with unique ids', () => {
+    expect(PRESETS.map((p) => p.id)).toEqual(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9'])
     expect(new Set(PRESETS.map((p) => p.id)).size).toBe(PRESETS.length)
     expect(byId(DEFAULT_PRESET_ID)).toBeDefined()
+  })
+
+  it('gives every built-in rifle a stable id', () => {
+    expect(PRESETS.map((p) => [p.id, p.rifleId])).toEqual([
+      ['p1', 'bren2-14'], ['p2', 'hk416-11'], ['p3', 'bren2-pps'], ['p4', 'hk417'], ['p5', 'trg-22'],
+      ['p6', 'trg-42'], ['p7', 'axsr'], ['p8', 'hti'], ['p9', 'hti'],
+    ])
+  })
+
+  it('has one rifle, one id', () => {
+    const idOf = new Map<string, string>()
+    for (const p of PRESETS) {
+      expect(idOf.get(p.rifle) ?? p.rifleId, p.id).toBe(p.rifleId)
+      idOf.set(p.rifle, p.rifleId)
+      expect(p.rifleId.startsWith('u-')).toBe(false)
+    }
+    expect(new Set(idOf.values()).size).toBe(idOf.size)
+    expect(rifleIds()).toEqual([...new Set(PRESETS.map((p) => p.rifleId))])
+    expect(presetsOfRifle('hti').map((p) => p.id)).toEqual(['p8', 'p9'])
   })
 
   it('has a short rifle name (1-10 characters) and a calibre (1-8) for the phone tags', () => {
@@ -81,16 +100,11 @@ describe('REAL presets', () => {
     expect(roundsFor('Desert Tech HTI').map((p) => p.id)).toEqual(['p8', 'p9'])
   })
 
-  it('has a custom entry of all N estimates', () => {
-    const c = byId('custom')
-    expect(c.drag.value).toEqual({ model: 'G7', bc: 0.3 })
-    expect(c.muzzleVelocityMs.value).toBe(800)
-    expect(c.twistIn.value).toBe(10)
-    expect(c.sightHeightMm.value).toBe(60)
-    expect(c.accuracyMoa.value).toBe(1)
-    expect(c.groupShots).toBe(3)
-    expect(c.accuracyMoa.trust).toBe('N')
-    expect(c.drag.source).toBe('your entry')
+  // Today's Custom became your own rifle, round and scope (migrate.ts); its id stays readable in old links (setup.ts).
+  it('has no Custom preset', () => {
+    expect(LEGACY_CUSTOM_ID).toBe('custom')
+    expect(PRESETS.filter((p) => p.id === LEGACY_CUSTOM_ID || p.rifleId === LEGACY_CUSTOM_ID || p.rifle === 'Custom')).toEqual([])
+    expect(rifleIds()).not.toContain(LEGACY_CUSTOM_ID)
   })
 })
 

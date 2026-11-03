@@ -1,8 +1,10 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../../App'
 import { PHONE } from '../../../components/useMedia'
+import { translate, type TKey } from '../../../i18n'
 import { writeLinkOverrides } from '../profiles'
+import { incompleteFields, UNSET_ORDER } from '../selection'
 
 function open(hash: string) {
   window.location.hash = hash
@@ -27,6 +29,17 @@ function onPhone(run: () => void) {
 }
 
 afterEach(cleanup)
+
+/** A custom rifle and round with the old Custom preset's values (a .308 175 gr), slow and draggy: it doesn't reach 2500 m. */
+const SLOW_LOAD = {
+  v: 1,
+  rifles: [{ id: 'u-rifle', name: 'Custom', twistIn: 10, accuracyMoa: 1 }],
+  rounds: [{
+    id: 'u-round', rifleId: 'u-rifle', name: 'Custom', massGr: 175, diameterIn: 0.308, lengthMm: 31.5, mvRefTempC: 15, powderSensMsPerC: 0,
+    muzzleVelocityMs: 300, bc: 0.15, dragModel: 'G1',
+  }],
+  scopes: [],
+}
 
 describe('RealPage: the answer in dial mode', () => {
   it('opens on REAL from a bare URL, with the elevation key', () => {
@@ -129,8 +142,8 @@ describe('RealPage: the answer in dial mode', () => {
   })
 
   it('says the load is out of range and shows no figure when the bullet does not get there', () => {
-    localStorage.setItem('gb.real.profiles', JSON.stringify({ v: 1, presets: { custom: { muzzleVelocityMs: 300, bc: 0.15, dragModel: 'G1' } } }))
-    open('#/real/workbench?p=custom&d=2500')
+    localStorage.setItem('gb.real.library', JSON.stringify(SLOW_LOAD))
+    open('#/real/workbench?cr=u-round&cf=u-rifle&d=2500')
     expect(screen.getByText('Out of range for this load')).toBeInTheDocument()
     expect(screen.queryByTestId('real-elevation')).not.toBeInTheDocument()
     // In the answer: the scope tag in the header names the unit (I5).
@@ -212,6 +225,13 @@ describe('RealPage: the bottom bar', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Distance: more' }))
     expect(screen.getByLabelText('Distance')).toHaveValue('1010')
     expect(hash()).toContain('d=923.544')
+  })
+
+  it('shows 25 m in yards unflagged, though 27 yd is under what the box accepts', () => {
+    open('#/real/workbench?p=p7&d=25&u=imperial')
+    expect(screen.getByLabelText('Distance')).toHaveValue('27')
+    expect(screen.getByLabelText('Distance')).toHaveAttribute('aria-invalid', 'false')
+    expect(screen.queryByRole('alert')).toBeNull()
   })
 
   // M1: whole yards, a tenth of a metre, and the steps land on tens in the unit shown.
@@ -404,5 +424,179 @@ describe('RealPage: the big figure', () => {
     open('#/real/workbench?p=p7&d=300&ws=0')
     expect(text('real-elevation')).toBe('↑1.0MRAD')
     expect(screen.queryByTestId('real-clicks')).not.toBeInTheDocument()
+  })
+})
+
+describe('RealPage: a custom selection', () => {
+  const ROUND = 'u-round-1'
+  const seed = (round: object) => localStorage.setItem('gb.real.library', JSON.stringify({ v: 1, rifles: [], rounds: [{ id: ROUND, rifleId: 'axsr', ...round }], scopes: [] }))
+  const roundTag = () => within(screen.getByTestId('real-strip')).getByRole('button', { name: /^Round:/ })
+  afterEach(() => localStorage.removeItem('gb.real.library'))
+
+  it('answers for a custom round on the AXSR, and still opens an incomplete one', () => {
+    seed({ name: 'Handload 250', bc: 0.31, dragModel: 'G7', muzzleVelocityMs: 880, massGr: 250 })
+    open(`#/real/workbench?p=p7&cr=${ROUND}&d=1000`)
+    expect(roundTag()).toHaveAccessibleName('Round: Handload 250')
+    expect(elevation()).toHaveTextContent(/^↑\d+\.\dMRAD$/)
+    cleanup()
+    seed({ name: 'No mass', bc: 0.31, dragModel: 'G7', muzzleVelocityMs: 880 })
+    open(`#/real/workbench?p=p7&cr=${ROUND}&d=1000`)
+    expect(roundTag()).toHaveAccessibleName('Round: No mass')
+  })
+})
+
+describe('RealPage: what is missing', () => {
+  const RIFLE = 'u-rifle-1'
+  const ROUND = 'u-round-1'
+  const HANDLOAD = { name: 'Handload', massGr: 168, bc: 0.243, dragModel: 'G7', muzzleVelocityMs: 800 }
+  const seed = (lib: { rifles?: object[]; rounds: object[] }) =>
+    localStorage.setItem('gb.real.library', JSON.stringify({ v: 1, rifles: [], scopes: [], ...lib }))
+  /** A custom round on a custom rifle that has only the required fields: every optional one is empty. */
+  const bare = () => seed({ rifles: [{ id: RIFLE, name: 'SSG 69' }], rounds: [{ id: ROUND, rifleId: RIFLE, ...HANDLOAD }] })
+  const noMass = () => seed({ rounds: [{ id: ROUND, rifleId: 'axsr', name: 'No mass', bc: 0.31, dragModel: 'G7', muzzleVelocityMs: 880 }] })
+  const sheet = () => screen.getByRole('dialog', { name: 'Settings' })
+  const header = (title: 'Rifle' | 'Round' | 'Scope') =>
+    within(within(sheet()).getByRole('region', { name: title })).getByRole('button', { name: new RegExp(`^${title}( \\d+ yours)?$`) })
+  const toCompute = () => screen.queryByText(/^To compute, add:/)
+  const addMore = () => screen.queryByText(/^For a more precise answer, add:/)
+  const windNote = () => screen.queryByText('Wind not set: calm assumed')
+
+  it('shows only what is missing for an incomplete round, and opens its section on a tap', () => {
+    noMass()
+    open(`#/real/workbench?cr=${ROUND}&d=1000&ws=0`)
+    const line = screen.getByRole('button', { name: 'To compute, add: bullet mass' })
+    expect(screen.queryByTestId('real-elevation')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('real-windage')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('real-hit')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'How it’s calculated' })).not.toBeInTheDocument()
+    // The tags, the station and the bar stay.
+    expect(within(screen.getByTestId('real-strip')).getByRole('button', { name: 'Round: No mass' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Atmosphere: / })).toBeInTheDocument()
+    expect(screen.getByTestId('real-bar')).toBeInTheDocument()
+    fireEvent.click(line)
+    expect(header('Round')).toHaveAttribute('aria-expanded', 'true')
+    expect(header('Rifle')).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(line).toHaveFocus()
+  })
+
+  it("gives the focus to the section's tag when the line that opened the sheet is gone", () => {
+    noMass()
+    open(`#/real/workbench?cr=${ROUND}&d=1000&ws=0`)
+    fireEvent.click(screen.getByRole('button', { name: 'To compute, add: bullet mass' }))
+    const mass = within(within(sheet()).getByRole('region', { name: 'Round' })).getByLabelText('Bullet mass')
+    fireEvent.change(mass, { target: { value: '16.2' } })
+    fireEvent.blur(mass)
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(toCompute()).not.toBeInTheDocument()
+    expect(elevation()).toBeInTheDocument()
+    expect(within(screen.getByTestId('real-strip')).getByRole('button', { name: 'Round: No mass' })).toHaveFocus()
+  })
+
+  it("lists at most four fields to add, in order, and opens the first one's section", () => {
+    bare()
+    open(`#/real/workbench?cr=${ROUND}&d=600&ws=0`)
+    expect(elevation()).toHaveTextContent(/^↑\d+\.\dMRAD$/)
+    const line = screen.getByRole('button', { name: 'For a more precise answer, add: SD, powder sensitivity, MV temperature, accuracy' })
+    expect(line.closest('.real-warnings')).not.toBeNull()
+    expect(line).toHaveClass('est')
+    fireEvent.click(line)
+    expect(header('Round')).toHaveAttribute('aria-expanded', 'true')
+    expect(header('Rifle')).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(line).toHaveFocus()
+  })
+
+  it('says nothing to add for a built-in preset', () => {
+    // Its turret travel is unknown until you enter it, but a built-in value never counts as not set.
+    open('#/real/workbench?p=p7&d=1000&ws=0')
+    expect(elevation()).toBeInTheDocument()
+    expect(addMore()).not.toBeInTheDocument()
+    expect(toCompute()).not.toBeInTheDocument()
+    expect(windNote()).not.toBeInTheDocument()
+  })
+
+  it("says the wind isn't set on a bare page, and stops once the wind is stepped", () => {
+    open('')
+    expect(windNote()).toBeInTheDocument()
+    expect(windNote()!.closest('.real-warnings')).not.toBeNull()
+    expect(hash()).toMatch(/[?&]d=/)
+    expect(hash()).not.toMatch(/[?&](ws|wc)=/)
+    fireEvent.click(screen.getByRole('button', { name: 'Wind speed: more' }))
+    expect(windNote()).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Wind speed: less' }))
+    expect(hash()).toMatch(/[?&]ws=0(&|$)/)
+    expect(windNote()).not.toBeInTheDocument()
+  })
+
+  it('counts a typed 0 as set', () => {
+    open('#/real/workbench?p=p7&d=1000')
+    expect(windNote()).toBeInTheDocument()
+    const field = screen.getByLabelText('Wind speed')
+    // Tabbing through the box sets nothing.
+    fireEvent.focus(field)
+    fireEvent.blur(field)
+    expect(windNote()).toBeInTheDocument()
+    // The box shows the calm 0, so typing 0 means clearing it first.
+    fireEvent.change(field, { target: { value: '' } })
+    fireEvent.change(field, { target: { value: '0' } })
+    fireEvent.keyDown(field, { key: 'Enter' })
+    expect(hash()).toMatch(/[?&]ws=0(&|$)/)
+    expect(windNote()).not.toBeInTheDocument()
+  })
+
+  it('shows at most two of the new lines', () => {
+    // Incomplete, with optional fields empty too, and no wind: the incomplete line takes the add line's place.
+    noMass()
+    open(`#/real/workbench?cr=${ROUND}&d=1000`)
+    expect(toCompute()).toBeInTheDocument()
+    expect(windNote()).toBeInTheDocument()
+    expect(addMore()).not.toBeInTheDocument()
+    cleanup()
+    bare()
+    open(`#/real/workbench?cr=${ROUND}&d=600`)
+    expect(addMore()).toBeInTheDocument()
+    expect(windNote()).toBeInTheDocument()
+    expect(toCompute()).not.toBeInTheDocument()
+  })
+
+  it('closes the calculation sheet when the selection turns incomplete (the browser goes back to one)', async () => {
+    seed({ rounds: [
+      { id: ROUND, rifleId: 'axsr', ...HANDLOAD },
+      { id: 'u-round-2', rifleId: 'axsr', name: 'No mass', bc: 0.31, dragModel: 'G7', muzzleVelocityMs: 880 },
+    ] })
+    open(`#/real/workbench?cr=${ROUND}&d=1000&ws=0`)
+    fireEvent.click(screen.getByRole('button', { name: 'How it’s calculated' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    await act(async () => {
+      window.location.hash = '#/real/workbench?cr=u-round-2&d=1000&ws=0'
+      await new Promise((r) => setTimeout(r, 0))
+    })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'To compute, add: bullet mass' })).toBeInTheDocument()
+    // Closed, not hidden: forward to the complete round, the sheet stays shut.
+    await act(async () => {
+      window.location.hash = `#/real/workbench?cr=${ROUND}&d=1000&ws=0`
+      await new Promise((r) => setTimeout(r, 0))
+    })
+    expect(elevation()).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('has a name in both languages for every field a line can list', () => {
+    const keys = [...(['rifle', 'round', 'scope'] as const).flatMap((kind) => incompleteFields(kind, {}).map((f) => f.key)), ...UNSET_ORDER]
+    for (const key of keys) for (const lang of ['en', 'cs'] as const) expect(translate(lang, `lib.f.${key}` as TKey), `${lang} ${key}`).toMatch(/\S/)
+  })
+
+  it('speaks Czech', () => {
+    bare()
+    open(`#/real/workbench?l=cs&cr=${ROUND}&d=600`)
+    expect(screen.getByRole('button', { name: 'Pro přesnější výpočet doplň: SD, citlivost prachu, teplota rychlosti, přesnost' })).toBeInTheDocument()
+    expect(screen.getByText('Vítr nezadán: počítá se bezvětří')).toBeInTheDocument()
+    cleanup()
+    noMass()
+    open(`#/real/workbench?l=cs&cr=${ROUND}&d=1000&ws=0`)
+    expect(screen.getByRole('button', { name: 'Pro výpočet doplň: hmotnost střely' })).toBeInTheDocument()
   })
 })

@@ -135,6 +135,34 @@ describe('NumberField', () => {
     expect(input).toHaveAttribute('aria-invalid', 'false')
   })
 
+  it('flags a value from outside its range at once', () => {
+    const { input, onChange } = field({ value: 50, min: 5, max: 20, outOfRange: true })
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByRole('alert')).toHaveTextContent('Enter 1–2500')
+    expect(input.value).toBe('50')
+    // Tabbing through stores nothing; the flag stays until a value in range is typed.
+    fireEvent.blur(input)
+    expect(onChange).not.toHaveBeenCalled()
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    type(input, '12')
+    fireEvent.blur(input)
+    expect(onChange).toHaveBeenCalledWith(12)
+    expect(input).toHaveAttribute('aria-invalid', 'false')
+  })
+
+  it('leaves the flag to the caller: a shown value past the box\'s rounded bounds is not an error', () => {
+    // 25 m shows as 27 yd, under the box's 28 yd: the stored value is fine, only its rounding isn't typeable.
+    const { input } = field({ value: 27, min: 28, max: 2734 })
+    expect(input).toHaveAttribute('aria-invalid', 'false')
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('puts a mark after the label word, inside the label', () => {
+    render(<NumberField label="Distance" value={null} unit="m" min={1} max={2500} onChange={vi.fn()} invalidText="bad" mark="optional" />)
+    expect(screen.getByRole('textbox')).toHaveAccessibleName('Distance optional')
+    expect(screen.getByText('optional')).toHaveClass('label-mark')
+  })
+
   it('needs a value: empty and flagged until a valid one is typed, even one equal to the old value', () => {
     const { input, onChange } = field({ value: 3, needed: true })
     expect(input.value).toBe('')

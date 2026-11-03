@@ -163,6 +163,21 @@ The default page (`#/real/workbench`, and the bare URL): the first-shot scope se
   - **Fields** put the label left and the source tag right on one row above the input. `True the muzzle velocity ›` is collapsed inside the Round section.
   - **Reset** ends an open section, after a 1px rule: a right-aligned 44px `--muted` text button (`↺ Reset the round to the preset`), shown while that section has any override key. It clears only that section's keys, so the other sections keep their values (on a shared-link view too: their tags turn from `from link` to `yours`). It raises a toast with `Undo`.
   - **Share** copies `location.href` and raises a toast `Link copied`. When the clipboard is missing or refuses, the toast instead holds the link in a read-only selected field under `Copy the link from the field`, with `✕`, and stays until closed.
+- **Your own items** (`gb.real.library`):
+  - **Pickers** list the custom items first, each with a muted `custom` tag; a `+ Add …` row (`.rs-pick-add`, `--accent`) ends each list and opens a form in place of the section's fields.
+  - **The add form** (`.lib-form`) shows the required fields, then a hairline (`.lib-optional`), then the optional ones. `Save` is primary and `Cancel` is ghost (one row, each filling half on a phone). A new rifle's form also asks for its first round, under a subheading.
+  - **The optional mark** is the word `optional` after the label word, mono 10px `--muted`. An optional field shows the `not set` placeholder and clears to not set.
+  - **Delete** reuses `SectionReset` (the right-aligned 44px `--muted` text button) and raises the toast with `Undo`.
+  - **The iPhone note:** on an iPhone in Safari, not yet on the home screen, a note (`.lib-note`, `role="group"`) stands in for the form at `+ Add …`, with its own text (the home-screen app keeps its own storage). `How` reveals the install steps under it. `Continue anyway` opens the form and is remembered (`addNoteSeen` in `gb.real.profile`), so the note shows until it is pressed once.
+  - **The MV barrel hint:** a custom round whose barrel differs from the one its MV was measured on shows a `≈` line in `.est` (`.mv-hint`) with a button that accepts the new figure; never applied silently.
+  - **A custom scope's unit** is its turrets' unit, and selecting or saving one sets the display angle to it.
+- **Main-screen lines:** three kinds, at most two at once.
+  - The incomplete line (`.real-ask.real-todo`) is an `.est` box button that replaces the answer, naming what is missing; it opens the sheet at that field.
+  - The add line (`≈`, `.est`, `.real-ask`) leads the warnings: `For a more precise answer, add: …`.
+  - The wind-unset note (`≈`, `.est`) says calm is assumed.
+
+  The incomplete line is 13px in `--fg`, not `.est`'s 11px `--muted`, on purpose: it carries the whole answer area. The owner will judge that look.
+- **Calculation sheet, switched-off effects:** `.calc-off` sentences say what is off and why, in `--accent` at 11px, like the `≈` note.
 - **Big figure:** the ⚙ sheet has, on REAL only, `Big figure: Value | Clicks` (a segmented control with the hint `When dialling the turret.`), stored as `primary` in `gb.real.profile`. In dial mode `Value` leads with the turret figure and shows the clicks under it in `--accent` mono 24px; `Clicks` leads with the click count (`↑36`, `clicks` in `--accent` 18px) and shows the value under it. The arrow always leads; zero clicks has no arrow. Hold mode and the windage block don't change.
 - **Wind input:** the dock's wind speed is a typed field between `−` and `+`, in the owner's unit, one decimal; a Czech decimal comma is accepted. `−` and `+` go to the next multiple of the unit's step. The `WindClock` takes a press or a drag anywhere on the dial outside its centre hub (the inner 30% of the radius) and picks the hour nearest the angle; each hour owns a 30° wedge.
 - **Pressure kind:** a model pressure converts with the Station/QNH toggle.
@@ -251,7 +266,7 @@ A setup choice sits in a **popover menu** under the tag that names it (see Setup
   - 32px rows (44px on a phone) between `--border` hairlines: the name in body 14px, an optional tag, a mono figure right-aligned (after the tag, so figures share one right edge whether a row has a tag or not), an optional element after it (the round's pen strip);
   - the list scrolls inside a few rows (4 for barrels and scopes, 8 for rounds) and opens scrolled to the chosen row, without moving the page;
   - from eleven items a filter field sits above it, named after its list (`Filter: Scope`).
-- **Stepper:** `−`, the mono value, `+`, 36px tall (44px on a phone), the buttons disabled at the bounds.
+- **Stepper:** `−`, the mono value, `+`, 36px tall (44px on a phone), the buttons disabled at the bounds. A value not set shows `—`, and either button gives its starting value (a custom scope's zero: 100 m). A value that is missing or outside the bounds is flagged as a field is: a `--bad` border and the message under it.
 - **Zero:** the game's own steps: a stepper in 50 m steps from 50 m (100 m on a long rifle, type `Rifle`) to the scope's maximum zero, plus the 100 / 200 / 300 m preset chips that fall inside. Shared links and the "or zero at" suggestion keep to the same steps.
 - **Tags:** mono 10–11px, padding 2px 6px, 1px `--border-strong`.
 - **Pen strip:** a display, not a control.

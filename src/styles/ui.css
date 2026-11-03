@@ -477,6 +477,16 @@ input::placeholder {
   margin-left: auto;
 }
 
+/* A note after the label word (`optional`): mono 10px `--muted`, out of the label's tracked capitals. */
+.label-mark {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--muted);
+}
+
 .number-field-row {
   display: flex;
   align-items: center;
@@ -495,6 +505,16 @@ input::placeholder {
 
 .number-field input[aria-invalid='true'] {
   border-color: var(--bad);
+}
+
+/* A stepper flagged as a field is: its value missing or outside the bounds, the message under it. */
+.stepper[aria-invalid='true'] {
+  border-color: var(--bad);
+}
+
+/* Not set: the `—` in the placeholder colour, so it doesn't read as a third `−` button. */
+.stepper output.unset {
+  color: var(--muted);
 }
 
 .number-field-error {

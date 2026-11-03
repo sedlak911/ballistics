@@ -1,4 +1,4 @@
-import { useRef, type CSSProperties, type ReactNode } from 'react'
+import { useRef, type CSSProperties, type ReactNode, type RefObject } from 'react'
 import { HeaderSlot } from '../../../components/HeaderSlot'
 import { ScopeView } from '../../../components/ScopeView'
 import { angleOfOffset, radFromAngle, SPEED_TO_MS, type AngleUnit, type UnitSystem } from '../../../engine/units'
@@ -29,8 +29,15 @@ import './real.css'
 
 const step = (i: number) => ({ '--i': i }) as CSSProperties
 
+/** A line of the main screen that opens the settings sheet; its button hands over its own ref, to get the focus back. */
+export interface AskLine {
+  text: string
+  open: (returnFocus: RefObject<HTMLElement | null>) => void
+}
+
 export interface RealViewProps {
-  solution: RealSolution
+  /** Null while the selection is incomplete: nothing is solved, and the answer area holds the incomplete line. */
+  solution: RealSolution | null
   mode: 'dial' | 'hold'
   /** Dial mode's big figure: the angle, or the turret clicks. */
   primary: 'value' | 'clicks'
@@ -51,19 +58,31 @@ export interface RealViewProps {
   note?: ReactNode
   /** The weather from By location is older than 3 h (it needs the clock, so the page decides). */
   staleWeather?: boolean
+  /** The required fields the selection lacks (`To compute, add: …`), in place of the answer. */
+  incomplete: AskLine | null
+  /** The empty optional fields of the custom items (`For a more precise answer, add: …`), first among the notes. */
+  addMore: AskLine | null
+  /** The wind hasn't been set, so calm is assumed: a note says so. */
+  windUnset: boolean
+  /** Whether the scope is one of your own (its magnification has no model yet). */
+  customScope: boolean
   /** Whether the calculation sheet is open; the page asks the solver for the shares only then (R9). */
   calcOpen: boolean
   onCalc: (open: boolean) => void
 }
 
+type AnswerProps = Pick<RealViewProps, 'mode' | 'primary' | 'distanceM' | 'targetCm' | 'windUnit' | 'system' | 'phone' | 'offView'> & {
+  solution: RealSolution
+  /** Under the hit line: the notes and the calculation button. */
+  foot: ReactNode
+}
+
 /**
- * The REAL main screen: the scope setting for the first shot, in dial mode (the figures) or hold mode (the reticle
- * with the figures under it), then the hit line on a large screen, the warnings and the calculation button. It only
- * renders the solution it is given.
+ * The answer for a solution: the scope setting for the first shot, in dial mode (the figures) or hold mode (the reticle
+ * with the figures under it), or out of range; then the hit line on a large screen and `foot`.
  */
-export function RealView({ solution: s, mode, primary, distanceM, targetCm, windUnit, system, phone, offView, bar, tags, station, note, staleWeather, calcOpen, onCalc }: RealViewProps) {
+function Answer({ solution: s, mode, primary, distanceM, targetCm, windUnit, system, phone, offView, foot }: AnswerProps) {
   const { t, display } = useSettings()
-  const calcBtn = useRef<HTMLButtonElement>(null)
   const lang = display.lang
   const unit: AngleUnit = s.unit
   const unitLabel = unit === 'mil' ? 'MRAD' : 'MOA'
@@ -143,16 +162,7 @@ export function RealView({ solution: s, mode, primary, distanceM, targetCm, wind
           {hit.group && <p className="real-group num">{t('real.group', { size: sizeText(hit.group.widthM, hit.group.heightM, system) })}</p>}
         </div>
       )}
-      {(s.warnings.length > 0 || staleWeather) && (
-        <div className="real-warnings">
-          {s.warnings.map((warning) => <p key={warning} className="est"><b>≈</b> {t(`real.warn.${warning}`)}</p>)}
-          {staleWeather && <p className="est"><b>≈</b> {t('real.warn.staleWeather')}</p>}
-        </div>
-      )}
-      <button ref={calcBtn} type="button" className="btn ghost real-calc" aria-haspopup="dialog" aria-expanded={calcOpen}
-        onClick={() => onCalc(true)}>
-        {t('real.howCalc')}
-      </button>
+      {foot}
     </>
   )
 
@@ -215,14 +225,68 @@ export function RealView({ solution: s, mode, primary, distanceM, targetCm, wind
     )
   }
 
+  return body
+}
+
+/**
+ * The REAL main screen: the answer (`Answer`), then the notes and the calculation button. An incomplete selection has
+ * no answer, only the line naming what is missing. The new lines (incomplete, what to add, wind not set) are at most
+ * two: the page gives no add line while the incomplete one shows. It only renders the solution it is given.
+ */
+export function RealView({ solution: s, mode, primary, distanceM, targetCm, windUnit, system, phone, offView, bar, tags, station, note, staleWeather, incomplete, addMore, windUnset, customScope, calcOpen, onCalc }: RealViewProps) {
+  const { t } = useSettings()
+  const calcBtn = useRef<HTMLButtonElement>(null)
+  const incompleteBtn = useRef<HTMLButtonElement>(null)
+  const addBtn = useRef<HTMLButtonElement>(null)
+
+  // The add line and the wind note lead today's warnings, in their style; each line's button opens the sheet.
+  const warnings = s?.warnings ?? []
+  const notes = (addMore || windUnset || warnings.length > 0 || staleWeather) && (
+    <div className="real-warnings">
+      {addMore && (
+        <button ref={addBtn} type="button" className="est real-ask" aria-haspopup="dialog" onClick={() => addMore.open(addBtn)}>
+          <b aria-hidden="true">≈</b> {addMore.text}
+        </button>
+      )}
+      {windUnset && <p className="est"><b>≈</b> {t('lib.windUnset')}</p>}
+      {warnings.map((warning) => <p key={warning} className="est"><b>≈</b> {t(`real.warn.${warning}`)}</p>)}
+      {staleWeather && <p className="est"><b>≈</b> {t('real.warn.staleWeather')}</p>}
+    </div>
+  )
+
+  const body = s === null
+    ? (
+      <div className="real-answer">
+        {incomplete && (
+          <button ref={incompleteBtn} type="button" className="est real-ask real-todo" aria-haspopup="dialog"
+            onClick={() => incomplete.open(incompleteBtn)}>
+            {incomplete.text}
+          </button>
+        )}
+        {notes}
+      </div>
+    )
+    : (
+      <Answer solution={s} mode={mode} primary={primary} distanceM={distanceM} targetCm={targetCm} windUnit={windUnit} system={system}
+        phone={phone} offView={offView} foot={(
+          <>
+            {notes}
+            <button ref={calcBtn} type="button" className="btn ghost real-calc" aria-haspopup="dialog" aria-expanded={calcOpen}
+              onClick={() => onCalc(true)}>
+              {t('real.howCalc')}
+            </button>
+          </>
+        )} />
+    )
+
   return (
-    <div className={`real mode-${s.reached ? mode : 'none'}`}>
+    <div className={`real mode-${s?.reached ? mode : 'none'}`}>
       {tags && (phone ? <div className="real-strip enter" style={step(0)}>{tags}</div> : <HeaderSlot>{tags}</HeaderSlot>)}
       {note && <p className="real-note">{note}</p>}
       {station}
       <div className="real-grid enter" style={step(1)}>{body}</div>
       <div className="real-bar-slot enter" style={step(2)}>{bar}</div>
-      {calcOpen && <CalcSheet solution={s} onClose={() => onCalc(false)} returnFocus={calcBtn} />}
+      {calcOpen && s && <CalcSheet solution={s} customScope={customScope} onClose={() => onCalc(false)} returnFocus={calcBtn} />}
     </div>
   )
 }

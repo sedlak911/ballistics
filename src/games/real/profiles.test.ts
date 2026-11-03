@@ -1,6 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { act, renderHook } from '@testing-library/react'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { PRESETS } from './data/presets'
-import { CLICK_CHIPS, defaultClick, linkOverrides, OVERRIDE_RANGES, readLinkOverrides, readOverrides, resetPatch, resolvePreset, changedCount, sectionKeysIn, SECTIONS, SECTION_KEYS, writeLinkOverrides, type Overrides } from './profiles'
+import {
+  CLICK_CHIPS, defaultClick, linkOverrides, OVERRIDE_RANGES, readLinkOverrides, readOverrides, resetPatch, resolvePreset, changedCount, sectionKeysIn, SECTIONS,
+  SECTION_KEYS, useOverrides, writeLinkOverrides, type Overrides,
+} from './profiles'
 
 const p7 = PRESETS.find((p) => p.id === 'p7')!
 
@@ -203,5 +207,31 @@ describe('sections', () => {
 
   it('keeps a null travel in the undo', () => {
     expect(resetPatch({ travelUp: null }, 'scope').undo).toEqual({ travelUp: null })
+  })
+})
+
+describe('the store', () => {
+  const KEY = 'gb.real.profiles'
+  beforeEach(() => {
+    localStorage.clear()
+    // The store remembers the raw text it last read; an empty read resets it.
+    renderHook(() => useOverrides()).unmount()
+  })
+
+  it('keeps a preset entry it doesn\'t know through a write', () => {
+    // Today's Custom, waiting for its migration, and a preset a later build adds.
+    const custom = { twistIn: 11, massGr: 180, future: 1 }
+    localStorage.setItem(KEY, JSON.stringify({ v: 1, future: 1, presets: { custom, p10: { zeroM: 200 }, p7: { zeroM: 300 } } }))
+    const { result } = renderHook(() => useOverrides())
+    expect(result.current[0]).toEqual({ p7: { zeroM: 300 } })
+    act(() => {
+      result.current[1]('p7', { twistIn: 10 })
+    })
+    expect(JSON.parse(localStorage.getItem(KEY)!)).toEqual({ v: 1, future: 1, presets: { custom, p10: { zeroM: 200 }, p7: { zeroM: 300, twistIn: 10 } } })
+    act(() => {
+      result.current[1]('p7', null)
+    })
+    expect(JSON.parse(localStorage.getItem(KEY)!).presets).toEqual({ custom, p10: { zeroM: 200 } })
+    expect(result.current[0]).toEqual({})
   })
 })

@@ -8,7 +8,7 @@ import { useSettings } from '../../../settings/SettingsContext'
 import type { Lang } from '../../../settings/url'
 import { useRealProfile, type Effect } from '../profile'
 import { LINK_SOURCE } from '../profiles'
-import type { RealInput, RealShare, RealSolution } from '../solve'
+import type { MissingInput, RealInput, RealShare, RealSolution } from '../solve'
 import { angleLabel, fix, inputValue, len, num, shareLines, term } from './calcText'
 import { CloseIcon } from './icons'
 import {
@@ -133,8 +133,10 @@ const Lines = ({ lines }: { lines: string[] }) => <>{lines.map((l) => <span key=
  * A modal sheet: it keeps the focus inside, closes on Escape, its ✕ or a press beside it, and gives the focus back to
  * the button that opened it.
  */
-export function CalcSheet({ solution: s, onClose, returnFocus }: {
+export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
   solution: RealSolution
+  /** A scope of your own: its magnification has no model yet, and the sheet says so. */
+  customScope: boolean
   onClose: () => void
   returnFocus: RefObject<HTMLElement | null>
 }) {
@@ -153,6 +155,9 @@ export function CalcSheet({ solution: s, onClose, returnFocus }: {
   const input = (key: string) => s.inputs.find((i) => i.key === key) ?? null
   // An input the solution always lists; a miss throws in development and tests, and prints as a dash in production.
   const val = (key: string) => inputValue(s.inputs, key)
+  // The inputs a custom item may lack: null where one is missing.
+  const opt = (key: string): number | null => input(key)?.value ?? null
+  const DASH = '—'
   const src = (key: string, trued?: number | null) => <Src i={input(key)} t={t} sys={sys} trued={trued} />
   const d = val('distanceM')
   const x = s.explain
@@ -161,13 +166,12 @@ export function CalcSheet({ solution: s, onClose, returnFocus }: {
   const toggle = (e: Effect) => (on: boolean) => setProfile({ effects: { [e]: on } })
 
   const shareOf = (e: Effect): RealShare | null => shares?.[e] ?? null
-  const isMissing = (sh: RealShare | null): sh is { missing: 'twist' | 'bulletLength' | 'reach' } => sh !== null && 'missing' in sh
-  const missingText = (sh: { missing: 'twist' | 'bulletLength' | 'reach' }) =>
-    sh.missing === 'reach' ? t('calc.missing.reach') : t('calc.missing', { what: t(`calc.missing.${sh.missing}`) })
+  const isMissing = (sh: RealShare | null): sh is { missing: MissingInput } => sh !== null && 'missing' in sh
+  const missingText = (sh: { missing: MissingInput }) => (sh.missing === 'reach' ? t('calc.missing.reach') : t(`calc.off.${sh.missing}`))
   const missingId = (e: Effect) => `calc-missing-${e}`
   const shareResult = (sh: RealShare | null, e?: Effect): ReactNode => {
     if (sh === null) return '—'
-    if (isMissing(sh)) return <span id={e && missingId(e)} className="calc-vl calc-missing">{missingText(sh)}</span>
+    if (isMissing(sh)) return <span id={e && missingId(e)} className={`calc-vl ${sh.missing === 'reach' ? 'calc-missing' : 'calc-off'}`}>{missingText(sh)}</span>
     return <Lines lines={shareLines(sh.yM, sh.xM, d, unit, sys)} />
   }
   // An effect that lacks an input is greyed whole and its switch is disabled, the reason as its description.
@@ -224,18 +228,22 @@ export function CalcSheet({ solution: s, onClose, returnFocus }: {
 
   // 2 Muzzle velocity
   const refMv = val('muzzleVelocityMs')
+  const mvRefTempC = opt('mvRefTempC')
+  const powderSens = opt('powderSensMsPerC')
   const truedAt = input('truedAtM')?.value ?? null
   const shifted = x?.shiftedMvMs ?? val('mvUsedMs')
   const mvStep = (
     <Step n={2} t={t} title={t('calc.s.mv')} why={t('calc.why.mv')} result={`${num(val('mvUsedMs'), 1, 'en')}${NBSP}m/s`}>
       <Line>{[
         <Item key="r" k={t('calc.in.mvRef')} v={ms(refMv)} c={`${num(refMv / FT_M, 0, lang)}${NBSP}ft/s`} src={src('muzzleVelocityMs', truedAt)} />,
-        <Item key="rt" k={t('calc.in.mvRefTemp')} {...temp(val('mvRefTempC'))} src={src('mvRefTempC')} />,
+        <Item key="rt" k={t('calc.in.mvRefTemp')} {...(mvRefTempC === null ? { v: DASH } : temp(mvRefTempC))} src={src('mvRefTempC')} />,
         <Item key="p" k={t('calc.in.powder')} {...temp(val('powderTempC'))} src={src('powderTempC')} />,
-        <Item key="k" k={t('calc.in.sens')} v={`${num(val('powderSensMsPerC'), 2, lang)}${NBSP}${t('rm.sensUnit')}`} src={src('powderSensMsPerC')} />,
+        <Item key="k" k={t('calc.in.sens')} v={powderSens === null ? DASH : `${num(powderSens, 2, lang)}${NBSP}${t('rm.sensUnit')}`} src={src('powderSensMsPerC')} />,
       ]}</Line>
       <Line>{[
-        <Item key="f" v={`${num(refMv, 1, lang)} + ${num(val('powderSensMsPerC'), 2, lang)} · (${num(val('powderTempC'), 1, lang)} − ${num(val('mvRefTempC'), 1, lang)}) = ${num(shifted, 1, lang)}${NBSP}m/s`} />,
+        <Item key="f" v={powderSens === null || mvRefTempC === null
+          ? `${num(refMv, 1, lang)}${NBSP}m/s`
+          : `${num(refMv, 1, lang)} + ${num(powderSens, 2, lang)} · (${num(val('powderTempC'), 1, lang)} − ${num(mvRefTempC, 1, lang)}) = ${num(shifted, 1, lang)}${NBSP}m/s`} />,
       ]}</Line>
       {fxRow('powderTemp')}
     </Step>
@@ -292,7 +300,9 @@ export function CalcSheet({ solution: s, onClose, returnFocus }: {
           : <Item key="c" v={t('calc.in.clicksOf', { clicks: clicksText(Math.abs(clicks), t, lang), c: `${num(click, 3, lang)}${NBSP}${U}` })} src={src('clickValue')} />,
         // Whole cm, the same figure as the answer's dial line.
         !capped && <Item key="l" v={t('real.leftOver', { l: lengthText(radFromAngle(remainder, unit) * d, sys) })} />,
-        travel && <Item key="tr" k={t('calc.in.travel')} v={`${num(travel.value, 2, lang)}${NBSP}${U}`} src={src('travelUp')} />,
+        travel
+          ? <Item key="tr" k={t('calc.in.travel')} v={`${num(travel.value, 2, lang)}${NBSP}${U}`} src={src('travelUp')} />
+          : <span key="tr" className="calc-off">{t('calc.off.travel')}</span>,
       ]}</Line>
       <Line>{[
         <Item key="z" k={t('calc.in.zero')} v={fmtDistance(val('zeroM'), sys)} src={src('zeroM')} />,
@@ -338,6 +348,8 @@ export function CalcSheet({ solution: s, onClose, returnFocus }: {
   // 6 Spin drift
   const sg = input('sg')
   const lengthMm = input('lengthMm')
+  const twistIn = opt('twistIn')
+  const diameterIn = opt('diameterIn')
   const twistDir = t(x.twist === 'right' ? 'rm.twistRight' : 'rm.twistLeft')
   const spin = shareOf('spinDrift')
   const spinStep = (
@@ -345,12 +357,12 @@ export function CalcSheet({ solution: s, onClose, returnFocus }: {
       sw={fxSwitch('spinDrift', t('calc.s.spinDrift'))}>
       <Line>{[
         sg && <Item key="sg" v={t('calc.in.sg', { sg: fix(sg.value, 2, lang) })} />,
-        <Item key="tw" v={t('calc.in.twist', { t: num(val('twistIn'), 2, lang), mm: `${num(val('twistIn') * MM_PER_IN, 0, lang)}${NBSP}mm`, dir: twistDir })} src={src('twistIn')} />,
+        <Item key="tw" v={twistIn === null ? DASH : t('calc.in.twist', { t: num(twistIn, 2, lang), mm: `${num(twistIn * MM_PER_IN, 0, lang)}${NBSP}mm`, dir: twistDir })} src={src('twistIn')} />,
       ]}</Line>
       <Line>{[
         lengthMm && <Item key="l" k={t('calc.in.bullet')} {...mmIn(lengthMm.value)} src={src('lengthMm')} />,
         <Item key="m" v={`${num(val('massGr'), 1, lang)}${NBSP}gr`} c={`${num(val('massGr') * MASS_TO_G.gr, 1, lang)}${NBSP}g`} src={src('massGr')} />,
-        <Item key="dm" v={`${num(val('diameterIn'), 3, lang)}${NBSP}in`} c={`${num(val('diameterIn') * MM_PER_IN, 2, lang)}${NBSP}mm`} src={src('diameterIn')} />,
+        <Item key="dm" v={diameterIn === null ? DASH : `${num(diameterIn, 3, lang)}${NBSP}in`} c={diameterIn === null ? undefined : `${num(diameterIn * MM_PER_IN, 2, lang)}${NBSP}mm`} src={src('diameterIn')} />,
       ]}</Line>
       {sg && spin && !isMissing(spin) && (
         <Line>{[
@@ -370,14 +382,14 @@ export function CalcSheet({ solution: s, onClose, returnFocus }: {
         <Item key="lat" k={t('calc.in.latitude')} v={t(lat < 0 ? 'calc.in.south' : 'calc.in.north', { v: num(Math.abs(lat), 2, lang) })} src={src('latitudeDeg')} />,
         azimuth
           ? <Item key="az" k={t('calc.in.azimuth')} v={`${num(azimuth.value, 1, lang)}°`} src={src('azimuthDeg')} />
-          : <Item key="az" v={t('calc.in.noAzimuth')} />,
+          : <span key="az" className="calc-off">{t('calc.off.azimuth')}</span>,
       ]}</Line>
     </Step>
   )
 
   // 8 Aerodynamic jump
   const jump = shareOf('aeroJump')
-  const calibres = lengthMm ? lengthMm.value / MM_PER_IN / val('diameterIn') : null
+  const calibres = lengthMm && diameterIn !== null ? lengthMm.value / MM_PER_IN / diameterIn : null
   const jumpStep = (
     <Step n={8} t={t} title={t('calc.s.aeroJump')} why={t('calc.why.aeroJump')} result={shareResult(jump, 'aeroJump')} off={effectOff('aeroJump')}
       sw={fxSwitch('aeroJump', t('calc.s.aeroJump'))}>
@@ -430,6 +442,8 @@ export function CalcSheet({ solution: s, onClose, returnFocus }: {
     hit.y.bc !== undefined && `${t('calc.src.bc', { p: `${num(val('bcSdPct'), 1, lang)}${NBSP}%` })} ${sigmaPart(hit.y.bc)}`,
     hit.y.hold !== undefined && `${t('calc.src.hold')} ${sigmaPart(hit.y.hold)}`,
   ].filter(Boolean).join(' · ')
+  const accuracyMoa = opt('accuracyMoa')
+  const mvSd = input('mvSdMs')
   const hitStep = (
     <Step n={10} t={t} title={t('calc.s.hit')} why={t('calc.why.hit')} result={hit ? chanceText(hit.chance) : '—'}>
       <Line>{[<Item key="tg" v={t('calc.in.target', { cm: `${num(val('targetCm'), 1, lang)}${NBSP}cm` })} />]}</Line>
@@ -440,11 +454,14 @@ export function CalcSheet({ solution: s, onClose, returnFocus }: {
         </>
       )}
       <Line>{[
-        <Item key="r" v={t('calc.in.rifle', { moa: num(val('accuracyMoa'), 2, lang), n: val('groupShots') })} src={src('accuracyMoa')} />,
-        input('mvSdMs')
-          ? <Item key="mv" k={t('calc.in.mvSd')} v={ms(val('mvSdMs'))} src={src('mvSdMs')} />
-          : <Item key="mv" v={t('calc.in.mvUnknown')} />,
+        accuracyMoa === null
+          ? <span key="r" className="calc-off">{t('calc.off.accuracy')}</span>
+          : <Item key="r" v={t('calc.in.rifle', { moa: num(accuracyMoa, 2, lang), n: val('groupShots') })} src={src('accuracyMoa')} />,
+        mvSd
+          ? <Item key="mv" k={t('calc.in.mvSd')} v={ms(mvSd.value)} src={src('mvSdMs')} />
+          : <span key="mv" className="calc-off">{t('calc.off.mvSd')}</span>,
       ]}</Line>
+      {customScope && <Line>{[<span key="mg" className="calc-off">{t('calc.off.magnification')}</span>]}</Line>}
       <Line>{[<Item key="h" v={t('calc.in.holdEst', { v: `${num(val('holdSigmaMrad'), 3, lang)}${NBSP}MRAD` })} />]}</Line>
       {hit?.dominant && <p className="calc-d calc-cost">{t(`real.cost.${hit.dominant}`)}</p>}
     </Step>
