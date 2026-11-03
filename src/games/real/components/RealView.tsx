@@ -105,21 +105,20 @@ function Answer({ solution: s, mode, primary, distanceM, targetCm, windUnit, sys
   const n = Math.abs(clicks)
   const capped = rounded(hold, digits) > 0
   const dir = clicks > 0 ? ` ${t('real.up')}` : clicks < 0 ? ` ${t('real.down')}` : ''
+  const leftOver = t('real.leftOver', { l: lengthText(radFromAngle(remainder, unit) * distanceM, system) })
   const dialText = capped
     ? t('real.dialHold', { d: dec(dialed, digits, lang), clicks: clicksText(n, t, lang), h: `↑${dec(hold, digits, lang)}` })
-    : `${clicksText(n, t, lang)}${dir} · ${t('real.leftOver', { l: lengthText(radFromAngle(remainder, unit) * distanceM, system) })}`
+    : `${clicksText(n, t, lang)}${dir} · ${leftOver}`
 
   // The big figure in clicks: the hero is the dialled clicks with their word as the unit; the angle moves to the dial line.
-  const leftOver = t('real.leftOver', { l: lengthText(radFromAngle(remainder, unit) * distanceM, system) })
+  // With the value as the big figure, the clicks stay in the small dial line under it, as in 0.1.0.
   const byClicks = primary === 'clicks'
   const clickHero = (
     <div className="real-hero by-clicks num" data-testid="real-elevation">
       {n === 0 ? '0' : `${clicks > 0 ? UP_DOWN[1] : UP_DOWN[0]}${n}`}<span className="unit">{clickWordText(n, t, lang)}</span>
     </div>
   )
-  const clicksLine = `${n === 0 ? '' : `${clicks > 0 ? UP_DOWN[1] : UP_DOWN[0]} `}${clicksText(n, t, lang)}`
-  const dialLine = capped ? dialText
-    : byClicks ? `${dec(Math.abs(s.elevation), 1, lang)}${NBSP}${unitLabel} · ${leftOver}` : leftOver
+  const dialLine = byClicks && !capped ? `${dec(Math.abs(s.elevation), 1, lang)}${NBSP}${unitLabel} · ${leftOver}` : dialText
 
   // Which mark of the reticle goes on the target: a hold left puts the target right of centre.
   const w = rounded(s.windage, 1)
@@ -210,7 +209,6 @@ function Answer({ solution: s, mode, primary, distanceM, targetCm, windUnit, sys
           <section>
             {key('elevation', 'dial')}
             {byClicks ? clickHero : hero('elevation', s.elevation)}
-            {!byClicks && !capped && <p className="real-clicks num" data-testid="real-clicks">{clicksLine}</p>}
             <p className="real-sub" data-testid="real-dial-line">{dialLine}</p>
           </section>
           <section>

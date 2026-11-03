@@ -118,6 +118,16 @@ describe('App shell', () => {
     expect(cs.querySelector('a[href*="lapua.com"]')).not.toBeNull()
   })
 
+  it('links ⓘ’s what’s new with the game it is open on', () => {
+    open('#/gzw/workbench')
+    fireEvent.click(screen.getByRole('button', { name: 'About this site' }))
+    expect(screen.getByRole('link', { name: 'What’s new' })).toHaveAttribute('href', 'changelog/#gzw')
+    cleanup()
+    open('')
+    fireEvent.click(screen.getByRole('button', { name: 'About this site' }))
+    expect(screen.getByRole('link', { name: 'What’s new' })).toHaveAttribute('href', 'changelog/#real')
+  })
+
   // M3: a page about real rifles has no game to disclaim; it says how far to trust its estimates instead.
   it('gives REAL its own note in ⓘ, not the game ones, in both languages', () => {
     open('')

@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { translate } from '../i18n'
 import type { T } from '../i18n'
+import { APP_VERSION } from '../version'
 import { InfoSheet } from './InfoSheet'
 
 const t: T = (key, vars) => translate('en', key, vars)
@@ -49,5 +50,24 @@ describe('InfoSheet install part', () => {
     }))
     render(<InfoSheet info={null} t={t} />)
     expect(installPart()).toBeNull()
+  })
+})
+
+describe('InfoSheet version line', () => {
+  it.each(['cs', 'en'] as const)('links what’s new next to the version, in the same tab (%s)', (lang) => {
+    const tl: T = (key, vars) => translate(lang, key, vars)
+    render(<InfoSheet info={null} t={tl} />)
+    const link = screen.getByRole('link', { name: tl('info.whatsNew') })
+    expect(link).toHaveAttribute('href', 'changelog/')
+    expect(link).not.toHaveAttribute('target')
+    expect(link.closest('p')).toHaveTextContent(`${tl('info.version', { v: APP_VERSION })} · ${tl('info.whatsNew')}`)
+  })
+})
+
+describe('InfoSheet what’s-new link', () => {
+  // The page takes the game's palette and leads back to it.
+  it('carries the game the sheet is open on', () => {
+    render(<InfoSheet info={null} t={t} game="gzw" />)
+    expect(screen.getByRole('link', { name: t('info.whatsNew') })).toHaveAttribute('href', 'changelog/#gzw')
   })
 })

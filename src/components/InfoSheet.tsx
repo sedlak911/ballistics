@@ -24,9 +24,15 @@ const PRIVACY: TKey[] = ['info.privacy.storage', 'info.privacy.location', 'info.
 
 /**
  * What the site is and where its data comes from: the fan-project note, how to read the answer, the data version and
- * the credits, how to install, then privacy and the app's version. Help and privacy start closed, so the sheet stays short.
+ * the credits, how to install, then privacy and the app's version with a link to what's new. Help and privacy start
+ * closed, so the sheet stays short.
  */
-export function InfoSheet({ info, t }: { info: DataInfo | null; t: T }) {
+export function InfoSheet({ info, t, game }: {
+  info: DataInfo | null
+  t: T
+  /** The game the sheet is open on. The what's-new page takes its palette from it and leads back to it. */
+  game?: string
+}) {
   const notes = info?.notes ?? GAME_NOTES
   const prompt = useInstallPrompt()
   const standalone = isStandalone()
@@ -88,7 +94,11 @@ export function InfoSheet({ info, t }: { info: DataInfo | null; t: T }) {
         <summary>{t('info.privacy')}</summary>
         {PRIVACY.map((k) => <p key={k}>{t(k)}</p>)}
       </details>
-      <p>{t('info.version', { v: APP_VERSION })}</p>
+      {/* The what's-new page sits next to the app's pages (/cs/changelog/), so the link is relative to this one; its hash
+          is the game, for the palette and the way back. */}
+      <p className="info-version">
+        {t('info.version', { v: APP_VERSION })} · <a href={game ? `changelog/#${game}` : 'changelog/'}>{t('info.whatsNew')}</a>
+      </p>
     </div>
   )
 }

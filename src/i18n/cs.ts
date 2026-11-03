@@ -8,6 +8,9 @@ export const cs: Record<keyof typeof en, string> = {
   'toggle.angle': 'Úhlová jednotka',
   'hdr.settings': 'Nastavení',
   'hdr.info': 'O webu',
+  // the what's-new page (src/changelog/)
+  'changelog.title': 'Co je nového',
+  'changelog.back': 'Zpět do aplikace',
   'menu.gun': 'Hlaveň a přesnost',
   'menu.scope': 'Optika a nástřel',
   'comingSoon.title': 'Připravujeme',
@@ -31,6 +34,7 @@ export const cs: Record<keyof typeof en, string> = {
   'info.estimates': 'Balistická čísla jsou odhad z reálné fyziky. Hra může počítat jinak.',
   'info.realEstimates': 'Odhady z fyziky a zveřejněných údajů. Než se na ně spolehneš, ověř je střelbou na papírový terč.',
   'info.version': 'Verze {v}',
+  'info.whatsNew': 'Co je nového',
   'info.help': 'Jak číst odpověď',
   'info.real.figures': 'Výška, Do strany',
   'info.real.figuresText': 'Co nastavit na puškohledu pro první ránu: nahoru nebo dolů, a doleva nebo doprava.',

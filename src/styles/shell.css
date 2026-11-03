@@ -205,6 +205,13 @@
   color: var(--accent);
 }
 
+/* The version line's link to the what's-new page: as tall as the summaries above it, 44px on a phone. */
+.info-version a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+}
+
 /* Pages -------------------------------------------------------------------- */
 .coming-soon,
 .placeholder {
@@ -235,7 +242,8 @@
   }
 
   .logo,
-  .games a {
+  .games a,
+  .info-version a {
     min-height: 44px;
   }
 

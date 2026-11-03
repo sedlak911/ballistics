@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { appRoot, chooseLang, langHref, pathLang, redirectTarget } from './lang'
+import { appRoot, changelogLang, chooseLang, langHref, pathLang, redirectTarget } from './lang'
 
 describe('chooseLang', () => {
   it('takes the link’s l=, then the stored setting, then the browser’s language', () => {
@@ -64,5 +64,19 @@ describe('pathLang', () => {
     expect(pathLang('/cs/index.html')).toBe('cs')
     expect(pathLang('/ballistics/')).toBeNull()
     expect(pathLang('/docs/')).toBeNull()
+  })
+})
+
+describe('changelogLang', () => {
+  it('reads the language of a what’s-new page from its path', () => {
+    expect(changelogLang('/ballistics/cs/changelog/')).toBe('cs')
+    expect(changelogLang('/en/changelog/index.html')).toBe('en')
+    expect(changelogLang('/ballistics/cs/')).toBeNull()
+    expect(changelogLang('/changelog/')).toBeNull()
+  })
+
+  // The app's own pages still read as the app, not as a what's-new page.
+  it('leaves pathLang to the app', () => {
+    expect(pathLang('/ballistics/cs/changelog/')).toBeNull()
   })
 })

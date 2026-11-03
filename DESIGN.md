@@ -178,7 +178,7 @@ The default page (`#/real/workbench`, and the bare URL): the first-shot scope se
 
   The incomplete line is 13px in `--fg`, not `.est`'s 11px `--muted`, on purpose: it carries the whole answer area. The owner will judge that look.
 - **Calculation sheet, switched-off effects:** `.calc-off` sentences say what is off and why, in `--accent` at 11px, like the `≈` note.
-- **Big figure:** the ⚙ sheet has, on REAL only, `Big figure: Value | Clicks` (a segmented control with the hint `When dialling the turret.`), stored as `primary` in `gb.real.profile`. In dial mode `Value` leads with the turret figure and shows the clicks under it in `--accent` mono 24px; `Clicks` leads with the click count (`↑36`, `clicks` in `--accent` 18px) and shows the value under it. The arrow always leads; zero clicks has no arrow. Hold mode and the windage block don't change.
+- **Big figure:** the ⚙ sheet has, on REAL only, `Big figure: Value | Clicks` (a segmented control with the hint `When dialling the turret.`), stored as `primary` in `gb.real.profile`. In dial mode `Value` leads with the turret figure, and the small dial line under it gives the clicks with their direction and what is left over (`36 clicks up · 2 cm left over`), as in 0.1.0 (0.1.2 to 0.1.4 had a large `--accent` clicks line instead; the owner wanted it back); `Clicks` leads with the click count (`↑36`, `clicks` in `--accent` 18px) and shows the value under it. The arrow always leads; zero clicks has no arrow. Hold mode and the windage block don't change.
 - **Wind input:** the dock's wind speed is a typed field between `−` and `+`, in the owner's unit, one decimal; a Czech decimal comma is accepted. `−` and `+` go to the next multiple of the unit's step. The `WindClock` takes a press or a drag anywhere on the dial outside its centre hub (the inner 30% of the radius) and picks the hour nearest the angle; each hour owns a 30° wedge.
 - **Pressure kind:** a model pressure converts with the Station/QNH toggle.
 - **Bottom bar:** distance, slope, wind (a typed field with − and + buttons, and the `WindClock`) and target size, labelled fields on one row; on a phone it is a two-row dock fixed to the bottom.
@@ -293,7 +293,7 @@ A setup choice sits in a **popover menu** under the tag that names it (see Setup
   - the estimates note;
   - `Add Ballistics to your home screen`: why, the iPhone and Android steps, and an `Install` button only when the browser offers one; hidden when the page runs from the home screen;
   - `Privacy`: what stays in the browser and what leaves it (By location to Open-Meteo, the screenshot read in the browser, the IP address GitHub Pages sees), and "No cookies, no analytics, no tracking.";
-  - `Version {v}`, the app's version.
+  - `Version {v} · What's new`: the app's version and a link to the what's-new page (`changelog/#<game>`, relative, with the game the sheet is open on; same tab; 32px tall, 44px on a phone).
 
   Help, install and privacy are `<details>`, closed until asked for: a label-role summary in `--fg` (`--accent` on hover) with a `›` that turns down when open, so the sheet stays short. Its text is mono 12px `--muted`, a term `--fg`. The sheet scrolls inside itself (at most the screen's height less 88px). While a sheet is open the header sits over a phone's dock, so the sheet's end is never hidden under it.
 - **Version mark:** the app's version (`v` and the `package.json` version), mono 10px `--muted` at 60%, fixed 8px from the right and 4px from the bottom of the screen. It moves nothing, takes no clicks and is `aria-hidden` (ⓘ gives it). On a phone the dock fills that corner, so it shows only in ⓘ.
@@ -393,6 +393,17 @@ The scope view is the hero. It shows which point of the reticle goes on the targ
     - the target as icons, with the word only on the chosen one and no `Target` word, plus a single direction toggle (unavailable for a still target).
   - **Touch targets:** at least 44px tall.
   - **When something has to go:** drop the item least relevant to the answer, not the last one in source order.
+
+## What's new page
+
+`/cs/changelog/` and `/en/changelog/`: a page of its own (`src/changelog/`), reached from ⓘ, listing what each version brought. Its text lives in `src/changelog/entries.ts`, written for the user; only the title and the way back are i18n strings.
+
+- **Ground:** the contour lines (`Backdrop`), no glow (it has no hero).
+- **Game:** the hash ⓘ's link gives (`#gzw`), accepted only when it is an id in `GAMES`. It sets `data-game`, so the page wears that game's palette, and both ways back lead to `../#/<game>/workbench`. Without one, or with an unknown one, the page is REAL's (the HTML's `data-game`) and leads back to `../`.
+- **Header:** the app's header (`.app-header`), with the logo linking back and, at the right end, the ghost button `← Back to the app` (the app in the same language, see Game). It never slides away, since a home-screen app has no browser back, and takes its ground once the page scrolls under it.
+- **Column:** at most 680px, centred, 32px gutters (16px on a phone). The title is an `h1` at the verdict's size (64px / 800, 40px on a phone), line height 1 for the Czech diacritics.
+- **Version blocks**, newest first, each under a `--border` hairline with 24px on either side of it: an `h2` of the version as a figure (mono 13px `--fg-strong`), then ` · 3. 11. 2026` (`3 Nov 2026` in English) in `--muted`, left out until the version is released, then the title in the section-heading role; under it the items in body text, at most 64ch, each with a 4px `--faint` square.
+- **Styles:** `changelog.css` `@import`s the fonts, the three theme files and `base`, `shell` and `ui` CSS, so they are inlined into the page's own stylesheet. Imported from its script one by one, they would become a chunk shared with the app, loaded before the app's own CSS, and reorder the app's cascade.
 
 ## Brand and attribution
 

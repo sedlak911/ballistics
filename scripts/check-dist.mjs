@@ -7,7 +7,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const dist = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist')
-const PAGES = ['index.html', 'cs/index.html', 'en/index.html']
+const PAGES = ['index.html', 'cs/index.html', 'en/index.html', 'cs/changelog/index.html', 'en/changelog/index.html']
 const REQUIRED = ['ocr/worker.min.js', 'ocr/eng.traineddata.gz', 'manifest.webmanifest']
 // Any host and subpath will do; only what stays under it counts.
 const SITE = 'https://pages.invalid/app/'

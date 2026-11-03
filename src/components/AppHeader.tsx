@@ -4,6 +4,7 @@ import { buildHash } from '../router'
 import type { T } from '../i18n'
 import type { Display } from '../settings/url'
 import { InfoSheet, type DataInfo } from './InfoSheet'
+import { Logo } from './Logo'
 import { Segmented } from './Segmented'
 import { PHONE, useMedia } from './useMedia'
 
@@ -13,17 +14,6 @@ export interface GameTab {
   /** Shown instead of the name on a phone, where the full name doesn't fit. */
   short?: string
   available: boolean
-}
-
-export function Logo() {
-  return (
-    <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="var(--accent)" strokeWidth="1.5" aria-hidden="true">
-      <rect x="1" y="1" width="32" height="32" />
-      <circle cx="17" cy="17" r="9" />
-      <path d="M17 4v8M17 22v8M4 17h8M22 17h8" />
-      <circle cx="17" cy="17" r="1.6" fill="var(--accent)" stroke="none" />
-    </svg>
-  )
 }
 
 function GearIcon() {
@@ -142,7 +132,7 @@ export function AppHeader({ route, games, display, setDisplay, t, slotRef, info,
       </div>
       {open === 'info' && (
         <div ref={sheetRef} className="sheet info-sheet panel" role="dialog" aria-label={t('hdr.info')}>
-          <InfoSheet info={info} t={t} />
+          <InfoSheet info={info} t={t} game={route.game} />
         </div>
       )}
       {open === 'settings' && (

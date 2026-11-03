@@ -1,0 +1,109 @@
+/* The what's-new page (DESIGN.md → What's new page): one column of version blocks over the contour lines, under the
+   app's header with the logo and the way back. Type roles and tokens only; square corners, no shadows. */
+
+/* The app's fonts, styles and the games' palettes (the page takes the one it came from), inlined into this page's own stylesheet (see main.tsx). */
+@import '@fontsource/barlow-condensed/600.css';
+@import '@fontsource/barlow-condensed/700.css';
+@import '@fontsource/barlow-condensed/800.css';
+@import '@fontsource/geist/400.css';
+@import '@fontsource/geist-mono/400.css';
+@import '../styles/base.css';
+@import '../games/real/theme.css';
+@import '../games/gzw/theme.css';
+@import '../games/wardogs/theme.css';
+@import '../styles/shell.css';
+@import '../styles/ui.css';
+
+/* The way back stays at the header's right end, also on a phone. */
+.cl-back {
+  margin-left: auto;
+}
+
+.cl-main {
+  position: relative;
+  width: 100%;
+  max-width: calc(680px + 64px);
+  margin: 0 auto;
+  padding: 32px max(32px, var(--safe-right)) calc(64px + var(--safe-bottom)) max(32px, var(--safe-left));
+}
+
+/* The verdict's size and weight: the page's one large line. Line height 1, so the Czech diacritics have room. */
+.cl-h1 {
+  margin-bottom: 24px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 64px;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--fg-strong);
+}
+
+.cl-entry {
+  padding: 24px 0;
+  border-top: 1px solid var(--border);
+}
+
+.cl-entry h2 {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: inherit;
+}
+
+/* The version as a figure (mono, tabular), then its date in --muted. */
+.cl-meta {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--fg-strong);
+}
+
+.cl-date {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* The section heading role. */
+.cl-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-strong);
+}
+
+.cl-items {
+  display: grid;
+  gap: 8px;
+  max-width: 64ch;
+  list-style: none;
+}
+
+/* A small square mark in --faint (a mark, no words) on the first line of each item. */
+.cl-items li {
+  position: relative;
+  padding-left: 18px;
+}
+
+.cl-items li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: calc(0.725em - 2px);
+  width: 4px;
+  height: 4px;
+  background: var(--faint);
+}
+
+@media (max-width: 699px) {
+  .cl-main {
+    padding: 24px max(16px, var(--safe-right)) calc(48px + var(--safe-bottom)) max(16px, var(--safe-left));
+  }
+
+  .cl-h1 {
+    font-size: 40px;
+  }
+}

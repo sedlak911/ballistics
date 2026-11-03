@@ -13,6 +13,12 @@ export function pathLang(pathname: string): Lang | null {
   return m ? asLang(m[1]) : null
 }
 
+/** The language of a what's-new page's path: '/ballistics/cs/changelog/' is 'cs'. */
+export function changelogLang(pathname: string): Lang | null {
+  const m = /\/(cs|en)\/changelog\/(?:index\.html)?$/.exec(pathname)
+  return m ? asLang(m[1]) : null
+}
+
 /** An old link's l=, then the stored setting, then the browser: any Czech locale gets Czech, the rest English. */
 export function chooseLang(linkL: string | null, stored: unknown, navigatorLang: string): Lang {
   return asLang(linkL) ?? asLang(stored) ?? (navigatorLang.toLowerCase().startsWith('cs') ? 'cs' : 'en')

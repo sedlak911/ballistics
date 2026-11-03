@@ -42,7 +42,7 @@ describe('the home screen install files', () => {
     expect(size(read('public/icons/apple-touch-icon.png'))).toBe('180x180')
   })
 
-  it.each(['index.html', 'cs/index.html', 'en/index.html'])('%s links the manifest and opens edge to edge', (page) => {
+  it.each(['index.html', 'cs/index.html', 'en/index.html', 'cs/changelog/index.html', 'en/changelog/index.html'])('%s links the manifest and opens edge to edge', (page) => {
     const html = read(page).toString('utf8')
     for (const part of [
       'rel="manifest"',

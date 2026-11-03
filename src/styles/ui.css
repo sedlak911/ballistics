@@ -101,6 +101,8 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
+  /* A link drawn as a button (the way back, the coming-soon page's) is not underlined. */
+  text-decoration: none;
   transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
 

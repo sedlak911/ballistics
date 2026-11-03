@@ -53,8 +53,7 @@ describe('RealPage: the answer in dial mode', () => {
   it('gives P7 at 1000 m about 8.3 MRAD up, with the clicks and what is left over', () => {
     open('#/real/workbench?p=p7&d=1000')
     expect(elevation()).toHaveTextContent(/^↑8\.\dMRAD$/)
-    expect(screen.getByTestId('real-clicks')).toHaveTextContent(/^↑ 8\d clicks$/)
-    expect(screen.getByTestId('real-dial-line')).toHaveTextContent(/^\d+ cm left over$/)
+    expect(screen.getByTestId('real-dial-line')).toHaveTextContent(/^8\d clicks up · \d+ cm left over$/)
   })
 
   it('holds left with three wind columns for 3 m/s from 9; with no wind, says what 1 m/s does instead', () => {
@@ -109,8 +108,7 @@ describe('RealPage: the answer in dial mode', () => {
   it('never prints a negative zero: at the zero distance the answer is a plain 0', () => {
     open('#/real/workbench?p=p7&d=100&ws=0')
     expect(elevation()).toHaveTextContent(/^0MRAD$/)
-    expect(screen.getByTestId('real-clicks')).toHaveTextContent(/^0 clicks$/)
-    expect(screen.getByTestId('real-dial-line')).toHaveTextContent(/^\d+ cm left over$/)
+    expect(screen.getByTestId('real-dial-line')).toHaveTextContent(/^0 clicks · \d+ cm left over$/)
     // The answer, not the bar: there a − button sits next to the wind's 0.
     expect(document.querySelector('.real-grid')!.textContent).not.toMatch(/[-−]0(\.0+)?(?!\d)/)
     expect(windage()).toHaveTextContent(/^0MRAD$/)
@@ -164,8 +162,7 @@ describe('RealPage: the answer in dial mode', () => {
     open('#/real/workbench?l=cs&p=p7&d=1000&ws=3&wc=9')
     expect(screen.getByText('Výška')).toBeInTheDocument()
     expect(screen.getByText('· natoč')).toBeInTheDocument()
-    expect(screen.getByTestId('real-clicks')).toHaveTextContent(/^↑ 8\d kliků$/)
-    expect(screen.getByTestId('real-dial-line')).toHaveTextContent(/^zbývá \d+ cm$/)
+    expect(screen.getByTestId('real-dial-line')).toHaveTextContent(/^8\d kliků nahoru · zbývá \d+ cm$/)
     expect(screen.getByText(/^terč na značku 1,\d vpravo od středu$/)).toBeInTheDocument()
     expect(screen.getByTestId('real-hit')).toHaveTextContent(/^Terč 50 cm: zásah ≈ \d+ %\. Nejvíc chyby dělá odhad větru\./)
     expect(screen.getByRole('button', { name: /Jak se to počítá/ })).toBeInTheDocument()
@@ -379,11 +376,12 @@ describe('RealPage: the big figure', () => {
   const text = (id: string) => screen.getByTestId(id).textContent!.replace(/\u00a0/g, ' ')
   const writeO = (o: object) => `o=${writeLinkOverrides(o)}`
 
-  it('value: the angle is the hero, the clicks come under it, the dial line keeps what is left over', () => {
+  // As in 0.1.0: the clicks sit in the small dial line under the angle, with no line of their own.
+  it('value: the angle is the hero, the dial line gives the clicks and what is left over', () => {
     open('#/real/workbench?p=p7&d=300&ws=0')
     expect(text('real-elevation')).toBe('↑1.0MRAD')
-    expect(text('real-clicks')).toBe('↑ 10 clicks')
-    expect(text('real-dial-line')).toBe('0 cm left over')
+    expect(screen.queryByTestId('real-clicks')).not.toBeInTheDocument()
+    expect(text('real-dial-line')).toBe('10 clicks up · 0 cm left over')
   })
 
   it('clicks: the clicks are the hero with their word as the unit, the angle moves to the dial line', () => {
@@ -407,9 +405,9 @@ describe('RealPage: the big figure', () => {
     expect(text('real-elevation')).toBe('↑10kliků')
   })
 
-  it('at the zero distance there is no arrow', () => {
+  it('at the zero distance there is no direction', () => {
     open('#/real/workbench?p=p7&d=100&ws=0')
-    expect(text('real-clicks')).toBe('0 clicks')
+    expect(text('real-dial-line')).toMatch(/^0 clicks · \d+ cm left over$/)
   })
 
   it('on a capped turret, clicks makes the dialled clicks the hero, with the dial-and-hold sentence', () => {

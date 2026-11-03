@@ -7,6 +7,9 @@ export const en = {
   'toggle.angle': 'Angle unit',
   'hdr.settings': 'Settings',
   'hdr.info': 'About this site',
+  // the what's-new page (src/changelog/)
+  'changelog.title': 'What’s new',
+  'changelog.back': 'Back to the app',
   'menu.gun': 'Barrel and accuracy',
   'menu.scope': 'Scope and zero',
   'comingSoon.title': 'Coming soon',
@@ -30,6 +33,7 @@ export const en = {
   'info.estimates': 'Ballistic numbers are estimates from real-world physics. The game’s own numbers may differ.',
   'info.realEstimates': 'Estimates from physics and published data. Check them on paper before relying on them.',
   'info.version': 'Version {v}',
+  'info.whatsNew': 'What’s new',
   'info.help': 'How to read the answer',
   'info.real.figures': 'Elevation, Windage',
   'info.real.figuresText': 'What to set on the scope for the first shot: up or down, and left or right.',
