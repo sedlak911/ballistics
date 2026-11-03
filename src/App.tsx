@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AppHeader } from './components/AppHeader'
 import { Backdrop } from './components/Backdrop'
 import { HeaderSlotContext } from './components/HeaderSlot'
+import { ToastSlotContext } from './components/toastSlot'
 import { GzwApp, gzwInfo } from './games/gzw/GzwApp'
 import { RealApp, realInfo } from './games/real/RealApp'
+import { RealDisplaySettings } from './games/real/components/RealDisplaySettings'
 import type { DataInfo } from './components/InfoSheet'
 import { GAMES, type GameId } from './games/registry'
 import { ComingSoon } from './pages/ComingSoon'
@@ -22,6 +24,9 @@ function Shell() {
   const { route, display, setDisplay, t } = useSettings()
   const game = GAMES.find((g) => g.id === route.game)!
   const [slot, setSlot] = useState<HTMLElement | null>(null)
+  // The open modal sheet's toast slot, if any (ToastSlot registers it); the toast shows on <body> without one.
+  const [toastSlot, setToastSlot] = useState<HTMLElement | null>(null)
+  const toastSlotValue = useMemo(() => ({ slot: toastSlot, setSlot: setToastSlot }), [toastSlot])
   // The game's palette (src/games/<game>/theme.css) keys off this attribute.
   useEffect(() => {
     document.documentElement.dataset.game = route.game
@@ -29,11 +34,13 @@ function Shell() {
   return (
     <div className="app">
       <AppHeader route={route} games={GAMES} display={display} setDisplay={setDisplay} t={t} slotRef={setSlot}
-        info={INFO[game.id]} />
+        info={INFO[game.id]} extraSettings={game.id === 'real' ? <RealDisplaySettings /> : undefined} />
       <main className="app-main">
         <Backdrop />
         <HeaderSlotContext.Provider value={slot}>
-          {game.id === 'real' ? <RealApp /> : game.id === 'gzw' ? <GzwApp /> : <ComingSoon game={game.name} url={game.url} />}
+          <ToastSlotContext.Provider value={toastSlotValue}>
+            {game.id === 'real' ? <RealApp /> : game.id === 'gzw' ? <GzwApp /> : <ComingSoon game={game.name} url={game.url} />}
+          </ToastSlotContext.Provider>
         </HeaderSlotContext.Provider>
       </main>
       <div className="version-mark" aria-hidden="true">v{APP_VERSION}</div>

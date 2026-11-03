@@ -14,6 +14,10 @@ export interface RealPreset {
   round: string
   /** The round tag's text: calibre, bullet and weight, at most 22 characters (`.338 LM Scenar 250`). */
   short: string
+  /** The phone rifle tag's text, 1-10 characters (`AXSR`). */
+  rifleShort: string
+  /** The phone round tag's text, 1-8 characters (`.338 LM`). */
+  calibre: string
   users: ('army' | 'police')[]
   barrel: Sourced<string>
   twistIn: Sourced<number>

@@ -9,6 +9,10 @@ The first-shot scope setting for a real rifle at 100–2000 m, from presets of t
 - **Dial or hold:** the elevation and windage to set on the turret in clicks, or to hold in the reticle, in MRAD or MOA.
 - **Atmosphere:** standard air, or set it by hand (temperature, pressure, humidity, altitude, azimuth) on the station line.
 - **Calculation view:** how the answer was reached, step by step, with each effect's share of the hit and a switch to take it out.
+- **Settings sheet:** the rifle, round and scope tags open one sheet with a section each (twist, accuracy, BC, muzzle velocity, truing, zero, sight height, travel). A section resets to the preset on its own, with an undo. On a phone the tags show an icon and a short name.
+- **Sharing:** the share button in the sheet copies the link (the setup, the preset's changes and the language path, never the station), or shows it in a field to copy by hand when the browser refuses the clipboard.
+- **Big figure:** value or clicks when dialling, in the ⚙ sheet.
+- **Wind:** type the speed (a decimal comma works) or press or drag anywhere on the wind clock.
 - State is kept in `gb.real.setup`, `gb.real.profiles`, `gb.real.profile` and `gb.real.station`.
 
 ## GZW
@@ -22,7 +26,7 @@ One page, the **workbench**, with one view that fits a screen: the setup as tags
 - **Screenshot import**: paste (Ctrl+V), drop or pick a screenshot of your character with the inventory and the weapon detail open. OCR runs in the browser and offers the weapons it found (the fastest preselected), the round that fits, the barrel, scope and real accuracy, after you confirm them.
 - Fits a screen from 1366×768 up, in landscape and portrait, and works on a phone. ⓘ holds how to read the answer (REAL), the data sources, the fan-project note, privacy and the version. The version (`package.json`) also shows faintly in the bottom-right corner on a desktop.
 
-English with a Czech switch, metric or imperial, MIL or MOA. Every setting lives in the URL, so a link reproduces the setup. The browser also keeps the last setup (`gb.gzw.setup`) and the profile (`gb.gzw.profile`) in localStorage; nothing leaves the browser.
+English with a Czech switch, metric or imperial, MIL or MOA. The language is the first part of the address, `/cs/` or `/en/`. Every setting lives in the URL, so a link reproduces the setup. The browser also keeps the last setup (`gb.gzw.setup`) and the profile (`gb.gzw.profile`) in localStorage; nothing leaves the browser.
 
 The numbers are estimates from real-world ballistics (point-mass G7/G1 solver, published BCs). The game tunes its own.
 
@@ -62,4 +66,4 @@ Model weather belongs to an altitude: Open-Meteo's surface pressure and 2 m temp
 
 ## Deploy
 
-`.gitlab-ci.yml` at the repo root builds this app into `public/ballistics/` on the default branch, next to the root `site/index.html`. The app is deployed to GitHub Pages: the repo `sedlak911/ballistics` holds only the contents of this folder, and its `.github/workflows/pages.yml` runs `npm ci`, `npm test` and `npm run build` on push to main and serves https://sedlak911.github.io/ballistics/. Vite's `base: './'` makes the build work under any subpath.
+`.gitlab-ci.yml` at the repo root builds this app into `public/ballistics/` on the default branch, next to the root `site/index.html`. The app is deployed to GitHub Pages: the repo `sedlak911/ballistics` holds only the contents of this folder, and its `.github/workflows/pages.yml` runs `npm ci`, `npm test` and `npm run build` on push to main and serves https://sedlak911.github.io/ballistics/. Vite's `base: './'` makes the build work under a subpath, as long as the deploy folder itself isn't named `cs` or `en`: `src/lang.ts` (`appRoot`) takes a trailing `cs/` or `en/` for the language. The language is in the path: the app's pages are `cs/` and `en/`, and the root `index.html` only redirects to one of them (an old link's `l=`, then the stored language, then the browser's), keeping the rest of the hash, without `l=`. Without JavaScript it links to both. `npm run build` ends with `scripts/check-dist.mjs`, which fails unless every reference in the three built pages resolves under `dist/` (a folder counts when it holds an `index.html`) and the OCR assets are there.

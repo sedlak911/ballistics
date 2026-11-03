@@ -3,6 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import pkg from '../package.json'
 import App from './App'
 import { PHONE } from './components/useMedia'
+import { leave } from './leave'
+
+// jsdom can't load another page; the language switch on /cs/ and /en/ leaves through this seam.
+vi.mock('./leave', () => ({ leave: vi.fn() }))
 
 function open(hash: string) {
   window.location.hash = hash
@@ -34,6 +38,16 @@ describe('App shell', () => {
     expect(within(sheet).getByRole('group', { name: 'Units' })).toBeInTheDocument()
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(screen.queryByRole('dialog', { name: 'Settings' })).not.toBeInTheDocument()
+  })
+
+  it('offers the big figure under ⚙ on REAL only', () => {
+    open('#/real/workbench')
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+    expect(within(screen.getByRole('dialog', { name: 'Settings' })).getByRole('group', { name: 'Big figure' })).toBeInTheDocument()
+    cleanup()
+    open('#/gzw/workbench')
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+    expect(within(screen.getByRole('dialog', { name: 'Settings' })).queryByRole('group', { name: 'Big figure' })).not.toBeInTheDocument()
   })
 
   it('keeps the site info behind ⓘ: the data credits and the fan-project note', () => {
@@ -155,5 +169,69 @@ describe('The version and the ⓘ sheet', () => {
     cleanup()
     open('#/gzw/workbench')
     expect(within(about()).queryByText('How to read the answer')).toBeNull()
+  })
+})
+
+// The language is in the path (/cs/, /en/; src/lang.ts). Tests run at the root, where an old link's l= still counts.
+describe('The language', () => {
+  const atPath = (path: string, hash: string) => {
+    window.history.replaceState(null, '', `${path}${hash}`)
+    return render(<App />)
+  }
+  const storedLang = () => (JSON.parse(localStorage.getItem('gb.display') ?? '{}') as { lang?: string }).lang
+  const switchTo = (label: 'EN' | 'CS', settings = 'Settings') => {
+    fireEvent.click(screen.getByRole('button', { name: settings }))
+    fireEvent.click(within(screen.getByRole('group', { name: settings === 'Settings' ? 'Language' : 'Jazyk' })).getByRole('button', { name: label }))
+  }
+  afterEach(() => {
+    window.history.replaceState(null, '', '/')
+    vi.mocked(leave).mockClear()
+  })
+
+  // R2: the language is read once, when the app opens; the setup links it writes have no l=, and it stays.
+  it('keeps an old link’s l= after the app rewrites the link without it', () => {
+    open('#/real/workbench?l=cs')
+    expect(window.location.hash).not.toMatch(/[?&]l=/)
+    expect(screen.getByRole('button', { name: 'O webu' })).toBeInTheDocument()
+  })
+
+  it('switches in place at the root, stores it, and writes no l=', () => {
+    open('#/gzw/workbench')
+    switchTo('CS')
+    expect(screen.getByRole('button', { name: 'O webu' })).toBeInTheDocument()
+    expect(window.location.hash).not.toMatch(/[?&]l=/)
+    expect(storedLang()).toBe('cs')
+  })
+
+  it('follows the path over l= and the stored setting, and stores the path’s', () => {
+    localStorage.setItem('gb.display', JSON.stringify({ lang: 'en', system: 'imperial' }))
+    atPath('/cs/', '#/gzw/workbench?l=en')
+    expect(screen.getByRole('button', { name: 'O webu' })).toBeInTheDocument()
+    expect(document.documentElement.lang).toBe('cs')
+    expect(JSON.parse(localStorage.getItem('gb.display')!)).toMatchObject({ lang: 'cs', system: 'imperial' })
+  })
+
+  it('survives a corrupt stored setting', () => {
+    localStorage.setItem('gb.display', 'null')
+    open('#/gzw/workbench')
+    expect(screen.getByRole('button', { name: 'About this site' })).toBeInTheDocument()
+  })
+
+  // An old link's l= must not outlive a switch: a reload would read it before the stored choice.
+  it('drops an old link’s l= when switching in place', () => {
+    open('#/wardogs/workbench?l=cs')
+    switchTo('EN', 'Nastavení')
+    expect(screen.getByRole('button', { name: 'About this site' })).toBeInTheDocument()
+    expect(window.location.hash).toBe('#/wardogs/workbench?u=metric&a=mil')
+    expect(leave).not.toHaveBeenCalled()
+  })
+
+  it('leaves a language’s page for the other one with the same hash, storing the choice, not switching in place', () => {
+    atPath('/cs/', '#/wardogs/workbench?d=300')
+    switchTo('EN', 'Nastavení')
+    expect(leave).toHaveBeenCalledExactlyOnceWith('http://localhost:3000/en/#/wardogs/workbench?d=300')
+    expect(storedLang()).toBe('en')
+    expect(screen.getByRole('button', { name: 'O webu' })).toBeInTheDocument()
+    expect(window.location.hash).toBe('#/wardogs/workbench?d=300')
   })
 })

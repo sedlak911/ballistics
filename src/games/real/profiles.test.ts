@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PRESETS } from './data/presets'
-import { CLICK_CHIPS, defaultClick, linkOverrides, OVERRIDE_RANGES, readLinkOverrides, readOverrides, resolvePreset, writeLinkOverrides, type Overrides } from './profiles'
+import { CLICK_CHIPS, defaultClick, linkOverrides, OVERRIDE_RANGES, readLinkOverrides, readOverrides, resetPatch, resolvePreset, changedCount, sectionKeysIn, SECTIONS, SECTION_KEYS, writeLinkOverrides, type Overrides } from './profiles'
 
 const p7 = PRESETS.find((p) => p.id === 'p7')!
 
@@ -170,5 +170,38 @@ describe('the overrides in a shared link (I3)', () => {
     expect(linkOverrides(stored, { bc: 0.33 })).toEqual({ bc: 0.33, clickValue: 0.125, travelUp: 20, scopeUnit: 'moa', muzzleVelocityMs: 910, truedAtM: 800, zeroM: 200 })
     expect(linkOverrides(stored, { clickValue: 0.1, scopeUnit: 'mil' })).toEqual({ dragModel: 'G1', bc: 0.5, clickValue: 0.1, scopeUnit: 'mil', muzzleVelocityMs: 910, truedAtM: 800, zeroM: 200 })
     expect(linkOverrides(stored, { muzzleVelocityMs: 905 })).toEqual({ dragModel: 'G1', bc: 0.5, clickValue: 0.125, travelUp: 20, scopeUnit: 'moa', muzzleVelocityMs: 905, zeroM: 200 })
+  })
+})
+
+describe('sections', () => {
+  it('puts every override key in exactly one section', () => {
+    const all: Required<Overrides> = { sightHeightMm: 1, accuracyMoa: 1, groupShots: 3, twistIn: 1, twist: 'right', muzzleVelocityMs: 1, mvRefTempC: 1,
+      mvSdMs: 1, powderSensMsPerC: 1, bc: 1, dragModel: 'G1', massGr: 1, diameterIn: 1, lengthMm: 1, zeroM: 1, clickValue: 1, travelUp: 1, scopeUnit: 'mil', truedAtM: 1 }
+    const listed = SECTIONS.flatMap((s) => SECTION_KEYS[s])
+    expect([...listed].sort()).toEqual(Object.keys(all).sort())
+    expect(new Set(listed).size).toBe(listed.length)
+  })
+
+  it('counts a pair once', () => {
+    const own: Overrides = { bc: 0.3, dragModel: 'G1', muzzleVelocityMs: 910, truedAtM: 600, massGr: 250 }
+    expect(changedCount(resolvePreset(p7, own), own, 'round', 'mil')).toBe(3)
+  })
+
+  it('does not count a click saved in the other unit, though the reset still shows', () => {
+    const own: Overrides = { clickValue: 0.25, scopeUnit: 'moa' }
+    expect(changedCount(resolvePreset(p7, own), own, 'scope', 'mil')).toBe(0)
+    expect(sectionKeysIn(own, 'scope')).toEqual(['clickValue', 'scopeUnit'])
+  })
+
+  it('undo restores exactly what the reset removes', () => {
+    const own: Overrides = { twistIn: 8, zeroM: 300, bc: 0.3 }
+    expect(resetPatch(own, 'scope')).toEqual({
+      patch: { zeroM: undefined, clickValue: undefined, travelUp: undefined, scopeUnit: undefined, sightHeightMm: undefined },
+      undo: { zeroM: 300 },
+    })
+  })
+
+  it('keeps a null travel in the undo', () => {
+    expect(resetPatch({ travelUp: null }, 'scope').undo).toEqual({ travelUp: null })
   })
 })

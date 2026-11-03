@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hasSetupParams, readDisplay, readSetup, writeSetup, type Display, type Setup } from './url'
+import { DEFAULT_DISPLAY, hasSetupParams, readDisplay, readSetup, writeSetup, type Display, type Setup } from './url'
 
 const defaults: Setup = {
   weaponId: 'm700', barrelId: 'm700-barrel', scopeId: 'vudu', zeroM: 100, ammoId: 'm80a1',
@@ -86,13 +86,21 @@ describe('readDisplay', () => {
     expect(readDisplay(new URLSearchParams('l=xx&u=furlongs&a=deg'), {})).toEqual(display)
   })
 
+  it('validates each stored field on its own, keeping a valid lang', () => {
+    const stored = { lang: 'cs', system: 'furlongs', angle: 7 } as never
+    expect(readDisplay(new URLSearchParams(''), stored)).toEqual({ ...display, lang: 'cs' })
+  })
+
   it('ignores the old view switch in links and storage', () => {
     expect(readDisplay(new URLSearchParams('v=full'), { view: 'full' } as never)).toEqual(display)
     expect(writeSetup(defaults, display).has('v')).toBe(false)
   })
 
-  it('round-trips through writeSetup', () => {
+  // The language is in the path, not the link (src/lang.ts); units and angles still travel.
+  it('round-trips units and angles through writeSetup, without l=', () => {
     const d: Display = { lang: 'cs', system: 'imperial', angle: 'moa' }
-    expect(readDisplay(writeSetup(defaults, d), {})).toEqual(d)
+    const p = writeSetup(defaults, d)
+    expect(p.has('l')).toBe(false)
+    expect(readDisplay(p, {})).toEqual({ ...d, lang: DEFAULT_DISPLAY.lang })
   })
 })

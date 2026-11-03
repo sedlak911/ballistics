@@ -220,9 +220,8 @@ describe('the station line', () => {
     fireEvent.click(within(s).getByRole('button', { name: 'km/h' }))
     expect(JSON.parse(localStorage.getItem('gb.real.profile')!).windUnit).toBe('km/h')
     fireEvent.keyDown(document, { key: 'Escape' })
-    const wind = screen.getByRole('group', { name: 'Wind speed' })
-    fireEvent.click(within(wind).getByRole('button', { name: 'Wind speed: more' }))
-    expect(within(wind).getByRole('status')).toHaveTextContent('2 km/h')
+    fireEvent.click(screen.getByRole('button', { name: 'Wind speed: more' }))
+    expect((screen.getByLabelText('Wind speed') as HTMLInputElement).value).toBe('2')
   })
 
   // M9: the spec's "one setting, 1 m/s by default" for how far the real wind may be from the one set.

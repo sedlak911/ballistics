@@ -36,3 +36,18 @@ describe('readRealProfile', () => {
     expect(readRealProfile({ windSigmaMs: 0.5 }).windSigmaMs).toBe(0.5)
   })
 })
+
+describe('readRealProfile: the big figure', () => {
+  it('takes clicks only for exactly clicks', () => {
+    expect(DEFAULT_REAL_PROFILE.primary).toBe('value')
+    expect(readRealProfile({ primary: 'clicks' }).primary).toBe('clicks')
+    expect(readRealProfile({ primary: 'Clicks' }).primary).toBe('value')
+  })
+
+  it('a corrupt primary falls back to value and leaves the other fields alone', () => {
+    const p = readRealProfile({ primary: 7, mode: 'hold', windUnit: 'kn' })
+    expect(p.primary).toBe('value')
+    expect(p.mode).toBe('hold')
+    expect(p.windUnit).toBe('kn')
+  })
+})

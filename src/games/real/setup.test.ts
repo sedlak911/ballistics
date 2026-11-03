@@ -33,5 +33,6 @@ describe('readRealSetup', () => {
     const p = writeRealSetup(s, { lang: 'cs', system: 'metric', angle: 'moa' })
     expect(readRealSetup(p)).toEqual(s)
     expect(p.get('a')).toBe('moa')
+    expect(p.has('l')).toBe(false)
   })
 })

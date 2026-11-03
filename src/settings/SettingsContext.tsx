@@ -1,24 +1,33 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { translate, type T } from '../i18n'
+import { chooseLang, DISPLAY_KEY, langHref, pathLang } from '../lang'
+import { leave } from '../leave'
 import type { Route } from '../router'
-import { readDisplay, type Display } from './url'
-
-const STORAGE_KEY = 'gb.display'
+import { readDisplay, type Display, type Lang } from './url'
 
 function loadStored(): Partial<Display> {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as Partial<Display>
+    const v: unknown = JSON.parse(localStorage.getItem(DISPLAY_KEY) ?? '{}')
+    return typeof v === 'object' && v !== null ? (v as Partial<Display>) : {}
   } catch {
     return {}
   }
 }
 
-function store(d: Display): void {
+function store(d: Partial<Display>): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(d))
+    localStorage.setItem(DISPLAY_KEY, JSON.stringify(d))
   } catch {
-    // Private mode or blocked storage: the URL still carries the choice.
+    // Private mode or blocked storage: the URL still carries units and angles, and the path the language.
   }
+}
+
+/**
+ * The language, once, when the app opens (R2): the path's (/cs/, /en/), else an old link's l= (tests and the bare dev
+ * root), else the stored one, else the browser's. Links no longer write l=, so it is never read from them again.
+ */
+function initialLang(params: URLSearchParams): Lang {
+  return pathLang(window.location.pathname) ?? chooseLang(params.get('l'), loadStored().lang, navigator.language)
 }
 
 interface Settings {
@@ -32,18 +41,32 @@ interface Settings {
 const Ctx = createContext<Settings | null>(null)
 
 export function SettingsProvider({ route, navigate, children }: { route: Route; navigate: (r: Partial<Route>) => void; children: ReactNode }) {
-  const display = useMemo(() => readDisplay(route.params, loadStored()), [route.params])
+  const [lang, setLang] = useState(() => initialLang(route.params))
+  // Units and angles still follow the link; the language is the state above.
+  const fromLink = useMemo(() => readDisplay(route.params, loadStored()), [route.params])
+  const display = useMemo(() => ({ ...fromLink, lang }), [fromLink, lang])
+
+  // On /cs/ or /en/ the stored language follows the page, so the root sends the next bare visit back here.
+  useEffect(() => {
+    if (pathLang(window.location.pathname) === lang && loadStored().lang !== lang) store({ ...loadStored(), lang })
+  }, [lang])
 
   const setDisplay = useCallback(
     (patch: Partial<Display>) => {
       const next = { ...display, ...patch }
       store(next)
+      // On a language's page, the other language is the other page, with the same hash.
+      if (next.lang !== display.lang && pathLang(window.location.pathname) !== null) {
+        leave(langHref(window.location.href, next.lang))
+        return
+      }
+      setLang(next.lang)
       const params = new URLSearchParams(route.params)
-      params.set('l', next.lang)
       params.set('u', next.system)
       params.set('a', next.angle)
-      // The one view has no switch; an old link's v= goes.
+      // The one view has no switch; an old link's v= goes. So does its l=: a reload would read it before the stored choice.
       params.delete('v')
+      params.delete('l')
       navigate({ params })
     },
     [display, route.params, navigate],

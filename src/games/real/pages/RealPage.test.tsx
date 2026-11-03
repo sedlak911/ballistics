@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../../App'
 import { PHONE } from '../../../components/useMedia'
+import { writeLinkOverrides } from '../profiles'
 
 function open(hash: string) {
   window.location.hash = hash
@@ -39,7 +40,8 @@ describe('RealPage: the answer in dial mode', () => {
   it('gives P7 at 1000 m about 8.3 MRAD up, with the clicks and what is left over', () => {
     open('#/real/workbench?p=p7&d=1000')
     expect(elevation()).toHaveTextContent(/^↑8\.\dMRAD$/)
-    expect(screen.getByTestId('real-dial-line')).toHaveTextContent(/^8\d clicks up · \d+ cm left over$/)
+    expect(screen.getByTestId('real-clicks')).toHaveTextContent(/^↑ 8\d clicks$/)
+    expect(screen.getByTestId('real-dial-line')).toHaveTextContent(/^\d+ cm left over$/)
   })
 
   it('holds left with three wind columns for 3 m/s from 9; with no wind, says what 1 m/s does instead', () => {
@@ -50,11 +52,30 @@ describe('RealPage: the answer in dial mode', () => {
     expect(items).toHaveLength(3)
     expect(items.map((li) => li.querySelector('.real-col-speed')!.textContent)).toEqual(['2\u00a0m/s', '3\u00a0m/s', '4\u00a0m/s'])
     expect(items[1]).toHaveAttribute('aria-current', 'true')
-    expect(screen.queryByText(/from the side moves the hit/)).not.toBeInTheDocument()
+    expect(screen.getByText(/from the side moves the hit/).closest('[aria-hidden="true"]')).not.toBeNull()
     cleanup()
     open('#/real/workbench?p=p7&d=1000&ws=0')
     expect(columns()).not.toBeInTheDocument()
     expect(screen.getByText(/^1\sm\/s from the side moves the hit \d+\scm \(0\.\d\d\sMRAD\)$/)).toBeInTheDocument()
+  })
+
+  it("keeps the wind columns' place when the wind is calm", () => {
+    const { container } = open('#/real/workbench?p=p7&d=1000&ws=0')
+    const cols = container.querySelector('.real-cols')
+    expect(cols).not.toBeNull()
+    expect(cols).toHaveAttribute('aria-hidden', 'true')
+    // The answer's block has its own class (the dock's wind tool keeps `real-wind`), and the hidden state is a class.
+    expect(cols).toHaveClass('is-hidden')
+    expect(cols!.parentElement).toHaveClass('real-answer-wind')
+    expect(cols!.parentElement).not.toHaveClass('real-wind')
+    expect(cols!.querySelectorAll('li')).toHaveLength(3)
+    expect(columns()).not.toBeInTheDocument()
+    cleanup()
+    const windy = open('#/real/workbench?p=p7&d=1000&ws=3&wc=9')
+    expect(columns()).toBeInTheDocument()
+    expect(windy.container.querySelector('.real-cols')).not.toHaveAttribute('aria-hidden')
+    expect(windy.container.querySelector('.real-cols')).not.toHaveClass('is-hidden')
+    expect(windy.container.querySelector('.real-answer-wind .real-sub')).toHaveClass('is-hidden')
   })
 
   // M2: a wind step per unit that moves the hit visibly, and a tenth of a cm below 10 cm.
@@ -75,7 +96,8 @@ describe('RealPage: the answer in dial mode', () => {
   it('never prints a negative zero: at the zero distance the answer is a plain 0', () => {
     open('#/real/workbench?p=p7&d=100&ws=0')
     expect(elevation()).toHaveTextContent(/^0MRAD$/)
-    expect(screen.getByTestId('real-dial-line')).toHaveTextContent(/^0 clicks · \d+ cm left over$/)
+    expect(screen.getByTestId('real-clicks')).toHaveTextContent(/^0 clicks$/)
+    expect(screen.getByTestId('real-dial-line')).toHaveTextContent(/^\d+ cm left over$/)
     // The answer, not the bar: there a − button sits next to the wind's 0.
     expect(document.querySelector('.real-grid')!.textContent).not.toMatch(/[-−]0(\.0+)?(?!\d)/)
     expect(windage()).toHaveTextContent(/^0MRAD$/)
@@ -129,7 +151,8 @@ describe('RealPage: the answer in dial mode', () => {
     open('#/real/workbench?l=cs&p=p7&d=1000&ws=3&wc=9')
     expect(screen.getByText('Výška')).toBeInTheDocument()
     expect(screen.getByText('· natoč')).toBeInTheDocument()
-    expect(screen.getByTestId('real-dial-line')).toHaveTextContent(/^8\d kliků nahoru · zbývá \d+ cm$/)
+    expect(screen.getByTestId('real-clicks')).toHaveTextContent(/^↑ 8\d kliků$/)
+    expect(screen.getByTestId('real-dial-line')).toHaveTextContent(/^zbývá \d+ cm$/)
     expect(screen.getByText(/^terč na značku 1,\d vpravo od středu$/)).toBeInTheDocument()
     expect(screen.getByTestId('real-hit')).toHaveTextContent(/^Terč 50 cm: zásah ≈ \d+ %\. Nejvíc chyby dělá odhad větru\./)
     expect(screen.getByRole('button', { name: /Jak se to počítá/ })).toBeInTheDocument()
@@ -238,21 +261,80 @@ describe('RealPage: the bottom bar', () => {
 
   it('steps the wind in the chosen unit and stores it in m/s', () => {
     open('#/real/workbench?p=p7&d=1000&ws=0')
-    const wind = screen.getByRole('group', { name: 'Wind speed' })
-    fireEvent.click(within(wind).getByRole('button', { name: 'Wind speed: more' }))
-    expect(within(wind).getByRole('status')).toHaveTextContent('0.5 m/s')
+    const field = () => screen.getByLabelText('Wind speed') as HTMLInputElement
+    fireEvent.click(screen.getByRole('button', { name: 'Wind speed: more' }))
+    expect(field().value).toBe('0.5')
     expect(hash()).toContain('ws=0.5')
+    fireEvent.click(screen.getByRole('button', { name: 'Wind speed: less' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Wind speed: less' }))
+    expect(field().value).toBe('0')
     cleanup()
     profile({ windUnit: 'km/h' })
     open('#/real/workbench?p=p7&d=1000&ws=0')
     expect(screen.getByText(/^5\skm\/h from the side moves the hit \d+(\.\d)?\scm/)).toBeInTheDocument()
-    const kmh = screen.getByRole('group', { name: 'Wind speed' })
-    fireEvent.click(within(kmh).getByRole('button', { name: 'Wind speed: more' }))
-    expect(within(kmh).getByRole('status')).toHaveTextContent('2 km/h')
+    fireEvent.click(screen.getByRole('button', { name: 'Wind speed: more' }))
+    expect(field().value).toBe('2')
     expect(hash()).toContain('ws=0.556')
-    fireEvent.click(within(kmh).getByRole('button', { name: 'Wind speed: more' }))
-    expect(within(kmh).getByRole('status')).toHaveTextContent('4 km/h')
+    fireEvent.click(screen.getByRole('button', { name: 'Wind speed: more' }))
+    expect(field().value).toBe('4')
     expect(hash()).toContain('ws=1.111')
+    profile({})
+  })
+
+  it('goes from 3.2 m/s to 3.5 with +', () => {
+    open('#/real/workbench?p=p7&d=1000&ws=3.2')
+    fireEvent.click(screen.getByRole('button', { name: 'Wind speed: more' }))
+    expect(hash()).toContain('ws=3.5')
+    expect((screen.getByLabelText('Wind speed') as HTMLInputElement).value).toBe('3.5')
+  })
+
+  it('takes a typed wind with a Czech decimal comma as 3.5 m/s', () => {
+    open('#/real/workbench?l=cs&p=p7&d=1000&ws=0')
+    const field = screen.getByLabelText('Rychlost větru')
+    fireEvent.change(field, { target: { value: '3,5' } })
+    fireEvent.keyDown(field, { key: 'Enter' })
+    expect(hash()).toContain('ws=3.5')
+    expect((screen.getByLabelText('Rychlost větru') as HTMLInputElement).value).toBe('3.5')
+  })
+
+  it('rounds a typed wind to one decimal in the owner\'s unit before solving', () => {
+    open('#/real/workbench?p=p7&d=1000&ws=0')
+    const field = screen.getByLabelText('Wind speed')
+    fireEvent.change(field, { target: { value: '3,25' } })
+    fireEvent.keyDown(field, { key: 'Enter' })
+    expect(hash()).toContain('ws=3.3')
+    expect((screen.getByLabelText('Wind speed') as HTMLInputElement).value).toBe('3.3')
+  })
+
+  it('writes the limit in the invalid-wind message with the Czech decimal comma', () => {
+    profile({ windUnit: 'mph' })
+    open('#/real/workbench?l=cs&p=p7&d=1000&ws=3')
+    const field = screen.getByLabelText('Rychlost větru')
+    fireEvent.change(field, { target: { value: '99' } })
+    fireEvent.keyDown(field, { key: 'Enter' })
+    expect(screen.getByRole('alert')).toHaveTextContent(/do 55,9\smph$/)
+    profile({})
+  })
+
+  it('refuses a wind above the limit with the message', () => {
+    open('#/real/workbench?p=p7&d=1000&ws=3')
+    const field = screen.getByLabelText('Wind speed')
+    fireEvent.change(field, { target: { value: '40' } })
+    fireEvent.keyDown(field, { key: 'Enter' })
+    expect(screen.getByRole('alert')).toHaveTextContent('Type a wind speed from 0 to 25')
+    expect(hash()).toContain('ws=3')
+  })
+
+  it('in knots shows what was typed after the m/s round trip', () => {
+    profile({ windUnit: 'kn' })
+    open('#/real/workbench?p=p7&d=1000&ws=0')
+    const field = screen.getByLabelText('Wind speed') as HTMLInputElement
+    fireEvent.change(field, { target: { value: '7' } })
+    fireEvent.keyDown(field, { key: 'Enter' })
+    cleanup()
+    open(hash())
+    expect((screen.getByLabelText('Wind speed') as HTMLInputElement).value).toBe('7')
+    profile({})
   })
 
   it('sets where the wind blows from on the clock', () => {
@@ -270,5 +352,57 @@ describe('RealPage: the bottom bar', () => {
     fireEvent.click(within(screen.getByRole('group', { name: 'Target' })).getByRole('button', { name: 'Target: more' }))
     expect(hash()).toContain('tg=55')
     expect(screen.getByTestId('real-hit')).toHaveTextContent(/^55 cm target/)
+  })
+})
+
+describe('RealPage: the big figure', () => {
+  const text = (id: string) => screen.getByTestId(id).textContent!.replace(/\u00a0/g, ' ')
+  const writeO = (o: object) => `o=${writeLinkOverrides(o)}`
+
+  it('value: the angle is the hero, the clicks come under it, the dial line keeps what is left over', () => {
+    open('#/real/workbench?p=p7&d=300&ws=0')
+    expect(text('real-elevation')).toBe('↑1.0MRAD')
+    expect(text('real-clicks')).toBe('↑ 10 clicks')
+    expect(text('real-dial-line')).toBe('0 cm left over')
+  })
+
+  it('clicks: the clicks are the hero with their word as the unit, the angle moves to the dial line', () => {
+    profile({ primary: 'clicks' })
+    open('#/real/workbench?p=p7&d=300&ws=0')
+    expect(text('real-elevation')).toBe('↑10clicks')
+    expect(screen.queryByTestId('real-clicks')).not.toBeInTheDocument()
+    expect(text('real-dial-line')).toBe('1.0 MRAD · 0 cm left over')
+  })
+
+  it('clicks, dialling down: the hero has the arrow, the dial line has no minus sign', () => {
+    profile({ primary: 'clicks' })
+    open(`#/real/workbench?p=p7&d=100&ws=0&${writeO({ zeroM: 300 })}`)
+    expect(text('real-elevation')).toMatch(/^↓\d+clicks?$/)
+    expect(text('real-dial-line')).toMatch(/^\d+\.\d MRAD · /)
+  })
+
+  it('speaks the Czech plural of the word', () => {
+    profile({ primary: 'clicks' })
+    open('#/real/workbench?l=cs&p=p7&d=300&ws=0')
+    expect(text('real-elevation')).toBe('↑10kliků')
+  })
+
+  it('at the zero distance there is no arrow', () => {
+    open('#/real/workbench?p=p7&d=100&ws=0')
+    expect(text('real-clicks')).toBe('0 clicks')
+  })
+
+  it('on a capped turret, clicks makes the dialled clicks the hero, with the dial-and-hold sentence', () => {
+    profile({ primary: 'clicks' })
+    open(`#/real/workbench?p=p7&d=1500&ws=0&${writeO({ travelUp: 1, scopeUnit: 'mil' })}`)
+    expect(text('real-elevation')).toBe('↑10clicks')
+    expect(text('real-dial-line')).toMatch(/^dial 1\.0 \(10 clicks\), hold ↑\d+\.\d in the reticle$/)
+  })
+
+  it('hold mode ignores it', () => {
+    profile({ mode: 'hold', primary: 'clicks' })
+    open('#/real/workbench?p=p7&d=300&ws=0')
+    expect(text('real-elevation')).toBe('↑1.0MRAD')
+    expect(screen.queryByTestId('real-clicks')).not.toBeInTheDocument()
   })
 })

@@ -56,7 +56,7 @@ export function writeRealSetup(s: RealSetup, d: Display, o?: Overrides): URLSear
   for (const [field, key] of Object.entries(KEYS) as [keyof RealSetup, string][]) p.set(key, String(s[field]))
   const link = writeLinkOverrides(o)
   if (link !== null) p.set(LINK_KEY, link)
-  p.set('l', d.lang)
+  // The language is in the path (src/lang.ts), not the link.
   p.set('u', d.system)
   p.set('a', d.angle)
   return p

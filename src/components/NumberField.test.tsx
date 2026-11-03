@@ -19,6 +19,15 @@ describe('NumberField', () => {
     expect(screen.getByText('m')).toBeInTheDocument()
   })
 
+  it('puts an aside on the label’s row, above the input', () => {
+    const { input } = field({ aside: <span>preset</span> })
+    const head = screen.getByText('preset').parentElement!
+    expect(head).toHaveClass('number-field-head')
+    expect(head).toContainElement(screen.getByText('Distance'))
+    expect(head).not.toContainElement(input)
+    expect(input).toHaveAccessibleName('Distance')
+  })
+
   it('accepts a comma as the decimal mark and commits on blur', () => {
     const { input, onChange } = field()
     type(input, '1,5')

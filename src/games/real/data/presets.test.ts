@@ -17,6 +17,15 @@ describe('REAL presets', () => {
     expect(byId(DEFAULT_PRESET_ID)).toBeDefined()
   })
 
+  it('has a short rifle name (1-10 characters) and a calibre (1-8) for the phone tags', () => {
+    for (const p of PRESETS) {
+      expect(p.rifleShort.length, p.id).toBeGreaterThanOrEqual(1)
+      expect(p.rifleShort.length, p.id).toBeLessThanOrEqual(10)
+      expect(p.calibre.length, p.id).toBeGreaterThanOrEqual(1)
+      expect(p.calibre.length, p.id).toBeLessThanOrEqual(8)
+    }
+  })
+
   it('has finite positive numbers everywhere they are required', () => {
     for (const p of PRESETS) {
       const numbers = [

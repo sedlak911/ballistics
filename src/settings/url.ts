@@ -43,11 +43,15 @@ const NONE = 'none'
 const pick = <T extends string>(value: string | null | undefined, allowed: readonly T[]): T | undefined =>
   allowed.find((a) => a === value)
 
+const LANGS = ['en', 'cs'] as const
+const SYSTEMS = ['metric', 'imperial'] as const
+const ANGLES = ['mil', 'moa'] as const
+
 export function readDisplay(p: URLSearchParams, stored: Partial<Display>): Display {
   return {
-    lang: pick(p.get('l'), ['en', 'cs']) ?? stored.lang ?? DEFAULT_DISPLAY.lang,
-    system: pick(p.get('u'), ['metric', 'imperial']) ?? stored.system ?? DEFAULT_DISPLAY.system,
-    angle: pick(p.get('a'), ['mil', 'moa']) ?? stored.angle ?? DEFAULT_DISPLAY.angle,
+    lang: pick(p.get('l'), LANGS) ?? pick(stored.lang, LANGS) ?? DEFAULT_DISPLAY.lang,
+    system: pick(p.get('u'), SYSTEMS) ?? pick(stored.system, SYSTEMS) ?? DEFAULT_DISPLAY.system,
+    angle: pick(p.get('a'), ANGLES) ?? pick(stored.angle, ANGLES) ?? DEFAULT_DISPLAY.angle,
   }
 }
 
@@ -102,7 +106,7 @@ export function writeSetup(s: Setup, d: Display): URLSearchParams {
     const v = s[field]
     p.set(key, v === null ? NONE : String(v))
   }
-  p.set('l', d.lang)
+  // The language is in the path (src/lang.ts); readDisplay still reads an old link's l=.
   p.set('u', d.system)
   p.set('a', d.angle)
   return p

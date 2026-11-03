@@ -182,6 +182,29 @@
   letter-spacing: 0;
 }
 
+/* The ⚙ row of the big figure: the hint wraps under the control. */
+.sheet-row.rs-primary {
+  flex-wrap: wrap;
+}
+
+.rs-primary .hint {
+  flex-basis: 100%;
+  margin-top: 0;
+}
+
+/* The clicks in dial mode, under the angle hero; and the clicks hero's word. */
+.real-clicks {
+  margin: 8px 0 0;
+  font-size: 24px;
+  line-height: 1.2;
+  color: var(--accent);
+}
+
+.real-hero.by-clicks .unit {
+  font-size: 18px;
+  color: var(--accent);
+}
+
 .real-sub {
   margin: 8px 0 0;
   font-size: 13px;
@@ -191,6 +214,24 @@
 .real-dial-instead {
   margin: 0;
   color: var(--fg);
+}
+
+/* The answer's wind block: the columns and the sensitivity line share one grid cell, so the block is the taller of the
+   two and wind never moves the page. The hidden one keeps its room. */
+.real-answer-wind {
+  display: grid;
+}
+
+.real-answer-wind > * {
+  grid-area: 1 / 1;
+}
+
+.real-answer-wind > .is-hidden {
+  visibility: hidden;
+}
+
+.real-answer-wind > .real-sub {
+  align-self: start;
 }
 
 /* Three wind columns: the hold for less, the same and more wind; the middle one marked like a chosen option. */
@@ -313,6 +354,24 @@
 
 .real-distance .number-field > .label {
   order: -1;
+}
+
+/* The wind: the bar's "Wind" word leads, so the field's own label is for screen readers; − before the figure, + after. */
+.real-wind .number-field {
+  display: contents;
+}
+
+.real-wind .number-field > .label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  padding: 0;
+}
+
+.real-wind .number-field + .real-step {
+  border-left: 1px solid var(--border);
 }
 
 /* The typed figure and its unit fill the segment between its word and the buttons, the unit right after the figure. */
@@ -510,6 +569,11 @@ body:has(> .real-dock) .app {
 }
 
 @media (max-width: 699px) {
+  /* 16px, so iOS Safari doesn't zoom the page when the input gets focus. */
+  .real-tool .number-field-row input {
+    font-size: 16px;
+  }
+
   .real-grid {
     padding: 16px 20px 0;
     display: grid;
@@ -547,14 +611,16 @@ body:has(> .real-dock) .app {
     display: none;
   }
 
-  /* The strip wraps to two rows, so every tag is whole on screen (I5): the scope tag is the way to the unit, the
-     click and the zero. GZW's strip still scrolls sideways. */
+  /* One row at 390px (spec §1): the tags hold short texts, so nothing wraps or scrolls. Shrinking with an ellipsis is
+     only the last-resort guard for a long unit label. */
   .real-strip .setup-tags {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     overflow-x: visible;
   }
 
   .real-strip .setup-tags .tag-btn {
+    flex: 0 1 auto;
+    min-width: 0;
     max-width: 100%;
     padding: 0 10px;
   }

@@ -1,15 +1,17 @@
 import type { Worker } from 'tesseract.js'
+import { appRoot } from '../../../lang'
 import { OCR_PARAMS, textLines } from './params'
 import { preprocess } from './preprocess'
 
 let worker: Promise<Worker> | null = null
 let onProgress: ((p: number) => void) | undefined
 
-// The engine, its core and the language data come from ./ocr/ on this site (copied there at build time), never a CDN.
+// The engine, its core and the language data come from ocr/ at the app's root (copied there at build time), never a CDN.
+// The root, not the page's folder: the page is /cs/ or /en/, and ocr/ sits beside them.
 function getWorker(): Promise<Worker> {
   worker ??= (async () => {
     const { createWorker } = await import('tesseract.js')
-    const base = new URL('./ocr/', document.baseURI).href
+    const base = new URL('./ocr/', appRoot(document.baseURI)).href
     const w = await createWorker('eng', 1, {
       workerPath: `${base}worker.min.js`,
       corePath: base,

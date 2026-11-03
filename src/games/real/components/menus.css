@@ -1,10 +1,7 @@
-/* REAL's setup menus (DESIGN.md → Setup menus). The popover, the tags and the strip are shared (src/styles/ui.css). */
+/* REAL's setup fields, in the settings sheet (settings.css) and the station menu (DESIGN.md → Setup menus). The popover,
+   the tags and the strip are shared (src/styles/ui.css). */
 .popover.rm-menu {
   width: min(440px, calc(100vw - 32px));
-}
-
-.popover.rm-narrow {
-  width: min(360px, calc(100vw - 32px));
 }
 
 .rm-grid {
@@ -33,8 +30,7 @@
   margin-top: 6px;
 }
 
-.rm-field .label,
-.rm-title .label {
+.rm-field .label {
   display: block;
 }
 
@@ -74,28 +70,6 @@
   border-style: dashed;
 }
 
-.rm-true {
-  display: grid;
-  gap: 12px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-}
-
-.rm-true .btn {
-  justify-self: start;
-}
-
-.rm-true .rm-grid {
-  align-items: end;
-}
-
-.rm-title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 12px;
-}
-
 .rm-msg {
   margin: 0;
   font-size: 12px;
@@ -106,24 +80,8 @@
   color: var(--bad);
 }
 
-.rm-read-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 8px;
-  margin: 0;
-}
-
-.rm-read-line .label {
-  margin-right: 4px;
-}
-
 .rm-menu .btn {
   width: 100%;
-}
-
-.rm-true .btn {
-  width: auto;
 }
 
 .rm-field .segmented {

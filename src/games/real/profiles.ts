@@ -220,6 +220,47 @@ export function sameOverrides(a: Overrides | undefined, b: Overrides | undefined
   return keys.length === Object.keys(y).length && keys.every((k) => k in y && x[k] === y[k])
 }
 
+export type Section = 'rifle' | 'round' | 'scope'
+export const SECTIONS: Section[] = ['rifle', 'round', 'scope']
+export const SECTION_KEYS: Record<Section, (keyof Overrides)[]> = {
+  rifle: ['twistIn', 'twist', 'accuracyMoa', 'groupShots'],
+  round: ['bc', 'dragModel', 'muzzleVelocityMs', 'truedAtM', 'mvRefTempC', 'powderSensMsPerC', 'mvSdMs', 'massGr', 'diameterIn', 'lengthMm'],
+  scope: ['zeroM', 'clickValue', 'travelUp', 'scopeUnit', 'sightHeightMm'],
+}
+
+/** The section's override keys present in `own` (stored or from the link): the reset shows when non-empty. */
+export function sectionKeysIn(own: Overrides | undefined, s: Section): (keyof Overrides)[] {
+  return SECTION_KEYS[s].filter((k) => own !== undefined && k in own && own[k] !== undefined)
+}
+
+/** Fields that show as one: any key of a group in `own` counts the group once. */
+const FIELD_GROUPS: Record<Section, (keyof Overrides)[][]> = {
+  rifle: [['twistIn', 'twist'], ['accuracyMoa'], ['groupShots']],
+  round: [['bc', 'dragModel'], ['muzzleVelocityMs', 'truedAtM'], ['mvRefTempC'], ['powderSensMsPerC'], ['mvSdMs'], ['massGr'], ['diameterIn'], ['lengthMm']],
+  scope: [['zeroM'], ['sightHeightMm'], ['clickValue'], ['travelUp']],
+}
+
+/** The `{n} yours` chip: the section's visible fields holding an override. */
+export function changedCount(p: ResolvedPreset, own: Overrides | undefined, s: Section, unit: AngleUnit): number {
+  const present = new Set(sectionKeysIn(own, s))
+  const sv = s === 'scope' ? scopeValues(p, unit) : null
+  return FIELD_GROUPS[s].filter((g) => {
+    if (!g.some((k) => present.has(k))) return false
+    if (g[0] === 'clickValue') return sv!.clickKnown
+    if (g[0] === 'travelUp') return sv!.travelUp !== null
+    return true
+  }).length
+}
+
+/** The patch that clears the section (keys set to undefined) and the undo that restores exactly what it removes. */
+export function resetPatch(own: Overrides | undefined, s: Section): { patch: Overrides; undo: Overrides } {
+  const patch: Record<string, undefined> = {}
+  for (const k of SECTION_KEYS[s]) patch[k] = undefined
+  const undo: Record<string, unknown> = {}
+  for (const k of sectionKeysIn(own, s)) undo[k] = own![k]
+  return { patch: patch as Overrides, undo: undo as Overrides }
+}
+
 const STORAGE_KEY = 'gb.real.profiles'
 const listeners = new Set<() => void>()
 let cached: { raw: string | null; value: Record<string, Overrides> } | null = null

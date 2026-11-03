@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Route } from '../router'
 import { buildHash } from '../router'
 import type { T } from '../i18n'
@@ -64,7 +64,7 @@ function useHiddenOnScrollDown(pinned: boolean): boolean {
   return hidden && !pinned
 }
 
-export function AppHeader({ route, games, display, setDisplay, t, slotRef, info }: {
+export function AppHeader({ route, games, display, setDisplay, t, slotRef, info, extraSettings }: {
   route: Route
   games: GameTab[]
   display: Display
@@ -74,6 +74,8 @@ export function AppHeader({ route, games, display, setDisplay, t, slotRef, info 
   slotRef?: (el: HTMLDivElement | null) => void
   /** The data credits for the ⓘ sheet; null on a game without data. */
   info: DataInfo | null
+  /** A game's own rows, after the shared ones in the ⚙ sheet. */
+  extraSettings?: ReactNode
 }) {
   const href = (patch: Partial<Route>) => buildHash({ ...route, ...patch })
   const [open, setOpen] = useState<Sheet | null>(null)
@@ -155,6 +157,7 @@ export function AppHeader({ route, games, display, setDisplay, t, slotRef, info 
             <Segmented label={t('toggle.angle')} value={display.angle} onChange={(angle) => setDisplay({ angle })}
               options={[{ value: 'mil', label: route.game === 'real' ? 'MRAD' : 'MIL' }, { value: 'moa', label: 'MOA' }]} />
           </div>
+          {extraSettings}
         </div>
       )}
     </header>

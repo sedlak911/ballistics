@@ -1,4 +1,4 @@
-import { useId, type KeyboardEvent } from 'react'
+import { useId, useRef, type KeyboardEvent, type PointerEvent } from 'react'
 
 export interface WindClockProps {
   label: string
@@ -20,10 +20,20 @@ const at = (hour: number, r: number) => {
   return { x: 50 + r * Math.sin(a), y: 50 - r * Math.cos(a) }
 }
 
+/** The hour (1–12) a point lies toward, from its offset from the centre (y down): each hour owns a 30° wedge centred on it, 12 at the top, clockwise. */
+// eslint-disable-next-line react/only-export-components -- a pure helper, exported for its test
+export function hourAt(dx: number, dy: number): number {
+  const deg = ((Math.atan2(dx, -dy) * 180) / Math.PI + 360) % 360
+  return (Math.round(deg / 30) % 12) || 12
+}
+
+/** A press this close to the centre (a share of the radius) is the hub, not an hour. */
+const DEAD_ZONE = 0.3
+
 /**
  * A 12-position dial for where the wind blows from, the target at the top. One focusable control (`role="slider"`
- * with `valueText` as its value text); arrow keys step the hour and wrap at 12 and 1, and each hour is a
- * click target of at least 44 px on a phone. The arrow runs from the chosen hour toward the centre.
+ * with `valueText` as its value text); arrow keys step the hour and wrap at 12 and 1, and a press or drag anywhere on the dial
+ * (outside the hub) picks the nearest hour. The arrow runs from the chosen hour toward the centre.
  */
 export function WindClock({ label, value, onChange, speedMs, unit, valueText }: WindClockProps) {
   const labelId = `wc-${useId()}`
@@ -32,6 +42,32 @@ export function WindClock({ label, value, onChange, speedMs, unit, valueText }: 
   // The head stops short of the hub, where the speed is written.
   const to = at(value, 17)
   const step = (d: 1 | -1) => onChange(((value - 1 + d + 12) % 12) + 1)
+  const lastHour = useRef<number | null>(null)
+  const hourFor = (e: PointerEvent<HTMLDivElement>): number | null => {
+    const r = e.currentTarget.getBoundingClientRect()
+    const dx = e.clientX - (r.left + r.width / 2)
+    const dy = e.clientY - (r.top + r.height / 2)
+    if (Math.hypot(dx, dy) < DEAD_ZONE * (Math.min(r.width, r.height) / 2)) return null
+    return hourAt(dx, dy)
+  }
+  const onDown = (e: PointerEvent<HTMLDivElement>) => {
+    const h = hourFor(e)
+    if (h === null) return
+    e.currentTarget.setPointerCapture?.(e.pointerId)
+    lastHour.current = h
+    onChange(h)
+  }
+  const onMove = (e: PointerEvent<HTMLDivElement>) => {
+    if (lastHour.current === null) return
+    const h = hourFor(e)
+    if (h === null || h === lastHour.current) return
+    lastHour.current = h
+    onChange(h)
+  }
+  const onUp = (e: PointerEvent<HTMLDivElement>) => {
+    lastHour.current = null
+    e.currentTarget.releasePointerCapture?.(e.pointerId)
+  }
   const onKey = (e: KeyboardEvent) => {
     if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); step(1) }
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); step(-1) }
@@ -49,6 +85,10 @@ export function WindClock({ label, value, onChange, speedMs, unit, valueText }: 
         aria-valuenow={value}
         aria-valuetext={valueText}
         onKeyDown={onKey}
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onUp}
       >
         <svg viewBox="0 0 100 100" aria-hidden="true">
           <circle cx={50} cy={50} r={RING + 9} className="wind-clock-face" />
@@ -66,7 +106,7 @@ export function WindClock({ label, value, onChange, speedMs, unit, valueText }: 
           const p = at(h, RING)
           return (
             <div key={h} data-hour={h} className="wind-clock-hour" data-on={h === value || undefined}
-              style={{ left: `${p.x}%`, top: `${p.y}%` }} onClick={() => onChange(h)}>
+              style={{ left: `${p.x}%`, top: `${p.y}%` }}>
               {h}
             </div>
           )

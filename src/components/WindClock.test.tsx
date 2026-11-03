@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { WindClock } from './WindClock'
+import { WindClock, hourAt } from './WindClock'
 
 afterEach(cleanup)
 
@@ -20,11 +20,54 @@ describe('WindClock', () => {
     expect(dial).toHaveAttribute('tabindex', '0')
   })
 
-  it('has twelve positions and sets the hour that is clicked', () => {
-    const { container, onChange } = clock(12)
+  it('has twelve positions', () => {
+    const { container } = clock(12)
     expect(container.querySelectorAll('[data-hour]')).toHaveLength(12)
-    fireEvent.click(container.querySelector('[data-hour="3"]')!)
-    expect(onChange).toHaveBeenCalledWith(3)
+  })
+
+  it('maps an offset from the centre to an hour, 12 at the top, clockwise', () => {
+    const a = (100 * Math.PI) / 180
+    expect(hourAt(Math.sin(a), -Math.cos(a))).toBe(3)
+    expect(hourAt(0, -1)).toBe(12)
+    expect(hourAt(-1, 0)).toBe(9)
+    expect(hourAt(0, 1)).toBe(6)
+  })
+
+  describe('pointer', () => {
+    const polar = (deg: number, r: number) => {
+      const a = (deg * Math.PI) / 180
+      return { clientX: 50 + r * Math.sin(a), clientY: 50 - r * Math.cos(a) }
+    }
+    const stubbed = () => {
+      const c = clock(12)
+      c.dial.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 100, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}) })
+      return c
+    }
+
+    it('takes a press anywhere on the dial away from the centre', () => {
+      const { dial, onChange } = stubbed()
+      fireEvent.pointerDown(dial, { pointerId: 1, ...polar(100, 40) })
+      expect(onChange).toHaveBeenCalledWith(3)
+    })
+
+    it('follows a drag live, once per hour', () => {
+      const { dial, onChange } = stubbed()
+      fireEvent.pointerDown(dial, { pointerId: 1, ...polar(60, 40) })
+      fireEvent.pointerMove(dial, { pointerId: 1, ...polar(62, 40) })
+      fireEvent.pointerMove(dial, { pointerId: 1, ...polar(90, 40) })
+      fireEvent.pointerMove(dial, { pointerId: 1, ...polar(92, 40) })
+      fireEvent.pointerMove(dial, { pointerId: 1, ...polar(120, 40) })
+      expect(onChange.mock.calls.map((c) => c[0])).toEqual([2, 3, 4])
+      fireEvent.pointerUp(dial, { pointerId: 1 })
+      fireEvent.pointerMove(dial, { pointerId: 1, ...polar(150, 40) })
+      expect(onChange).toHaveBeenCalledTimes(3)
+    })
+
+    it('does nothing in the dead zone at the centre', () => {
+      const { dial, onChange } = stubbed()
+      fireEvent.pointerDown(dial, { pointerId: 1, clientX: 52, clientY: 52 })
+      expect(onChange).not.toHaveBeenCalled()
+    })
   })
 
   it('steps the hour with the arrow keys, wrapping 12 and 1', () => {

@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import { Segmented } from './Segmented'
 
 export interface NumberFieldProps {
@@ -27,6 +27,8 @@ export interface NumberFieldProps {
   onDraft?: (v: number | null) => void
   /** Typing the value that is already there still counts as an entry (a value that was only a default becomes a chosen one). */
   commitSame?: boolean
+  /** At the end of the label's row, e.g. where the value comes from. */
+  aside?: ReactNode
 }
 
 const show = (v: number | null) => (v === null ? '' : String(+v.toPrecision(10)))
@@ -45,7 +47,7 @@ function parse(text: string, min: number, max: number): number | null {
  * text keeps the last good value, and the bad text stays in the box beside `invalidText` (aria-invalid, tied with
  * aria-describedby) until the user corrects it. A new `value` or `unit` from outside replaces the text.
  */
-export function NumberField({ label, value, unit, units, onUnit, min, max, step = 1, onChange, invalidText, placeholder, onClear, needed = false, onDraft, commitSame = false, snap = false }: NumberFieldProps) {
+export function NumberField({ label, value, unit, units, onUnit, min, max, step = 1, onChange, invalidText, placeholder, onClear, needed = false, onDraft, commitSame = false, snap = false, aside }: NumberFieldProps) {
   const uid = useId()
   const inputId = `nf-${uid}`
   const errorId = `nf-err-${uid}`
@@ -94,9 +96,10 @@ export function NumberField({ label, value, unit, units, onUnit, min, max, step 
     if (v !== value || needed) onChange(v)
   }
 
+  const labelEl = <label htmlFor={inputId} className="label">{label}</label>
   return (
     <div className="number-field">
-      <label htmlFor={inputId} className="label">{label}</label>
+      {aside ? <div className="number-field-head">{labelEl}{aside}</div> : labelEl}
       <div className="number-field-row">
         <input
           id={inputId}

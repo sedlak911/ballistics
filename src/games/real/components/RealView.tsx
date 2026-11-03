@@ -12,6 +12,7 @@ import {
   chanceText,
   clickDigits,
   clicksText,
+  clickWordText,
   dec,
   LEFT_RIGHT,
   lengthText,
@@ -31,6 +32,8 @@ const step = (i: number) => ({ '--i': i }) as CSSProperties
 export interface RealViewProps {
   solution: RealSolution
   mode: 'dial' | 'hold'
+  /** Dial mode's big figure: the angle, or the turret clicks. */
+  primary: 'value' | 'clicks'
   distanceM: number
   targetCm: number
   windUnit: WindUnit
@@ -58,7 +61,7 @@ export interface RealViewProps {
  * with the figures under it), then the hit line on a large screen, the warnings and the calculation button. It only
  * renders the solution it is given.
  */
-export function RealView({ solution: s, mode, distanceM, targetCm, windUnit, system, phone, offView, bar, tags, station, note, staleWeather, calcOpen, onCalc }: RealViewProps) {
+export function RealView({ solution: s, mode, primary, distanceM, targetCm, windUnit, system, phone, offView, bar, tags, station, note, staleWeather, calcOpen, onCalc }: RealViewProps) {
   const { t, display } = useSettings()
   const calcBtn = useRef<HTMLButtonElement>(null)
   const lang = display.lang
@@ -87,6 +90,18 @@ export function RealView({ solution: s, mode, distanceM, targetCm, windUnit, sys
     ? t('real.dialHold', { d: dec(dialed, digits, lang), clicks: clicksText(n, t, lang), h: `↑${dec(hold, digits, lang)}` })
     : `${clicksText(n, t, lang)}${dir} · ${t('real.leftOver', { l: lengthText(radFromAngle(remainder, unit) * distanceM, system) })}`
 
+  // The big figure in clicks: the hero is the dialled clicks with their word as the unit; the angle moves to the dial line.
+  const leftOver = t('real.leftOver', { l: lengthText(radFromAngle(remainder, unit) * distanceM, system) })
+  const byClicks = primary === 'clicks'
+  const clickHero = (
+    <div className="real-hero by-clicks num" data-testid="real-elevation">
+      {n === 0 ? '0' : `${clicks > 0 ? UP_DOWN[1] : UP_DOWN[0]}${n}`}<span className="unit">{clickWordText(n, t, lang)}</span>
+    </div>
+  )
+  const clicksLine = `${n === 0 ? '' : `${clicks > 0 ? UP_DOWN[1] : UP_DOWN[0]} `}${clicksText(n, t, lang)}`
+  const dialLine = capped ? dialText
+    : byClicks ? `${dec(Math.abs(s.elevation), 1, lang)}${NBSP}${unitLabel} · ${leftOver}` : leftOver
+
   // Which mark of the reticle goes on the target: a hold left puts the target right of centre.
   const w = rounded(s.windage, 1)
   const markText = w < 0 ? t('real.markRight', { v: dec(-w, 1, lang) })
@@ -95,23 +110,25 @@ export function RealView({ solution: s, mode, distanceM, targetCm, windUnit, sys
   // What the sensitivity step of crosswind does at the target (M2): one decimal below 10 cm, two in the angle.
   const perStepM = s.perMsM * SPEED_TO_MS[windUnit] * SENSITIVITY_STEP[windUnit]
   const windy = s.windSpeeds[1] > 0
-  const windBlock = windy ? (
-    <ul className="real-cols" aria-label={t('real.columns')}>
-      {s.windColumns.map((c, i) => (
-        <li key={i} aria-current={i === 1 ? 'true' : undefined}>
-          <span className="real-col-v num">{arrowed(c, LEFT_RIGHT)}</span>
-          <span className="real-col-speed num">{windText(s.windSpeeds[i], windUnit)}</span>
-        </li>
-      ))}
-    </ul>
-  ) : (
-    <p className="real-sub">
-      {t('real.perWind', {
-        w: sensitivityWind(windUnit),
-        l: len(perStepM, system, lang),
-        a: `${dec(angleOfOffset(perStepM, distanceM, unit), 2, lang)}${NBSP}${unitLabel}`,
-      })}
-    </p>
+  // Both always render in one grid cell, so the block is the taller of the two and wind never moves the page.
+  const windBlock = (
+    <div className="real-answer-wind">
+      <ul className={windy ? 'real-cols' : 'real-cols is-hidden'} aria-label={t('real.columns')} aria-hidden={windy ? undefined : 'true'}>
+        {s.windColumns.map((c, i) => (
+          <li key={i} aria-current={windy && i === 1 ? 'true' : undefined}>
+            <span className="real-col-v num">{arrowed(c, LEFT_RIGHT)}</span>
+            <span className="real-col-speed num">{windText(s.windSpeeds[i], windUnit)}</span>
+          </li>
+        ))}
+      </ul>
+      <p className={windy ? 'real-sub is-hidden' : 'real-sub'} aria-hidden={windy ? 'true' : undefined}>
+        {t('real.perWind', {
+          w: sensitivityWind(windUnit),
+          l: len(perStepM, system, lang),
+          a: `${dec(angleOfOffset(perStepM, distanceM, unit), 2, lang)}${NBSP}${unitLabel}`,
+        })}
+      </p>
+    </div>
   )
 
   const hit = phone ? null : s.hit
@@ -182,8 +199,9 @@ export function RealView({ solution: s, mode, distanceM, targetCm, windUnit, sys
           <div className="glow" aria-hidden="true" />
           <section>
             {key('elevation', 'dial')}
-            {hero('elevation', s.elevation)}
-            <p className="real-sub" data-testid="real-dial-line">{dialText}</p>
+            {byClicks ? clickHero : hero('elevation', s.elevation)}
+            {!byClicks && !capped && <p className="real-clicks num" data-testid="real-clicks">{clicksLine}</p>}
+            <p className="real-sub" data-testid="real-dial-line">{dialLine}</p>
           </section>
           <section>
             {key('windage', 'hold')}

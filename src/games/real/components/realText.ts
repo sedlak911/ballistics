@@ -1,7 +1,9 @@
-import { SPEED_TO_MS, toDisplay, type UnitSystem } from '../../../engine/units'
+import { LENGTH_TO_MM, SPEED_TO_MS, toDisplay, type AngleUnit, type UnitSystem } from '../../../engine/units'
+import { fmtDistance } from '../../../format'
 import type { T } from '../../../i18n'
 import type { Lang } from '../../../settings/url'
 import type { WindUnit } from '../profile'
+import { scopeValues, type ResolvedPreset, type Section } from '../profiles'
 
 // Formatting for the REAL answer. Directions come from the value as rounded for display, `> 0` or `< 0`, so a value
 // that rounds to zero prints as a plain 0 with no arrow and no sign: never "-0" or "↑0.0".
@@ -74,16 +76,27 @@ export function clicksText(n: number, t: T, lang: Lang): string {
   return t(key, { n })
 }
 
+/** `click`, `klik`, `kliky`, `kliků`: the word alone, the hero's unit. */
+export function clickWordText(n: number, t: T, lang: Lang): string {
+  const form = new Intl.PluralRules(lang).select(n)
+  return t(form === 'one' ? 'real.clickWord.one' : form === 'few' ? 'real.clickWord.few' : 'real.clickWord.other')
+}
+
 /** Decimals of a click value, at least one: 0.1 → 1, 0.05 → 2, ¼ → 2, ⅛ → 3. */
 export function clickDigits(click: number): number {
   const frac = String(+click.toPrecision(6)).split('.')[1] ?? ''
   return Math.max(1, frac.length)
 }
 
+const INCHES_AT_END = /\s*\d+(?:\.\d+)?″\s*$/
+/** The barrel length in inches, from the end of the rifle's name or from the barrel; undefined when it is only in mm. */
+const barrelInches = (rifle: string, barrel: string): string | undefined =>
+  rifle.match(/(\d+(?:\.\d+)?″)\s*$/)?.[1] ?? barrel.match(/^(\d+(?:\.\d+)?″)$/)?.[1]
+
 /** The rifle tag: its name (the first of `A / B`) and the barrel length in inches, from the name or the barrel; no length when it is only in mm. */
 export function rifleTagText(rifle: string, barrel: string): string {
-  const length = rifle.match(/(\d+(?:\.\d+)?″)\s*$/)?.[1] ?? barrel.match(/^(\d+(?:\.\d+)?″)$/)?.[1]
-  const name = rifle.split(' / ')[0].replace(/\s*\d+(?:\.\d+)?″\s*$/, '').trim()
+  const length = barrelInches(rifle, barrel)
+  const name = rifle.split(' / ')[0].replace(INCHES_AT_END, '').trim()
   return length ? `${name} · ${length}` : name
 }
 
@@ -96,3 +109,49 @@ export function sourceMaker(source: string): string {
   return source.split(/[,;:(]/)[0].trim()
 }
 
+/** A number inside a summary as typed or stored, without trailing zeros: Czech writes a decimal comma. */
+const plain = (v: number, lang: Lang): string => {
+  const s = String(+v.toPrecision(6))
+  return lang === 'cs' ? s.replace('.', ',') : s
+}
+
+/**
+ * A settings section's header line (spec §1), its items joined by ` · `, a number never split from its unit:
+ * - rifle: the name without its trailing length (not cut at ` / `), the barrel, the twist and the accuracy;
+ * - round: the short name, the drag (`G7 0.322`, or the measured-curve word for a Cd table) and the MV;
+ * - scope: the unit, the click, the zero and the sight height.
+ */
+export function sectionSummary(s: Section, p: ResolvedPreset, unit: AngleUnit, sys: UnitSystem, t: T, lang: Lang): string {
+  const n = (v: number) => plain(v, lang)
+  let items: string[]
+  if (s === 'rifle') {
+    // The length as the tag finds it, else the barrel as given (`475 mm`); Custom's `—` (none) is left out.
+    const barrel = barrelInches(p.rifle, p.barrel.value) ?? (p.barrel.value === '—' ? null : p.barrel.value)
+    // `27″`, `16,5″` in Czech, `475 mm` with the unit held to its figure.
+    const barrelText = (b: string) => b.replace(/^(\d+(?:\.\d+)?)(\s*)/, (_m, v: string, gap: string) => `${n(Number(v))}${gap ? NBSP : ''}`)
+    items = [
+      p.rifle.replace(INCHES_AT_END, '').trim(),
+      ...(barrel ? [barrelText(barrel)] : []),
+      `1:${n(p.twistIn.value)}″`,
+      `${n(p.accuracyMoa.value)}${NBSP}MOA`,
+    ]
+  } else if (s === 'round') {
+    const drag = p.drag.value
+    items = [
+      p.short,
+      'table' in drag ? t('rm.curve') : `${drag.model} ${n(drag.bc)}`,
+      `${Math.round(p.muzzleVelocityMs.value)}${NBSP}m/s`,
+    ]
+  } else {
+    const click = clickLabel(scopeValues(p, unit).clickValue)
+    const len = sys === 'metric' ? 'mm' : 'in'
+    const sight = p.sightHeightMm.value / LENGTH_TO_MM[len]
+    items = [
+      unit === 'mil' ? 'MRAD' : 'MOA',
+      t('rs.sum.click', { v: lang === 'cs' ? click.replace('.', ',') : click }),
+      t('rs.sum.zero', { v: fmtDistance(p.zeroM, sys) }),
+      t('rs.sum.sight', { v: `${n(len === 'mm' ? Math.round(sight) : rounded(sight, 2))}${NBSP}${len}` }),
+    ]
+  }
+  return items.join(' · ')
+}

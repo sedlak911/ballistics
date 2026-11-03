@@ -1,5 +1,6 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react'
+import { useId, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
+import { useModalSheet } from '../../../components/useModalSheet'
 import { angleFromRad, cToF, MASS_TO_G, PRESSURE_TO_HPA, radFromAngle, SPEED_TO_MS, toDisplay, type UnitSystem } from '../../../engine/units'
 import { fmtDistance } from '../../../format'
 import type { T, TKey } from '../../../i18n'
@@ -145,42 +146,8 @@ export function CalcSheet({ solution: s, onClose, returnFocus }: {
   const unit = s.unit
   const U = angleLabel(unit)
 
-  // Once per opening, whatever the parent passes on a re-render: the focus moves in, Escape closes, the page under it
-  // stops scrolling; on closing the focus goes back to the button.
-  const close = useRef(onClose)
-  useLayoutEffect(() => {
-    close.current = onClose
-  })
-  useEffect(() => {
-    closeRef.current?.focus()
-    const back = returnFocus.current
-    const onKey = (e: globalThis.KeyboardEvent) => e.key === 'Escape' && close.current()
-    window.addEventListener('keydown', onKey)
-    const overflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = overflow
-      back?.focus()
-    }
-  }, [returnFocus])
-
-  // Tab and Shift+Tab go round inside the sheet.
-  const trap = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== 'Tab') return
-    const all = [...(ref.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input, [tabindex]:not([tabindex="-1"])') ?? [])]
-    if (all.length === 0) return
-    const first = all[0]
-    const last = all[all.length - 1]
-    const at = document.activeElement
-    if (e.shiftKey && (at === first || at === ref.current)) {
-      e.preventDefault()
-      last.focus()
-    } else if (!e.shiftKey && at === last) {
-      e.preventDefault()
-      first.focus()
-    }
-  }
+  // The focus moves to the ✕ and stays inside; Escape closes; on closing the focus goes back to the button.
+  const trap = useModalSheet(ref, closeRef, onClose, returnFocus)
 
   const input = (key: string) => s.inputs.find((i) => i.key === key) ?? null
   // An input the solution always lists; a miss throws in development and tests, and prints as a dash in production.

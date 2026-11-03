@@ -9,6 +9,8 @@ export const WIND_UNITS: WindUnit[] = ['m/s', 'km/h', 'mph', 'kn']
 
 export interface RealProfile {
   mode: 'dial' | 'hold'
+  /** Dial mode's big figure: the angle, or the turret clicks. */
+  primary: 'value' | 'clicks'
   effects: Record<Effect, boolean>
   windSigmaMs: number
   /** Our estimate for prone with a rest: the research has no source. */
@@ -21,6 +23,7 @@ export interface RealProfile {
 
 export const DEFAULT_REAL_PROFILE: RealProfile = {
   mode: 'dial',
+  primary: 'value',
   effects: { humidity: true, powderTemp: true, spinDrift: true, coriolis: true, aeroJump: true, curvature: true },
   windSigmaMs: 1,
   holdSigmaMrad: 0.05,
@@ -46,6 +49,7 @@ export function readRealProfile(raw: unknown): RealProfile {
   const d = DEFAULT_REAL_PROFILE
   return {
     mode: raw.mode === 'hold' ? 'hold' : 'dial',
+    primary: raw.primary === 'clicks' ? 'clicks' : 'value',
     effects: Object.fromEntries(EFFECTS.map((e) => [e, typeof eff[e] === 'boolean' ? eff[e] : d.effects[e]])) as Record<Effect, boolean>,
     windSigmaMs: inRange(raw.windSigmaMs, WIND_SIGMA_MS.min, WIND_SIGMA_MS.max, d.windSigmaMs),
     holdSigmaMrad: num(raw.holdSigmaMrad, 0, 2, d.holdSigmaMrad),

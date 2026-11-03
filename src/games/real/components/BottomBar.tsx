@@ -8,7 +8,7 @@ import { SPEED_TO_MS, type UnitSystem } from '../../../engine/units'
 import { useSettings } from '../../../settings/SettingsContext'
 import type { WindUnit } from '../profile'
 import { BOUNDS, type RealSetup } from '../setup'
-import { NBSP, rounded, windText } from './realText'
+import { NBSP, dec, rounded, windText } from './realText'
 
 const M_PER_YD = 0.9144
 const DISTANCE_STEP = 10
@@ -43,7 +43,8 @@ export function BottomBar({ setup, update, system, windUnit, phone }: {
   windUnit: WindUnit
   phone: boolean
 }) {
-  const { t } = useSettings()
+  const { t, display } = useSettings()
+  const lang = display.lang
   const [clockOpen, setClockOpen] = useState(false)
   const clockRef = useRef<HTMLButtonElement>(null)
   const dockRef = useRef<HTMLDivElement>(null)
@@ -85,14 +86,24 @@ export function BottomBar({ setup, update, system, windUnit, phone }: {
   const windStep = WIND_STEP[windUnit]
   const windShown = setup.windMs / perUnit
   const speedWord = t('real.windSpeed')
+  const windMax = Math.floor((BOUNDS.windMs.max / perUnit) * 10 + 1e-9) / 10
+  const storeWind = (v: number) => update({ windMs: Math.min(BOUNDS.windMs.max, Math.round(rounded(v, 1) * perUnit * 1000) / 1000) })
+  const stepWind = (dir: 1 | -1) => {
+    const base = rounded(windShown, 1)
+    const next = (dir > 0 ? Math.floor(base / windStep + 1e-9) + 1 : Math.ceil(base / windStep - 1e-9) - 1) * windStep
+    storeWind(Math.min(windMax, Math.max(0, +next.toPrecision(10))))
+  }
   const from = t('real.windFrom', { h: setup.windClock })
   const wind = (
     <div className="real-tool real-wind">
       <span className="label" aria-hidden="true">{t('real.wind')}</span>
-      <Stepper label={speedWord} value={windShown} min={0} max={BOUNDS.windMs.max / perUnit} step={windStep}
-        format={(v) => windText(v * perUnit, windUnit)}
-        onChange={(v) => update({ windMs: Math.min(BOUNDS.windMs.max, Math.round(v / windStep) * windStep * perUnit) })}
-        decLabel={t('step.dec', { what: speedWord })} incLabel={t('step.inc', { what: speedWord })} />
+        <button type="button" className="real-step" aria-label={t('step.dec', { what: speedWord })} disabled={windShown <= 0}
+          onClick={() => stepWind(-1)}>−</button>
+        <NumberField label={speedWord} value={rounded(windShown, 1)} unit={windUnit} min={0} max={windMax} step={windStep} snap
+          onChange={(v) => storeWind(v)}
+          invalidText={t('real.windInvalid', { max: `${dec(windMax, 1, lang).replace(/[.,]0$/, '')}${NBSP}${windUnit}` })} />
+        <button type="button" className="real-step" aria-label={t('step.inc', { what: speedWord })} disabled={windShown >= windMax}
+          onClick={() => stepWind(1)}>+</button>
       <button ref={clockRef} type="button" className="real-clock-btn" aria-haspopup="dialog" aria-expanded={clockOpen}
         aria-label={`${t('real.windDir')}: ${from}`} onClick={() => setClockOpen((o) => !o)}>
         <MiniClock hour={setup.windClock} />

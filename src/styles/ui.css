@@ -322,6 +322,12 @@ input::placeholder {
   input[type='number'],
   input[type='search'] {
     height: 44px;
+    /* Under 16px iOS Safari zooms the page when an input gets focus. */
+    font-size: 16px;
+  }
+
+  textarea {
+    font-size: 16px;
   }
 }
 
@@ -435,6 +441,19 @@ input::placeholder {
 }
 
 /* NumberField ---------------------------------------------------------------------- */
+/* With an aside: the label left, the aside (a source tag) right, on one row above the input. */
+.number-field-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 8px;
+}
+
+.number-field-head > :last-child {
+  margin-left: auto;
+}
+
 .number-field-row {
   display: flex;
   align-items: center;
@@ -464,6 +483,9 @@ input::placeholder {
 /* WindClock: twelve hours round a dial, the target at the top ---------------------- */
 .wind-clock-dial {
   position: relative;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
   width: min(100%, 240px);
   aspect-ratio: 1;
   margin-top: 6px;
@@ -552,6 +574,24 @@ input::placeholder {
   flex: none;
   font-size: 11px;
   padding: 4px 9px;
+}
+
+.setup-tags .tag-btn:has(> .tag-text) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.setup-tags .tag-btn:has(> .tag-text) > svg {
+  flex: none;
+  color: var(--muted);
+}
+
+.setup-tags .tag-btn .tag-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .setup-tags .tag b {
@@ -648,4 +688,86 @@ input::placeholder {
 
 .scope-caption svg {
   flex: none;
+}
+
+/* A status message over everything, above the settings sheet (50). One at a time. */
+.toast {
+  position: fixed;
+  z-index: 60;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: grid;
+  gap: 8px;
+  width: max-content;
+  max-width: min(440px, calc(100vw - 32px));
+  padding: 8px 8px 8px 16px;
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  color: var(--fg);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.toast-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-action,
+.toast-close {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 8px;
+  background: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.toast-action {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.toast-close {
+  color: var(--muted);
+  transition: color 150ms;
+}
+
+.toast-action:hover,
+.toast-close:hover {
+  color: var(--fg);
+}
+
+/* In a modal sheet's slot (ToastSlot): its own row at the foot of the sheet's column, centred. It takes room, so the
+   sheet's body shrinks while a toast shows and the toast covers nothing. Empty, the slot takes none. */
+.toast-slot {
+  flex: none;
+}
+
+.toast-slot:not(:empty) {
+  padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+}
+
+.toast-slot > .toast {
+  position: static;
+  transform: none;
+  margin: 0 auto;
+}
+
+@media (max-width: 699px) {
+  .toast {
+    /* Over the phone dock, 8px clear of it: its 1px border, 8px padding, two 46px rows 6px apart and 8px padding
+       (115px), then the safe area. */
+    bottom: calc(123px + env(safe-area-inset-bottom));
+  }
 }
