@@ -9,6 +9,7 @@ import { GAMES, type GameId } from './games/registry'
 import { ComingSoon } from './pages/ComingSoon'
 import { useRoute } from './router'
 import { SettingsProvider, useSettings } from './settings/SettingsContext'
+import { APP_VERSION } from './version'
 import './games/gzw/theme.css'
 import './games/real/theme.css'
 import './games/wardogs/theme.css'
@@ -35,6 +36,7 @@ function Shell() {
           {game.id === 'real' ? <RealApp /> : game.id === 'gzw' ? <GzwApp /> : <ComingSoon game={game.name} url={game.url} />}
         </HeaderSlotContext.Provider>
       </main>
+      <div className="version-mark" aria-hidden="true">v{APP_VERSION}</div>
     </div>
   )
 }

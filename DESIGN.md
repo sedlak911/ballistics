@@ -158,7 +158,7 @@ The default page (`#/real/workbench`, and the bare URL): the first-shot scope se
   - **A value the forecast lacked** adds `The forecast had no pressure: using the standard one.` (two values in one line), shown while that field is still standard.
 - **Pressure kind:** a model pressure converts with the Station/QNH toggle.
 - **Bottom bar:** distance, slope, wind (a stepper and the `WindClock`) and target size, labelled fields on one row; on a phone it is a two-row dock fixed to the bottom.
-- **ⓘ sheet:** REAL's credits, and in place of the game notes its own: "Estimates from physics and published data. Check them on paper before relying on them." No fan-project line: there is no game to disclaim.
+- **ⓘ sheet:** REAL's credits, and in place of the game notes its own: "Estimates from physics and published data. Check them on paper before relying on them." No fan-project line: there is no game to disclaim. It leads with `How to read the answer`: each term as the page shows it (`Elevation, Windage`, `dial`, `hold`, `left over`, the three wind columns, the hit chance, the warnings, `How it's calculated`) with what it means.
 - **Calculation sheet:** a side sheet (opaque `--panel`, full width on a phone) with the steps in order: air, muzzle velocity, flight, elevation, wind, spin drift and the rest. Each step shows its inputs with a tag for where each came from (`preset`, `estimate`, `standard`), its formula with the numbers, and its effect on the hit in cm and MRAD. An effect that can be left out carries a switch.
 
 **New components** (game-agnostic, in `src/components/`):
@@ -258,7 +258,16 @@ A setup choice sits in a **popover menu** under the tag that names it (see Setup
 - **Dialog (import):** a panel with an opaque `--panel` ground over the page dimmed to 60% black; ticks and radios in hairline rows; ghost and primary buttons at 44px.
   - Several weapons the app can show are radios, the fastest muzzle velocity preselected; the round is radios over the rounds found that fit the chosen weapon, the best preselected, `keep the current one` last.
   - The barrel, scope and read accuracy are ticks, shown only for the weapon they belong to.
-- **Info sheet:** the ⓘ `About this site` button opens an opaque sheet like the settings one: the fan-project line, the data version with its sources, and the estimates note.
+- **Info sheet:** the ⓘ `About this site` button opens an opaque sheet like the settings one. In order:
+  - the fan-project line;
+  - `How to read the answer`, on a page that gives one (REAL);
+  - the data version with its sources;
+  - the estimates note;
+  - `Privacy`: what stays in the browser and what leaves it (By location to Open-Meteo, the screenshot read in the browser, the IP address GitHub Pages sees), and "No cookies, no analytics, no tracking.";
+  - `Version {v}`, the app's version.
+
+  Help and privacy are `<details>`, closed until asked for: a label-role summary in `--fg` (`--accent` on hover) with a `›` that turns down when open, so the sheet stays short. Its text is mono 12px `--muted`, a term `--fg`. The sheet scrolls inside itself (at most the screen's height less 88px). While a sheet is open the header sits over a phone's dock, so the sheet's end is never hidden under it.
+- **Version mark:** the app's version (`v` and the `package.json` version), mono 10px `--muted` at 60%, fixed 8px from the right and 4px from the bottom of the screen. It moves nothing, takes no clicks and is `aria-hidden` (ⓘ gives it). On a phone the dock fills that corner, so it shows only in ⓘ.
 - **Estimate note:** a 1px dashed `--border-strong` box, mono 11px `--muted`, led by an accent `≈`.
 
 ## Figures and units
@@ -358,7 +367,7 @@ The scope view is the hero. It shows which point of the reticle goes on the targ
 
 - **Name and logo:** the name is "Ballistics Calculator", and the logo is our square reticle mark in `--accent`.
 - **Third-party material:** game logos, key art, the gzwloadout.com cobra mark and the official sites' licensed fonts (Bebas Neue Pro) stay with their owners. Link to those sites instead.
-- **About this site** (the ⓘ sheet; the page has no footer): "Unofficial fan project, not affiliated with MADFINGER Games or BULKHEAD", the data version and credits (gzw-data.dev, GZW Fandom wiki, CC BY-SA 3.0), and the estimates note.
+- **About this site** (the ⓘ sheet; the page has no footer): "Unofficial fan project, not affiliated with MADFINGER Games or BULKHEAD", the data version and credits (gzw-data.dev, GZW Fandom wiki, CC BY-SA 3.0), the estimates note, privacy and the version.
 
 ## Before you finish UI work
 

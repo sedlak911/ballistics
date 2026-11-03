@@ -39,6 +39,12 @@
   transition: transform 0.25s var(--ease);
 }
 
+/* An open ⓘ or ⚙ sheet goes over a phone's dock (z-index 20), so its end is never hidden under it; menus (40) and the
+   calculation sheet (50) still go over the header. */
+.app-header:has(> .sheet) {
+  z-index: 30;
+}
+
 /* Out of the way while the page scrolls down; back on the way up (useHiddenOnScrollDown). */
 .app-header.hidden {
   transform: translateY(-100%);
@@ -177,16 +183,19 @@
   gap: 16px;
 }
 
-/* The ⓘ sheet: what the site is, its data and credits. */
+/* The ⓘ sheet: what the site is, how to read it, its data and credits, privacy and the version. It scrolls inside
+   itself once help is open on a short screen. */
 .info-sheet {
   max-width: 420px;
+  max-height: calc(100dvh - 88px);
+  overflow-y: auto;
 }
 
 .info-body {
   display: grid;
   gap: 10px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
   color: var(--muted);
 }
@@ -249,5 +258,85 @@
 
   .coming-soon h1 {
     font-size: 48px;
+  }
+}
+
+/* The app's version, faint in the bottom-right corner of the screen. It moves nothing and takes no clicks; ⓘ gives it
+   too, for screen readers and for a phone. */
+.version-mark {
+  position: fixed;
+  right: 8px;
+  bottom: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Help and privacy in ⓘ: closed until asked for, each opened by its label. */
+.info-more summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg);
+  list-style: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.info-more summary::-webkit-details-marker {
+  display: none;
+}
+
+/* A glyph, not a bordered box: a rotated box reads as a tick at phone sizes. */
+.info-more summary::before {
+  content: '›';
+  flex: none;
+  width: 10px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1;
+  text-align: center;
+  transition: transform 0.15s;
+}
+
+.info-more[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.info-more summary:hover {
+  color: var(--accent);
+}
+
+.info-more > p,
+.info-more dl {
+  margin-top: 8px;
+}
+
+.info-more dl {
+  display: grid;
+  gap: 10px;
+}
+
+.info-more dt {
+  color: var(--fg);
+}
+
+.info-more dd {
+  margin: 0;
+}
+
+/* A phone's dock fills that corner, so there the version lives in ⓘ only. */
+@media (max-width: 699px) {
+  .version-mark {
+    display: none;
   }
 }

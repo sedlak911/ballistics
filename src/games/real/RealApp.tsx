@@ -5,6 +5,16 @@ export const realInfo: DataInfo = {
   builtAt: '2026-10-31',
   // Real rifles: no game to disclaim, and the figures are ours to check (M3).
   notes: { before: null, after: 'info.realEstimates' },
+  help: [
+    { term: 'info.real.figures', text: 'info.real.figuresText' },
+    { term: 'real.dial', text: 'info.real.dialText' },
+    { term: 'real.hold', text: 'info.real.holdText' },
+    { term: 'info.real.left', text: 'info.real.leftText' },
+    { term: 'info.real.cols', text: 'info.real.colsText' },
+    { term: 'info.real.hit', text: 'info.real.hitText' },
+    { term: 'info.real.warn', text: 'info.real.warnText' },
+    { term: 'real.howCalc', text: 'info.real.howText' },
+  ],
   credits: [
     { label: 'Lapua (.338 data)', href: 'https://www.lapua.com/support/lapua-ballistics-app-2/' },
     { label: 'McCoy, BRL-MR-3810 (M33 drag curve)', href: 'https://apps.dtic.mil/sti/pdfs/ADA219106.pdf' },

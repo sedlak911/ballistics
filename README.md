@@ -20,7 +20,7 @@ One page, the **workbench**, with one view that fits a screen: the setup as tags
 - **Distance**: a slider, the wheel or a trackpad over the scope, or mil ranging: set what the whole target spans in the reticle (standing, kneeling, or prone across) and the distance follows. The figure in the scope carries its size in MIL or MOA.
 - **Armor by class**: the highest class the round usually penetrates at that distance, with the pen strip for the rest and the energy it has lost past 150 m.
 - **Screenshot import**: paste (Ctrl+V), drop or pick a screenshot of your character with the inventory and the weapon detail open. OCR runs in the browser and offers the weapons it found (the fastest preselected), the round that fits, the barrel, scope and real accuracy, after you confirm them.
-- Fits a screen from 1366×768 up, in landscape and portrait, and works on a phone. ⓘ holds the data sources and the fan-project note.
+- Fits a screen from 1366×768 up, in landscape and portrait, and works on a phone. ⓘ holds how to read the answer (REAL), the data sources, the fan-project note, privacy and the version. The version (`package.json`) also shows faintly in the bottom-right corner on a desktop.
 
 English with a Czech switch, metric or imperial, MIL or MOA. Every setting lives in the URL, so a link reproduces the setup. The browser also keeps the last setup (`gb.gzw.setup`) and the profile (`gb.gzw.profile`) in localStorage; nothing leaves the browser.
 

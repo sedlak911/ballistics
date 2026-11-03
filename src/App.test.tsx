@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import pkg from '../package.json'
 import App from './App'
 import { PHONE } from './components/useMedia'
 
@@ -107,5 +108,52 @@ describe('App shell', () => {
     const cs = screen.getByRole('dialog', { name: 'O webu' })
     expect(cs).toHaveTextContent('Odhady z fyziky a zveřejněných údajů. Než se na ně spolehneš, ověř je střelbou na papírový terč.')
     expect(cs).not.toHaveTextContent(/MADFINGER|BULKHEAD|Hra/)
+  })
+})
+
+describe('The version and the ⓘ sheet', () => {
+  const about = (name = 'About this site') => {
+    fireEvent.click(screen.getByRole('button', { name }))
+    return screen.getByRole('dialog', { name })
+  }
+
+  it('marks the version faintly in the corner, hidden from screen readers, which find it in ⓘ', () => {
+    open('')
+    const mark = screen.getByText(`v${pkg.version}`)
+    expect(mark).toHaveClass('version-mark')
+    expect(mark).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('gives the version in ⓘ on every page', () => {
+    for (const hash of ['', '#/gzw/workbench', '#/wardogs/workbench']) {
+      open(hash)
+      expect(about()).toHaveTextContent(`Version ${pkg.version}`)
+      cleanup()
+    }
+  })
+
+  it('says in ⓘ what stays in the browser and what leaves it, in both languages', () => {
+    open('#/gzw/workbench')
+    const privacy = within(about()).getByText('Privacy').closest('details')!
+    for (const text of ['never leave', 'Open-Meteo', '90 days', 'never uploaded', 'GitHub Pages', 'No cookies, no analytics, no tracking.'])
+      expect(privacy).toHaveTextContent(text)
+    cleanup()
+    open('#/gzw/workbench?l=cs')
+    const cs = within(about('O webu')).getByText('Soukromí').closest('details')!
+    for (const text of ['neopustí', 'Open-Meteo', '90 dní', 'nikam se nenahrává', 'GitHub Pages', 'Žádné cookies, analytika ani sledování.'])
+      expect(cs).toHaveTextContent(text)
+  })
+
+  it('explains how to read REAL’s answer in ⓘ, and only on REAL', () => {
+    open('')
+    const help = within(about()).getByText('How to read the answer').closest('details')!
+    for (const text of ['dial', 'hold', 'left over', 'How it’s calculated']) expect(help).toHaveTextContent(text)
+    cleanup()
+    open('#/real/workbench?l=cs')
+    const cs = within(about('O webu')).getByText('Jak číst odpověď').closest('details')!
+    for (const text of ['natoč', 'drž', 'zbývá', 'Jak se to počítá']) expect(cs).toHaveTextContent(text)
+    cleanup()
+    open('#/gzw/workbench')
+    expect(within(about()).queryByText('How to read the answer')).toBeNull()
   })
 })
