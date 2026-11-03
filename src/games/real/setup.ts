@@ -37,12 +37,11 @@ export const BOUNDS = {
   distanceM: { min: 25, max: 2500 },
   slopeDeg: { min: -45, max: 45 },
   windMs: { min: 0, max: 25 },
-  targetCm: { min: 5, max: 300 },
 } as const
 
 const KEYS = {
-  presetId: 'p', roundId: 'cr', scopeId: 'cs', customRifleId: 'cf', distanceM: 'd', slopeDeg: 'sl', windMs: 'ws', windClock: 'wc', targetCm: 'tg',
-} as const satisfies Record<Exclude<keyof RealSetup, 'windSet'>, string>
+  presetId: 'p', roundId: 'cr', scopeId: 'cs', customRifleId: 'cf', distanceM: 'd', slopeDeg: 'sl', windMs: 'ws', windClock: 'wc',
+} as const satisfies Record<Exclude<keyof RealSetup, 'windSet' | 'targetCm'>, string>
 /** The current preset's overrides in a link (profiles.ts writeLinkOverrides). The station and the profile never travel. */
 const LINK_KEY = 'o'
 /** A custom item's id as a link may carry it (library.ts newId); anything else reads as none. */
@@ -78,7 +77,8 @@ export function readRealSetup(p: URLSearchParams): RealSetup {
     windSet: ws !== null && ws.trim() !== '' && Number.isFinite(Number(ws)),
     windMs: Math.round(num(KEYS.windMs, BOUNDS.windMs.min, BOUNDS.windMs.max, DEFAULT_SETUP.windMs) * 1000) / 1000,
     windClock: Math.round(num(KEYS.windClock, 1, 12, DEFAULT_SETUP.windClock)),
-    targetCm: num(KEYS.targetCm, BOUNDS.targetCm.min, BOUNDS.targetCm.max, DEFAULT_SETUP.targetCm),
+    // Fixed at 50 cm for now: the target is not a link input (a later target type will bring its own).
+    targetCm: DEFAULT_SETUP.targetCm,
   }
 }
 

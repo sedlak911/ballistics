@@ -335,7 +335,74 @@
 .real-bar {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+}
+
+/* Two groups, each with its label on a line above its segments; under 1366px they take a row each. */
+.real-group {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.real-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 14px;
+  min-height: 20px;
+}
+
+.real-group-head .label {
+  color: var(--accent);
+}
+
+.real-group-head .real-hint {
+  flex-basis: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+/* The offer sits at the right end of the label line, as one line without a box. */
+.real-group-head .real-forecast {
+  flex-wrap: nowrap;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 11px;
+}
+
+
+.real-group-items {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+.real-bar-rule {
+  display: none;
+  flex: none;
+  align-self: stretch;
+  width: 1px;
+  background: var(--border);
+}
+
+@media (min-width: 1366px) {
+  .real-group {
+    flex: 0 1 auto;
+  }
+
+  .real-group-wind {
+    flex: 1 1 0;
+  }
+
+  .real-bar-rule {
+    display: block;
+  }
 }
 
 .real-tool {
@@ -359,12 +426,26 @@
 
 /* The distance: its word, −, the typed figure and its unit, +. */
 .real-distance .number-field,
-.real-slope .number-field {
+.real-slope .number-field,
+.real-dir .real-direction,
+.real-dir .real-direction-row,
+.real-dir .number-field {
   display: contents;
 }
 
-.real-distance .number-field > .label {
+.real-distance .number-field > .label,
+.real-slope .number-field > .label,
+.real-dir .number-field > .label {
   order: -1;
+}
+
+/* The direction's note stays for screen readers; the bar has no room for it. */
+.real-dir .rm-note {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
 }
 
 /* The wind: the bar's "Wind" word leads, so the field's own label is for screen readers; − before the figure, + after. */
@@ -447,7 +528,8 @@
   color: var(--faint);
 }
 
-.real-distance .real-step:last-child {
+.real-distance .real-step:last-child,
+.real-slope .real-step:last-of-type {
   border-left: 1px solid var(--border);
 }
 
@@ -510,55 +592,191 @@
   width: 240px;
 }
 
-/* Phone: one column, and the bar fixed to the bottom in two 44px rows ---------------------------------------- */
+/* Phone: one column, and the dock fixed to the bottom: two buttons that open a panel above them ------------- */
 .real-dock {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 20;
-  display: grid;
-  gap: 6px;
   padding: 8px max(12px, var(--safe-right)) calc(8px + var(--safe-bottom)) max(12px, var(--safe-left));
   border-top: 1px solid var(--border-strong);
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
 }
 
 .real-dock-row {
   display: flex;
+  gap: 8px;
+}
+
+.real-dock-btn {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
+  height: 44px;
+  padding: 0 8px;
+  border: 1px solid var(--border-strong);
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+
+.real-dock-btn .label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+}
+
+.real-dock-btn .num {
+  flex: none;
+  margin-left: auto;
+  font-size: 15px;
+  color: var(--fg-strong);
+}
+
+.real-dock-btn .num small,
+.real-dock-btn .num em {
+  font-size: 11px;
+  font-style: normal;
+  color: var(--muted);
+}
+
+.real-dock-chevron {
+  flex: none;
+  color: var(--faint);
+}
+
+.real-dock-btn[aria-expanded='true'] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.real-dock-btn[aria-expanded='true'] .label,
+.real-dock-btn[aria-expanded='true'] .real-dock-chevron {
+  color: var(--accent);
+}
+
+/* The panel hangs from the dock's top edge, over the page; the page is neither dimmed nor held. */
+.real-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  display: grid;
+  gap: 4px;
+  padding: 4px max(16px, var(--safe-right)) 10px max(16px, var(--safe-left));
+  border-top: 1px solid var(--border-strong);
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  outline: none;
+  animation: real-panel-in 0.2s var(--ease);
+}
+
+@keyframes real-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .real-panel {
+    animation: none;
+  }
+}
+
+.real-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.real-panel-head h2 {
+  margin: 0;
+  color: var(--accent);
+}
+
+.real-panel-body {
+  display: grid;
   gap: 6px;
 }
 
+/* The notes under the fields stay short, so the answer above the panel stays in sight. */
+.real-panel .real-hint,
+.real-panel .rm-note,
+.real-panel .real-forecast {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+/* The offer is one row here: its line, then Use. */
+.real-panel .real-forecast {
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  padding: 4px 10px;
+}
+
+.real-panel .real-forecast > span {
+  min-width: 0;
+}
+
+.real-panel-wind {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.real-panel-wind .wind-clock {
+  flex: none;
+  width: 148px;
+}
+
+.real-panel-wind .wind-clock-hour {
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+}
+
+.real-panel-col {
+  display: grid;
+  flex: 1;
+  gap: 6px;
+  min-width: 0;
+}
+
 /* 44px controls inside the segment's 1px borders. */
-.real-dock .real-tool {
-  min-height: 46px;
-  height: 46px;
+.real-panel .real-tool {
+  min-height: 44px;
+  height: 44px;
 }
 
-.real-dock .real-step {
+.real-panel .real-step {
   width: 44px;
 }
 
-.real-dock .stepper button {
+.real-panel .stepper button {
   width: 44px;
 }
 
-.real-dock .real-tool .number-field-row input {
+.real-panel .real-tool .number-field-row input {
   width: 48px;
 }
 
-.real-dock .real-tool .stepper output {
-  min-width: 64px;
+.real-panel .real-tool .stepper output {
+  min-width: 48px;
 }
 
-.real-dock .real-slope .number-field-row input {
+.real-panel .real-slope .number-field-row input {
   width: 40px;
 }
 
 /* The distance and the wind speed read by their units; their words stay for screen readers. */
-.real-dock .real-distance .number-field > .label,
-.real-dock .real-wind > .label {
+.real-panel .real-distance .number-field > .label,
+.real-panel .real-wind > .label {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -566,17 +784,8 @@
   clip-path: inset(50%);
 }
 
-.real-dock .real-slope {
-  flex-grow: 0;
-}
-
-.real-dock .real-clock-btn {
-  flex: 1;
-  justify-content: center;
-}
-
 body:has(> .real-dock) .app {
-  padding-bottom: calc(120px + var(--safe-bottom));
+  padding-bottom: calc(76px + var(--real-panel-h, 0px) + var(--safe-bottom));
 }
 
 @media (max-width: 699px) {
@@ -639,4 +848,59 @@ body:has(> .real-dock) .app {
     max-width: 100%;
     padding: 0 10px;
   }
+}
+
+/* The slope's hint: a line under the segment, or (in a tooltip) text for screen readers only. */
+.real-hint {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.real-hint-vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* The direction field: the figure and its Compass button side by side, the notes under. */
+.real-direction {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.real-direction-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* The forecast offer: an estimate box with the line, then Use (small, accent border) or, without a direction, the ask. */
+.real-forecast {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.real-forecast-use {
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 12px;
+  border-color: var(--accent);
+}
+
+.real-forecast-ask {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--accent);
+  text-align: left;
+  cursor: pointer;
 }

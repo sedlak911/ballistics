@@ -10,11 +10,17 @@ export interface WindClockProps {
   unit?: string
   /** The slider's spoken value, localized by the caller (e.g. "9 o'clock, 4 m/s"). */
   valueText: string
+  /** Four compass letters on a ring outside the face (N E S W, in the caller's language), turned so the azimuth is at the top. */
+  cardinals?: { azimuthDeg: number; letters: readonly [n: string, e: string, s: string, w: string] }
 }
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 1)
 /** The dial is drawn in a 0–100 box; hour positions sit on this radius around 50 50. */
 const RING = 38
+/** The compass letters sit a little outside the face (radius 54). */
+const CARDINAL_RING = 54
+/** Bearings of the four letters, in the order the caller gives them: N, E, S, W. */
+const CARDINAL_BEARINGS = [0, 90, 180, 270]
 const at = (hour: number, r: number) => {
   const a = (hour * Math.PI) / 6
   return { x: 50 + r * Math.sin(a), y: 50 - r * Math.cos(a) }
@@ -35,7 +41,7 @@ const DEAD_ZONE = 0.3
  * with `valueText` as its value text); arrow keys step the hour and wrap at 12 and 1, and a press or drag anywhere on the dial
  * (outside the hub) picks the nearest hour. The arrow runs from the chosen hour toward the centre.
  */
-export function WindClock({ label, value, onChange, speedMs, unit, valueText }: WindClockProps) {
+export function WindClock({ label, value, onChange, speedMs, unit, valueText, cardinals }: WindClockProps) {
   const labelId = `wc-${useId()}`
   // The tail starts inside the ring of hours, so the chosen hour's number stays clear of it.
   const from = at(value, RING - 9)
@@ -73,7 +79,7 @@ export function WindClock({ label, value, onChange, speedMs, unit, valueText }: 
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); step(-1) }
   }
   return (
-    <div className="wind-clock">
+    <div className={cardinals ? 'wind-clock has-cardinals' : 'wind-clock'}>
       <span id={labelId} className="label">{label}</span>
       <div
         className="wind-clock-dial"
@@ -108,6 +114,19 @@ export function WindClock({ label, value, onChange, speedMs, unit, valueText }: 
             <div key={h} data-hour={h} className="wind-clock-hour" data-on={h === value || undefined}
               style={{ left: `${p.x}%`, top: `${p.y}%` }}>
               {h}
+            </div>
+          )
+        })}
+        {cardinals && CARDINAL_BEARINGS.map((bearing, i) => {
+          const letter = cardinals.letters[i]
+          // Relative bearing from the azimuth to this point, so the letter sits where that way lies from the shot.
+          const rel = ((bearing - cardinals.azimuthDeg + 360) % 360) * (Math.PI / 180)
+          const left = 50 + CARDINAL_RING * Math.sin(rel)
+          const top = 50 - CARDINAL_RING * Math.cos(rel)
+          return (
+            <div key={bearing} data-cardinal={letter} className="wind-clock-cardinal" aria-hidden="true"
+              style={{ left: `${left}%`, top: `${top}%` }}>
+              {letter}
             </div>
           )
         })}

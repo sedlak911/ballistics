@@ -165,3 +165,9 @@ export function sectionSummary(
   }
   return items.join(' · ')
 }
+
+/** The wind clock's compass ring: the four letters (N E S W) from the `real.cardinals` text, turned to the shooting direction; none while it is unknown. */
+export function clockCardinals(azimuthDeg: number | undefined, cardinals: string) {
+  if (azimuthDeg === undefined) return undefined
+  return { azimuthDeg, letters: cardinals.split(' ').filter((_, i) => i % 2 === 0) as [string, string, string, string] }
+}

@@ -103,6 +103,53 @@ describe('WindClock', () => {
     expect(Number(arrow.getAttribute('data-x1'))).toBeGreaterThan(12 + 5)
   })
 
+  describe('compass points', () => {
+    const cardinal = (container: HTMLElement, letter: string) => container.querySelector<HTMLElement>(`[data-cardinal="${letter}"]`)!
+    const renderWith = (cardinals?: { azimuthDeg: number; letters: readonly [string, string, string, string] }) =>
+      render(<WindClock label="Wind from" value={9} onChange={() => {}} speedMs={4} valueText="9 o'clock, 4 m/s" cardinals={cardinals} />)
+
+    it('puts four letters on a ring outside the dial, turned to the shooting azimuth', () => {
+      const { container } = renderWith({ azimuthDeg: 270, letters: ['N', 'E', 'S', 'W'] })
+      const letters = container.querySelectorAll('[data-cardinal]')
+      expect(letters).toHaveLength(4)
+      letters.forEach((el) => expect(el).toHaveAttribute('aria-hidden', 'true'))
+      // Shooting due west: W is straight ahead at 12, N sits at 3, E at 6, S at 9.
+      const at = (letter: string) => {
+        const el = cardinal(container, letter)
+        return { left: parseFloat(el.style.left), top: parseFloat(el.style.top) }
+      }
+      expect(at('W').left).toBeCloseTo(50, 5)
+      expect(at('W').top).toBeCloseTo(-4, 5)
+      expect(at('N').left).toBeCloseTo(104, 5)
+      expect(at('N').top).toBeCloseTo(50, 5)
+      expect(at('E').left).toBeCloseTo(50, 5)
+      expect(at('E').top).toBeCloseTo(104, 5)
+      expect(at('S').left).toBeCloseTo(-4, 5)
+      expect(at('S').top).toBeCloseTo(50, 5)
+    })
+
+    it('takes the letters in the caller’s order and leaves the speed’s value text alone', () => {
+      const { container, unmount } = renderWith({ azimuthDeg: 0, letters: ['S', 'V', 'J', 'Z'] })
+      expect(cardinal(container, 'S').style.top).toBe('-4%')
+      expect(cardinal(container, 'V').style.left).toBe('104%')
+      expect(screen.getByRole('slider')).toHaveAttribute('aria-valuetext', "9 o'clock, 4 m/s")
+      unmount()
+    })
+
+    it('pads the root so the letters outside the face are not clipped', () => {
+      const { container, unmount } = renderWith({ azimuthDeg: 0, letters: ['N', 'E', 'S', 'W'] })
+      expect(container.querySelector('.wind-clock')).toHaveClass('has-cardinals')
+      unmount()
+      const bare = renderWith()
+      expect(bare.container.querySelector('.wind-clock')).not.toHaveClass('has-cardinals')
+    })
+
+    it('draws no letters without cardinals', () => {
+      const { container } = renderWith()
+      expect(container.querySelectorAll('[data-cardinal]')).toHaveLength(0)
+    })
+  })
+
   it('writes the speed’s unit under it in the hub, so it doesn’t read as an hour', () => {
     render(<WindClock label="Wind from" value={9} onChange={() => {}} speedMs={3} unit="m/s" valueText="9 o'clock, 3 m/s" />)
     const hub = screen.getByRole('slider').querySelector('.wind-clock-speed')!

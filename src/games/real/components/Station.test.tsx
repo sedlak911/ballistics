@@ -140,20 +140,6 @@ describe('the station line', () => {
     expect(dialLine()).not.toBe(asStation)
   })
 
-  it('an emptied azimuth is stored as null and shows unknown; the line keeps working', () => {
-    open()
-    const s = openSheet()
-    const az = within(s).getByLabelText('Azimuth')
-    type(az, '270')
-    expect(stored().azimuthDeg).toEqual({ value: 270, source: 'manual' })
-    type(az, '')
-    expect(stored().azimuthDeg).toBeNull()
-    expect(az).toHaveValue('')
-    expect(az).toHaveAttribute('placeholder', 'unknown')
-    expect(within(s).getAllByText('unknown').length).toBeGreaterThan(0)
-    expect(lineButton()).toHaveTextContent(/°C · .* hPa/)
-  })
-
   it('an emptied powder temperature is null again', () => {
     open()
     const s = openSheet()
@@ -167,13 +153,26 @@ describe('the station line', () => {
     open()
     const s = openSheet()
     type(within(s).getByLabelText('Temperature'), '30')
-    type(within(s).getByLabelText('Azimuth'), '90')
     fireEvent.click(within(s).getByRole('button', { name: 'Station' }))
     fireEvent.click(within(s).getByRole('button', { name: 'Standard atmosphere' }))
     expect(stored().tempC).toEqual({ value: 15, source: 'standard' })
-    expect(stored().azimuthDeg).toBeNull()
     expect(stored().pressureKind).toBe('qnh')
     expect(lineButton()).toHaveTextContent(/^15\s°C · QNH 1013\shPa · 0\s% · 0\sm · standard$/)
+  })
+
+  it('Standard atmosphere keeps the shooting direction and the height above ground', () => {
+    localStorage.setItem('gb.real.station', JSON.stringify({
+      v: 1,
+      azimuthDeg: { value: 270, source: 'manual' },
+      heightAboveGroundM: { value: 20, source: 'manual' },
+    }))
+    open()
+    const s = openSheet()
+    type(within(s).getByLabelText('Temperature'), '30')
+    fireEvent.click(within(s).getByRole('button', { name: 'Standard atmosphere' }))
+    expect(stored().tempC).toEqual({ value: 15, source: 'standard' })
+    expect(stored().azimuthDeg).toEqual({ value: 270, source: 'manual' })
+    expect(stored().heightAboveGroundM).toEqual({ value: 20, source: 'manual' })
   })
 
   it('typing the value already shown still makes the field manual; tabbing through does not', () => {
@@ -214,74 +213,34 @@ describe('the station line', () => {
     expect(lineButton()).toHaveTextContent(/^86\s°F .* 3281\sft · standard$/)
   })
 
-  it('Wind in writes the profile and the bottom bar steps in that unit', () => {
+  it('has no azimuth, compass, wind unit or wind uncertainty; they live in the bar and the settings', () => {
     open()
     const s = openSheet()
-    fireEvent.click(within(s).getByRole('button', { name: 'km/h' }))
-    expect(JSON.parse(localStorage.getItem('gb.real.profile')!).windUnit).toBe('km/h')
-    fireEvent.keyDown(document, { key: 'Escape' })
-    fireEvent.click(screen.getByRole('button', { name: 'Wind speed: more' }))
-    expect((screen.getByLabelText('Wind speed') as HTMLInputElement).value).toBe('2')
+    for (const name of ['Azimuth', 'Wind uncertainty']) expect(within(s).queryByLabelText(name)).not.toBeInTheDocument()
+    for (const name of ['Compass', 'km/h']) expect(within(s).queryByRole('button', { name })).not.toBeInTheDocument()
+    expect(within(s).queryByText('Wind in')).not.toBeInTheDocument()
+    expect(within(s).queryByRole('group', { name: 'Wind uncertainty' })).not.toBeInTheDocument()
   })
 
-  // M9: the spec's "one setting, 1 m/s by default" for how far the real wind may be from the one set.
-  it('sets the wind uncertainty in 0.5 m/s steps from 0.5 to 3, shown in the wind unit; σ 2 widens the columns', () => {
-    open('#/real/workbench?p=p7&d=1000&ws=3&wc=9')
-    const columns = () => within(screen.getByRole('list', { name: 'Hold for less, the same and more wind' })).getAllByRole('listitem')
-    const speeds = () => columns().map((li) => li.querySelector('.real-col-speed')!.textContent)
-    const holds = () => columns().map((li) => Number(li.querySelector('.real-col-v')!.textContent!.replace('←', '')))
-    expect(speeds()).toEqual(['2\u00a0m/s', '3\u00a0m/s', '4\u00a0m/s'])
-    const [narrowLo, , narrowHi] = holds()
-    const sigma = within(openSheet()).getByRole('group', { name: 'Wind uncertainty' })
-    expect(within(sigma).getByRole('status')).toHaveTextContent('±1 m/s')
-    fireEvent.click(within(sigma).getByRole('button', { name: 'Wind uncertainty: more' }))
-    fireEvent.click(within(sigma).getByRole('button', { name: 'Wind uncertainty: more' }))
-    expect(JSON.parse(localStorage.getItem('gb.real.profile')!).windSigmaMs).toBe(2)
-    expect(speeds()).toEqual(['1\u00a0m/s', '3\u00a0m/s', '5\u00a0m/s'])
-    const [wideLo, , wideHi] = holds()
-    expect(wideHi - wideLo).toBeGreaterThan(narrowHi - narrowLo)
-    for (let i = 0; i < 4; i++) fireEvent.click(within(sigma).getByRole('button', { name: 'Wind uncertainty: less' }))
-    expect(JSON.parse(localStorage.getItem('gb.real.profile')!).windSigmaMs).toBe(0.5)
-    expect(within(sigma).getByRole('button', { name: 'Wind uncertainty: less' })).toBeDisabled()
-    fireEvent.click(within(sheet()).getByRole('button', { name: 'km/h' }))
-    expect(within(sigma).getByRole('status')).toHaveTextContent('±1.8 km/h')
-  })
-
-  it('has no Compass action without DeviceOrientationEvent', () => {
-    vi.stubGlobal('DeviceOrientationEvent', undefined)
-    open()
-    expect(within(openSheet()).queryByRole('button', { name: 'Compass' })).not.toBeInTheDocument()
-  })
-
-  it('Compass stores one reading as a manual azimuth, rounded', async () => {
-    class Ev extends Event {}
-    vi.stubGlobal('DeviceOrientationEvent', Ev)
+  it('Height above ground is 1 m as standard, stores a typed value as manual and explains itself', () => {
     open()
     const s = openSheet()
-    fireEvent.click(within(s).getByRole('button', { name: 'Compass' }))
-    await act(async () => {
-      const e = new Event('deviceorientationabsolute') as Event & { alpha: number }
-      e.alpha = 90.4
-      window.dispatchEvent(e)
-    })
-    expect(stored().azimuthDeg).toEqual({ value: 270, source: 'manual' })
+    const h = within(s).getByLabelText('Height above ground')
+    expect(h).toHaveValue('1')
+    expect(within(s).getByText('Where you shoot from: about 1 m lying prone, more from a building. It converts the forecast wind from 10 m to your height.')).toBeInTheDocument()
+    type(h, '15')
+    expect(stored().heightAboveGroundM).toEqual({ value: 15, source: 'manual' })
   })
-})
 
-describe('a compass reading and the sheet', () => {
-  it('closing the sheet drops a reading in progress; reopening shows no old alert', async () => {
-    vi.stubGlobal('DeviceOrientationEvent', class extends Event {})
-    open()
-    fireEvent.click(within(openSheet()).getByRole('button', { name: 'Compass' }))
-    fireEvent.keyDown(document, { key: 'Escape' })
-    await act(async () => {
-      const e = new Event('deviceorientationabsolute') as Event & { alpha: number }
-      e.alpha = 90
-      window.dispatchEvent(e)
-    })
-    expect(stored().azimuthDeg ?? null).toBeNull()
-    expect(within(openSheet()).queryByRole('alert')).not.toBeInTheDocument()
-    expect(within(sheet()).getByRole('button', { name: 'Compass' })).toBeEnabled()
+  it('imperial: the height is shown and typed in ft, SI stored', () => {
+    localStorage.setItem('gb.real.display', JSON.stringify({}))
+    open('#/real/workbench?p=p7&d=1000&ws=0&u=imperial')
+    const s = openSheet()
+    const h = within(s).getByLabelText('Height above ground')
+    expect(h).toHaveValue('3')
+    type(h, '30')
+    expect(stored().heightAboveGroundM.value).toBeCloseTo(9.144, 2)
+    expect(h).toHaveValue('30')
   })
 })
 

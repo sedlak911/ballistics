@@ -6,6 +6,8 @@ export type Effect = 'humidity' | 'powderTemp' | 'spinDrift' | 'coriolis' | 'aer
 export const EFFECTS: Effect[] = ['humidity', 'powderTemp', 'spinDrift', 'coriolis', 'aeroJump', 'curvature']
 export type WindUnit = 'm/s' | 'km/h' | 'mph' | 'kn'
 export const WIND_UNITS: WindUnit[] = ['m/s', 'km/h', 'mph', 'kn']
+/** The wind stepper's step in each unit; the setup keeps m/s. */
+export const WIND_STEP: Record<WindUnit, number> = { 'm/s': 0.5, 'km/h': 2, mph: 1, kn: 1 }
 
 export interface RealProfile {
   mode: 'dial' | 'hold'

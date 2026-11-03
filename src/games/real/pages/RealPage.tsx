@@ -153,7 +153,7 @@ export function RealPage() {
         note={note}
         tags={<RealMenus setup={setup} update={update} sel={sel} own={own} save={save} station={station} sheet={sheet} onSheet={setSheet}
           onReset={reset} onDelete={deleteItem} show={show} onSheetClosed={closeSticky} />}
-        bar={<BottomBar setup={setup} update={update} system={display.system} windUnit={profile.windUnit} phone={phone} />} />
+        bar={<BottomBar setup={setup} update={update} system={display.system} windUnit={profile.windUnit} phone={phone} now={now} />} />
       <Toast toast={toast} onClose={close} closeLabel={t('toast.close')} />
     </>
   )

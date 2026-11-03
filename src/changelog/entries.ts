@@ -15,6 +15,27 @@ export interface Entry {
 /** Newest first. */
 export const ENTRIES: Entry[] = [
   {
+    version: '0.1.6',
+    date: '2026-11-03',
+    title: { cs: 'Vzdálenost a vítr dole', en: 'Distance and wind at the bottom' },
+    items: {
+      cs: [
+        'Na telefonu jsou dole dvě tlačítka, Vzdálenost a Vítr. Každé otevře, co k němu patří: vzdálenost se sklonem a směrem střelby, vítr s nejistotou a ciferníkem.',
+        'Na počítači je všechno rovnou na spodním řádku.',
+        'Když načteš počasí podle polohy, aplikace nabídne vítr z předpovědi, přepočtený na výšku, ze které střílíš. Použije se, jen když klepneš na Použít.',
+        'Ciferník větru ukazuje světové strany, když zadáš směr střelby.',
+        'Terč je pevně 50 cm. Jednotka větru je v nastavení.',
+      ],
+      en: [
+        'On a phone there are two buttons at the bottom, Distance and Wind. Each opens what belongs to it: the distance with the slope and the shooting direction, the wind with its uncertainty and the clock.',
+        'On a computer it is all on the bottom row.',
+        'When you load the weather by location, the app offers the forecast wind, converted to the height you shoot from. It applies only when you tap Use.',
+        'The wind clock shows the compass points once you set the shooting direction.',
+        'The target is fixed at 50 cm. The wind unit is in the settings.',
+      ],
+    },
+  },
+  {
     version: '0.1.5',
     date: '2026-11-03',
     title: { cs: 'Přehled verzí a kliky jako dřív', en: 'Version history, and the clicks as before' },

@@ -119,13 +119,13 @@ describe('RealPage: the answer in dial mode', () => {
     open('#/real/workbench?p=p7&d=1000&ws=3&wc=9')
     expect(screen.getByTestId('real-hit')).toHaveTextContent(/^50 cm target: ≈ \d+ %\. The wind guess costs the most\./)
     expect(screen.getByTestId('real-hit')).toHaveTextContent(/group ≈ \d+ × \d+ cm/)
-    expect(screen.getByRole('group', { name: 'Target' })).toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Target' })).not.toBeInTheDocument()
     cleanup()
     onPhone(() => {
       open('#/real/workbench?p=p7&d=1000&ws=3&wc=9')
       expect(screen.queryByTestId('real-hit')).not.toBeInTheDocument()
       expect(screen.queryByRole('group', { name: 'Target' })).not.toBeInTheDocument()
-      expect(within(screen.getByTestId('real-dock')).getByLabelText('Distance')).toBeInTheDocument()
+      expect(within(screen.getByTestId('real-dock')).getByRole('button', { name: /^Distance\s\d+\sm/ })).toHaveAttribute('aria-expanded', 'false')
     })
   })
 
@@ -270,7 +270,7 @@ describe('RealPage: the bottom bar', () => {
 
   it('sets the slope by typing', () => {
     open('#/real/workbench?p=p7&d=1000')
-    const slope = screen.getByLabelText('Slope')
+    const slope = screen.getByRole('textbox', { name: 'Slope' })
     fireEvent.change(slope, { target: { value: '5' } })
     fireEvent.keyDown(slope, { key: 'Enter' })
     expect(hash()).toContain('sl=5')
@@ -364,11 +364,12 @@ describe('RealPage: the bottom bar', () => {
     expect(screen.getByRole('button', { name: /Wind direction: from 10 o’clock/ })).toBeInTheDocument()
   })
 
-  it('steps the target diameter by 5 cm on a large screen', () => {
-    open('#/real/workbench?p=p7&d=1000')
-    fireEvent.click(within(screen.getByRole('group', { name: 'Target' })).getByRole('button', { name: 'Target: more' }))
-    expect(hash()).toContain('tg=55')
-    expect(screen.getByTestId('real-hit')).toHaveTextContent(/^55 cm target/)
+  it('reads a stored tg=120 as the fixed 50 cm target', () => {
+    localStorage.setItem('gb.real.setup', 'p=p7&d=1000&ws=3&wc=9&tg=120')
+    open('#/real/workbench')
+    expect(screen.getByTestId('real-hit')).toHaveTextContent(/^50 cm target/)
+    cleanup()
+    localStorage.removeItem('gb.real.setup')
   })
 })
 
@@ -596,5 +597,64 @@ describe('RealPage: what is missing', () => {
     noMass()
     open(`#/real/workbench?l=cs&cr=${ROUND}&d=1000&ws=0`)
     expect(screen.getByRole('button', { name: 'Pro výpočet doplň: hmotnost střely' })).toBeInTheDocument()
+  })
+})
+
+describe('RealPage: the desktop bar', () => {
+  const seedStation = (azimuth: number | null) => localStorage.setItem('gb.real.station', JSON.stringify({
+    v: 1,
+    heightAboveGroundM: { value: 1, source: 'manual' },
+    ...(azimuth === null ? {} : { azimuthDeg: { value: azimuth, source: 'manual' } }),
+    model: { time: '2026-11-03T12:00', fetchedAt: Date.now(), windMs10: 3.1, windFromDeg: 180 },
+  }))
+  const bar = () => screen.getByTestId('real-bar')
+
+  afterEach(() => localStorage.clear())
+
+  it('holds two groups: the shot, with the slope hint as its description and no compass button, and the wind', () => {
+    open('#/real/workbench?p=p7&d=600&ws=4&wc=9')
+    const shot = within(bar()).getByRole('group', { name: 'The shot' })
+    expect(within(shot).getByLabelText('Distance')).toBeInTheDocument()
+    const slope = within(shot).getByRole('group', { name: 'Slope' })
+    expect(slope).toHaveAccessibleDescription('+ uphill, − downhill (say, down from a building)')
+    expect(within(shot).getByLabelText('Direction')).toBeInTheDocument()
+    expect(within(shot).queryByRole('button', { name: 'Compass' })).not.toBeInTheDocument()
+    const wind = within(bar()).getByRole('group', { name: 'Wind' })
+    expect(within(wind).getByLabelText('Wind speed')).toBeInTheDocument()
+    expect(within(wind).getByRole('button', { name: /^Wind direction: from 9/ })).toBeInTheDocument()
+    expect(within(wind).getByRole('group', { name: 'Wind uncertainty' })).toBeInTheDocument()
+    expect(within(wind).getByText(/^Read it out to half the distance/)).toBeInTheDocument()
+    expect(screen.queryByTestId('real-dock')).not.toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Target' })).not.toBeInTheDocument()
+  })
+
+  it('puts the forecast offer on the wind group, and Use applies it', () => {
+    seedStation(270)
+    open('#/real/workbench?p=p7&d=600&ws=4&wc=9')
+    const wind = within(bar()).getByRole('group', { name: 'Wind' })
+    expect(within(wind).getByText(/^Forecast/)).toBeInTheDocument()
+    fireEvent.click(within(wind).getByRole('button', { name: 'Use' }))
+    expect(hash()).toMatch(/ws=2/)
+  })
+
+  it('wheels the distance by a step', () => {
+    open('#/real/workbench?p=p7&d=600&ws=4&wc=9')
+    fireEvent.wheel(within(bar()).getByLabelText('Distance'), { deltaY: -100 })
+    expect(within(bar()).getByLabelText('Distance')).toHaveValue('610')
+  })
+
+  it('sends the forecast hint to the Direction field', () => {
+    seedStation(null)
+    open('#/real/workbench?p=p7&d=600&ws=4&wc=9')
+    fireEvent.click(within(bar()).getByRole('button', { name: 'Set the shooting direction to get the hour.' }))
+    expect(within(bar()).getByLabelText('Direction')).toHaveFocus()
+  })
+
+  it('writes the compass letters on the clock popover once the direction is known', () => {
+    seedStation(270)
+    open('#/real/workbench?p=p7&d=600&ws=4&wc=9')
+    fireEvent.click(within(bar()).getByRole('button', { name: /^Wind direction/ }))
+    const letters = [...screen.getByRole('dialog').querySelectorAll('[data-cardinal]')].map((e) => e.getAttribute('data-cardinal'))
+    expect(letters.sort()).toEqual(['E', 'N', 'S', 'W'])
   })
 })

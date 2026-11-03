@@ -1,18 +1,15 @@
-import { useEffect, useRef, useState, type RefObject } from 'react'
+import { useState, type RefObject } from 'react'
 import { NumberField } from '../../../components/NumberField'
 import { Popover } from '../../../components/Popover'
 import { Segmented } from '../../../components/Segmented'
-import { Stepper } from '../../../components/Stepper'
 import { cToF, fToC, PRESSURE_TO_HPA } from '../../../engine/units'
 import { useSettings } from '../../../settings/SettingsContext'
-import { WIND_SIGMA_MS, WIND_UNITS, useRealProfile, type WindUnit } from '../profile'
+import { useRealProfile } from '../profile'
 import {
-  applyWeather, resetWeather, STANDARD_STATION, updateStation, useStation, withAltitude, withPressureKind, type Field, type Station,
+  applyWeather, HEIGHT_ABOVE_GROUND, resetWeather, STANDARD_STATION, updateStation, useStation, withAltitude, withPressureKind, type Field, type Station,
   type WeatherField,
 } from '../station'
 import { locationPermission, weatherByLocation, type WeatherError } from '../weather'
-import { COMPASS_TIMEOUT_MS, hasCompass, readHeading } from './compass'
-import { windText } from './realText'
 import { ageOf, clockOf, FT_M, PRESSURE_DIGITS, shownHPa, weatherInUse, type PressureUnit } from './stationText'
 import './menus.css'
 import './station.css'
@@ -23,9 +20,7 @@ const PRESSURE_HPA = { min: 500, max: 1100 }
 const HUMIDITY = { min: 0, max: 100 }
 const ALTITUDE_M = { min: -500, max: 9000 }
 const LATITUDE = { min: -90, max: 90 }
-const AZIMUTH = { min: 0, max: 360 }
 const POWDER_C = { min: -60, max: 80 }
-// How far the real wind may be from the one set, 1σ (M9): kept in m/s, shown in the wind unit.
 const PRESSURE_UNITS = Object.keys(PRESSURE_TO_HPA) as PressureUnit[]
 
 const roundTo = (v: number, d: number) => Math.round(v * 10 ** d) / 10 ** d
@@ -57,9 +52,9 @@ function Source({ field, empty, t }: { field: Field<number> | null; empty: strin
 }
 
 /**
- * The atmosphere by hand: temperature, pressure (station or QNH), humidity, altitude, latitude, azimuth and powder
- * temperature, each with where it comes from; then the wind's unit and its uncertainty. Editing a field makes it manual; Standard atmosphere resets them all.
- * Azimuth and powder temperature can be emptied (unknown, the air's); every other field keeps its last good value.
+ * The atmosphere by hand: temperature, pressure (station or QNH), humidity, altitude, height above ground, latitude and
+ * powder temperature, each with where it comes from. Editing a field makes it manual; Standard atmosphere resets them all.
+ * Powder temperature can be emptied (the air's); every other field keeps its last good value.
  */
 export function StationSheet({ now, open, onClose, anchorRef, pUnit, setPUnit }: {
   /** The page's clock, for the age of the weather. */
@@ -73,15 +68,6 @@ export function StationSheet({ now, open, onClose, anchorRef, pUnit, setPUnit }:
   const { t, display } = useSettings()
   const [s, set] = useStation()
   const [profile, setProfile] = useRealProfile()
-  const [compass, setCompass] = useState<'idle' | 'busy' | 'failed'>('idle')
-  const abort = useRef<AbortController | null>(null)
-  useEffect(() => () => abort.current?.abort(), [])
-  // Closing the sheet drops a reading in progress and its message, so nothing late writes the azimuth.
-  useEffect(() => {
-    if (open) return
-    abort.current?.abort()
-    setCompass('idle')
-  }, [open])
   const imperial = display.system === 'imperial'
 
   // By location. 'denied' lives here, in this page view only: a later tap reads the permission state without asking, and
@@ -168,6 +154,7 @@ export function StationSheet({ now, open, onClose, anchorRef, pUnit, setPUnit }:
   const factor = PRESSURE_TO_HPA[pUnit]
   const press = conv((hpa) => hpa / factor, (v) => v * factor, PRESSURE_DIGITS[pUnit], PRESSURE_HPA)
   const alt = imperial ? conv((m) => m / FT_M, (ft) => ft * FT_M, 0, ALTITUDE_M) : conv((m) => m, (m) => m, 0, ALTITUDE_M)
+  const height = imperial ? conv((m) => m / FT_M, (ft) => ft * FT_M, 0, HEIGHT_ABOVE_GROUND) : conv((m) => m, (m) => m, 0, HEIGHT_ABOVE_GROUND)
   const tempUnit = imperial ? '°F' : '°C'
   const altUnit = imperial ? 'ft' : 'm'
 
@@ -177,25 +164,12 @@ export function StationSheet({ now, open, onClose, anchorRef, pUnit, setPUnit }:
   const setAltitude = (m: number) => updateStation((cur) => withAltitude(cur, manual(m)))
 
   const resetAll = () => {
-    set(STANDARD_STATION)
+    // Only the air resets: the shooting direction and the height above ground are set in the shot and wind panels.
+    set({ ...STANDARD_STATION, azimuthDeg: s.azimuthDeg, heightAboveGroundM: s.heightAboveGroundM })
     setFailure(null)
     setFallbackAt(null)
     setApprox(false)
     setDropped([])
-  }
-
-  const takeReading = async () => {
-    abort.current?.abort()
-    const ctl = new AbortController()
-    abort.current = ctl
-    setCompass('busy')
-    const deg = await readHeading(ctl.signal)
-    if (ctl.signal.aborted) return
-    if (deg === null) setCompass('failed')
-    else {
-      set({ azimuthDeg: manual(deg) })
-      setCompass('idle')
-    }
   }
 
   return (
@@ -265,6 +239,12 @@ export function StationSheet({ now, open, onClose, anchorRef, pUnit, setPUnit }:
           {approx && s.altitudeM.source === 'model' && <span className="rm-note">{t('st.loc.approx')}</span>}
         </div>
         <div className="rm-field">
+          <NumberField commitSame label={t('st.height')} value={height.show(s.heightAboveGroundM.value)} unit={altUnit} min={height.min} max={height.max} step={1}
+            invalidText={range(height.min, height.max)} onChange={(v) => set({ heightAboveGroundM: manual(height.store(v)) })} />
+          <span className="rm-note">{t('st.heightNote')}</span>
+          <Source field={s.heightAboveGroundM} empty="" t={t} />
+        </div>
+        <div className="rm-field">
           <NumberField commitSame label={t('st.latitude')} value={s.latitudeDeg.value} unit="°" min={LATITUDE.min} max={LATITUDE.max} step={1}
             invalidText={range(LATITUDE.min, LATITUDE.max)} onChange={(v) => set({ latitudeDeg: manual(v) })} />
           <Source field={s.latitudeDeg} empty="" t={t} />
@@ -282,38 +262,11 @@ export function StationSheet({ now, open, onClose, anchorRef, pUnit, setPUnit }:
         )}
 
         <div className="rm-field">
-          <div className="st-with">
-            <NumberField commitSame label={t('st.azimuth')} value={s.azimuthDeg?.value ?? null} unit="°" min={AZIMUTH.min} max={AZIMUTH.max} step={5}
-              placeholder={t('st.unknown')} invalidText={range(AZIMUTH.min, AZIMUTH.max)}
-              onChange={(v) => set({ azimuthDeg: manual(v) })} onClear={() => set({ azimuthDeg: null })} />
-            {hasCompass() && (
-              <button type="button" className="btn ghost" disabled={compass === 'busy'} onClick={takeReading}>{t('st.compass')}</button>
-            )}
-          </div>
-          <span className="rm-note">{t('st.azimuthNote')}</span>
-          {compass === 'busy' && <span className="rm-note" role="status">{t('st.compassBusy', { s: COMPASS_TIMEOUT_MS / 1000 })}</span>}
-          {compass === 'failed' && <span className="rm-msg bad" role="alert">{t('st.compassFail')}</span>}
-          <Source field={s.azimuthDeg} empty={t('st.unknown')} t={t} />
-        </div>
-        <div className="rm-field">
           <NumberField commitSame label={t('st.powder')} value={s.powderTempC ? powder.show(s.powderTempC.value) : null} unit={tempUnit}
             min={powder.min} max={powder.max} step={1} placeholder={t('st.airs')} invalidText={range(powder.min, powder.max)}
             onChange={(v) => set({ powderTempC: manual(powder.store(v)) })} onClear={() => set({ powderTempC: null })} />
           <span className="rm-note">{t('st.powderNote')}</span>
           <Source field={s.powderTempC} empty={t('st.airs')} t={t} />
-        </div>
-
-        <div className="rm-field">
-          <span className="label">{t('st.windIn')}</span>
-          <Segmented label={t('st.windIn')} value={profile.windUnit} onChange={(windUnit: WindUnit) => setProfile({ windUnit })}
-            options={WIND_UNITS.map((u) => ({ value: u, label: u }))} />
-        </div>
-        <div className="rm-field">
-          <span className="label">{t('st.windSigma')}</span>
-          <Stepper label={t('st.windSigma')} value={profile.windSigmaMs} min={WIND_SIGMA_MS.min} max={WIND_SIGMA_MS.max} step={WIND_SIGMA_MS.step}
-            format={(v) => `±${windText(v, profile.windUnit)}`} onChange={(windSigmaMs) => setProfile({ windSigmaMs })}
-            decLabel={t('step.dec', { what: t('st.windSigma') })} incLabel={t('step.inc', { what: t('st.windSigma') })} />
-          <span className="rm-note">{t('st.windSigmaNote')}</span>
         </div>
       </div>
     </Popover>

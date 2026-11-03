@@ -38,6 +38,22 @@ const keep = (o: object) => localStorage.setItem('gb.real.profiles', JSON.string
 
 afterEach(cleanup)
 
+describe('the ⚙ sheet on REAL: Wind in', () => {
+  it('writes the profile, and the bottom bar steps in that unit', () => {
+    localStorage.clear()
+    open('#/real/workbench?p=p7&d=1000&ws=0')
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+    const gear = screen.getByRole('dialog', { name: 'Settings' })
+    const wind = within(gear).getByRole('group', { name: 'Wind in' })
+    expect(within(wind).getAllByRole('button').map((b) => b.textContent)).toEqual(['m/s', 'km/h', 'mph', 'kn'])
+    fireEvent.click(within(wind).getByRole('button', { name: 'km/h' }))
+    expect(JSON.parse(localStorage.getItem('gb.real.profile')!).windUnit).toBe('km/h')
+    fireEvent.keyDown(document, { key: 'Escape' })
+    fireEvent.click(screen.getByRole('button', { name: 'Wind speed: more' }))
+    expect((screen.getByLabelText('Wind speed') as HTMLInputElement).value).toBe('2')
+  })
+})
+
 describe('RealSettings: the sheet', () => {
   it('opens on the round tag with only Round expanded', () => {
     open()

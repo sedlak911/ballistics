@@ -7,7 +7,7 @@ A static web app for long-range shooting: REAL (real rifles, the default page) a
 The first-shot scope setting for a real rifle at 100–2000 m, from presets of the most-used Czech army and police long rifles and their ammunition (the presets and their sources come from `docs/superpowers/research/2026-10-31-czech-rifles-ammo.md`).
 
 - **Dial or hold:** the elevation and windage to set on the turret in clicks, or to hold in the reticle, in MRAD or MOA.
-- **Atmosphere:** standard air, or set it by hand (temperature, pressure, humidity, altitude, azimuth) on the station line.
+- **Atmosphere:** standard air, or set it by hand (temperature, pressure, humidity, altitude, height above ground, latitude, powder temperature) on the station line. The shooting direction and the wind are in the bottom bar: a phone's dock opens them as two panels, Distance and Wind. After `By location` the wind line offers the forecast wind at your height, applied only on `Use`.
 - **Calculation view:** how the answer was reached, step by step, with each effect's share of the hit and a switch to take it out.
 - **Settings sheet:** the rifle, round and scope tags open one sheet with a section each (twist, accuracy, BC, muzzle velocity, truing, zero, sight height, travel). A section resets to the preset on its own, with an undo. On a phone the tags show an icon and a short name.
 - **Sharing:** the share button in the sheet copies the link (the setup, the preset's changes and the language path, never the station), or shows it in a field to copy by hand when the browser refuses the clipboard.

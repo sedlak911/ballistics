@@ -17,6 +17,10 @@ describe('readRealSetup', () => {
     })
   })
 
+  it('fixes the target at 50 cm: a link\'s tg is ignored', () => {
+    expect(readRealSetup(new URLSearchParams('tg=30&d=500'))).toMatchObject({ targetCm: 50, distanceM: 500 })
+  })
+
   it('opens P7 at 300 m for an unknown preset and a garbage distance', () => {
     const s = readRealSetup(q('p=zzz&d=abc'))
     expect(s.presetId).toBe('p7')
@@ -24,9 +28,9 @@ describe('readRealSetup', () => {
   })
 
   it('clamps out-of-range numbers', () => {
-    const s = readRealSetup(q('d=99999&sl=-90&ws=30&wc=15&tg=1'))
-    expect(s).toMatchObject({ distanceM: 2500, slopeDeg: -45, windMs: 25, windClock: 12, targetCm: 5 })
-    expect(readRealSetup(q('d=1&ws=-3&wc=0&tg=999'))).toMatchObject({ distanceM: 25, windMs: 0, windClock: 1, targetCm: 300 })
+    const s = readRealSetup(q('d=99999&sl=-90&ws=30&wc=15'))
+    expect(s).toMatchObject({ distanceM: 2500, slopeDeg: -45, windMs: 25, windClock: 12 })
+    expect(readRealSetup(q('d=1&ws=-3&wc=0'))).toMatchObject({ distanceM: 25, windMs: 0, windClock: 1 })
   })
 
   // The bar steps the wind in the unit the owner reads (0.5 m/s, 2 km/h, 1 mph, 1 kn), so the link keeps any of them.
@@ -37,7 +41,7 @@ describe('readRealSetup', () => {
   })
 
   it('round-trips through the link with the display keys', () => {
-    const s = { ...DEFAULT_SETUP, presetId: 'p3', distanceM: 800, slopeDeg: -10, windMs: 4.5, windSet: true, windClock: 3, targetCm: 40 }
+    const s = { ...DEFAULT_SETUP, presetId: 'p3', distanceM: 800, slopeDeg: -10, windMs: 4.5, windSet: true, windClock: 3 }
     const p = writeRealSetup(s, { lang: 'cs', system: 'metric', angle: 'moa' })
     expect(readRealSetup(p)).toEqual(s)
     expect(p.get('a')).toBe('moa')
@@ -59,7 +63,8 @@ describe('custom ids in the link', () => {
     expect(b.get('p')).toBe('p7')
     expect(b.has('o')).toBe(true)
     expect([b.has('cr'), b.get('cs'), b.has('cf')]).toEqual([false, 'u-s1', false])
-    expect(writeRealSetup({ ...DEFAULT_SETUP, windSet: true }, DISPLAY).toString()).toBe('p=p7&d=300&sl=0&ws=0&wc=9&tg=50&u=metric&a=mil')
+    expect(writeRealSetup({ ...DEFAULT_SETUP, windSet: true }, DISPLAY).toString()).toBe('p=p7&d=300&sl=0&ws=0&wc=9&u=metric&a=mil')
+    expect(writeRealSetup(DEFAULT_SETUP, DISPLAY).has('tg')).toBe(false)
   })
 
   it('reads a malformed id as none', () => {

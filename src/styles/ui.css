@@ -605,6 +605,25 @@ input::placeholder {
   }
 }
 
+/* The compass letters ring the face; the root pads them so they are not clipped. */
+.wind-clock.has-cardinals {
+  padding: 16px;
+}
+
+/* The top letter sits above the face; the label keeps clear of it. */
+.wind-clock.has-cardinals > .label {
+  margin-bottom: 14px;
+}
+
+.wind-clock-cardinal {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
 /* Setup tags and their menus, shared by GZW and REAL (DESIGN.md, Components → Setup tags, Setup menus) ----- */
 /* The setup tags: in the header on desktop, a scrolling strip under it on a phone. */
 .setup-tags {
@@ -822,6 +841,11 @@ body:has(> .toast:not(.install-note)) > .install-note {
   visibility: hidden;
 }
 
+/* An open REAL panel waits it too: above the panel the note would sit on the answer the panel keeps in view. */
+body:has(> .real-dock > .real-panel) > .install-note {
+  visibility: hidden;
+}
+
 .install-note-line {
   margin: 0;
   padding-right: 8px;
@@ -836,5 +860,11 @@ body:has(> .toast:not(.install-note)) > .install-note {
     /* Over the phone dock, 8px clear of it: its 1px border, 8px padding, two 46px rows 6px apart and 8px padding
        (115px), then the safe area. */
     bottom: calc(123px + var(--safe-bottom));
+  }
+
+  /* REAL's dock is one row (8px padding, 44px button, 8px padding, 1px border = 61px) with the open panel above it, whose
+     height the dock keeps in --real-panel-h. */
+  body:has(> .real-dock) .toast {
+    bottom: calc(69px + var(--real-panel-h, 0px) + var(--safe-bottom));
   }
 }

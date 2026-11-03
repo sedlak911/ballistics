@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { stationFromQnh } from '../../engine/atmosphere'
-import { applyWeather, readStation, resetWeather, STANDARD_STATION, stationAir, withAltitude, withPressureKind, type Station } from './station'
+import { applyWeather, HEIGHT_ABOVE_GROUND, readStation, resetWeather, STANDARD_STATION, stationAir, withAltitude, withPressureKind, type Station } from './station'
 
 describe('stationAir', () => {
   it('converts QNH 1013.25 at 500 m to station pressure', () => {
@@ -59,7 +59,7 @@ describe('readStation', () => {
 })
 
 describe('applyWeather', () => {
-  const w = { tempC: 10, humidityPct: 76, stationPressureHPa: 1003.5, modelTime: '2026-10-31T14:05', fetchedAt: 5 }
+  const w = { tempC: 10, humidityPct: 76, stationPressureHPa: 1003.5, modelTime: '2026-10-31T14:05', fetchedAt: 5, windMs10: 3.1, windFromDeg: 180 }
   const r = { cell: { lat: 50.09 }, elevationM: 208, weather: w }
 
   it('writes model fields, a station pressure, the rounded latitude and the model time', () => {
@@ -69,7 +69,7 @@ describe('applyWeather', () => {
       tempC: { value: 10, source: 'model' }, humidityPct: { value: 76, source: 'model' },
       pressureHPa: { value: 1003.5, source: 'model' }, pressureKind: 'station',
       altitudeM: { value: 208, source: 'model' }, latitudeDeg: { value: 50.09, source: 'location' },
-      model: { time: '2026-10-31T14:05', fetchedAt: 5 },
+      model: { time: '2026-10-31T14:05', fetchedAt: 5, windMs10: 3.1, windFromDeg: 180 },
     })
   })
 
@@ -92,7 +92,7 @@ describe('applyWeather', () => {
     expect(p.pressureKind).toBe('qnh')
     expect(p.tempC).toEqual(STANDARD_STATION.tempC)
     expect(p.humidityPct).toEqual(model(76))
-    expect(p.model).toEqual({ time: '2026-10-31T14:05', fetchedAt: 5 })
+    expect(p.model).toEqual({ time: '2026-10-31T14:05', fetchedAt: 5, windMs10: 3.1, windFromDeg: 180 })
     expect(dropped).toEqual(['tempC', 'pressureHPa'])
   })
 
@@ -115,6 +115,38 @@ describe('the stored model time', () => {
   })
 })
 
+describe('the model wind and the height above ground', () => {
+  const time = '2026-10-31T14:05'
+  it('keeps a model wind, nulls a bad one and accepts none', () => {
+    expect(readStation({ model: { time, fetchedAt: 4, windMs10: 3.1, windFromDeg: 180 } }).model).toEqual({ time, fetchedAt: 4, windMs10: 3.1, windFromDeg: 180 })
+    expect(readStation({ model: { time, fetchedAt: 4, windMs10: 'x', windFromDeg: 400 } }).model).toEqual({ time, fetchedAt: 4, windMs10: null, windFromDeg: null })
+    expect(readStation({ model: { time, fetchedAt: 4, windMs10: 80, windFromDeg: -1 } }).model).toMatchObject({ windMs10: null, windFromDeg: null })
+    expect(readStation({ model: { time, fetchedAt: 4 } }).model).toMatchObject({ time, fetchedAt: 4 })
+  })
+
+  it('resetWeather still drops the model', () => {
+    expect(resetWeather(STANDARD_STATION).model).toBeNull()
+  })
+
+  it('the height defaults to 1 m standard and clamps to 0 to 200', () => {
+    expect(readStation({}).heightAboveGroundM).toEqual({ value: 1, source: 'standard' })
+    expect(readStation({ heightAboveGroundM: { value: 500, source: 'manual' } }).heightAboveGroundM).toEqual({ value: 200, source: 'manual' })
+    expect(readStation({ heightAboveGroundM: { value: -5, source: 'manual' } }).heightAboveGroundM.value).toBe(HEIGHT_ABOVE_GROUND.min)
+  })
+
+  it('a 0.1.5 station reads unchanged', () => {
+    const s = readStation({
+      v: 1, tempC: { value: 12, source: 'manual' }, pressureHPa: { value: 990, source: 'model' }, pressureKind: 'station',
+      humidityPct: { value: 40, source: 'model' }, altitudeM: { value: 300, source: 'model' }, latitudeDeg: { value: 50.09, source: 'location' },
+      azimuthDeg: { value: 135, source: 'manual' }, powderTempC: null, model: { time, fetchedAt: 4 },
+    })
+    expect(s.azimuthDeg).toEqual({ value: 135, source: 'manual' })
+    expect(s.tempC).toEqual({ value: 12, source: 'manual' })
+    expect(s.altitudeM).toEqual({ value: 300, source: 'model' })
+    expect(s.heightAboveGroundM).toEqual({ value: 1, source: 'standard' })
+  })
+})
+
 describe('the model time shape and the clock', () => {
   it('needs an ISO local time and a fetchedAt not from the future', () => {
     expect(readStation({ model: { time: 'yesterday', fetchedAt: 4 } }).model).toBeNull()
@@ -126,7 +158,7 @@ describe('the model time shape and the clock', () => {
 
 describe('applyWeather and the pressure kind', () => {
   it('keeps the kind of a manual pressure while the temperature becomes a model one', () => {
-    const w = { tempC: 10, humidityPct: 76, stationPressureHPa: 1003.5, modelTime: '2026-10-31T14:05', fetchedAt: 5 }
+    const w = { tempC: 10, humidityPct: 76, stationPressureHPa: 1003.5, modelTime: '2026-10-31T14:05', fetchedAt: 5, windMs10: 3.1, windFromDeg: 180 }
     const s = { ...STANDARD_STATION, pressureHPa: { value: 1020, source: 'manual' as const }, pressureKind: 'qnh' as const }
     const p = applyWeather(s, { cell: { lat: 50.09 }, elevationM: 208, weather: w }).patch
     expect(p.tempC).toEqual({ value: 10, source: 'model' })
@@ -234,7 +266,7 @@ describe('model weather belongs to an altitude (C1)', () => {
 
   it('a forecast for another height than a kept (manual) altitude is moved to that altitude', () => {
     const s: Station = { ...STANDARD_STATION, altitudeM: manual(400) }
-    const p = applyWeather(s, { cell: { lat: 50.09 }, elevationM: 208, weather: { tempC: 10, humidityPct: 76, stationPressureHPa: 1003.5, modelTime: '2026-10-31T14:05', fetchedAt: 5 } }).patch
+    const p = applyWeather(s, { cell: { lat: 50.09 }, elevationM: 208, weather: { tempC: 10, humidityPct: 76, stationPressureHPa: 1003.5, modelTime: '2026-10-31T14:05', fetchedAt: 5, windMs10: 3.1, windFromDeg: 180 } }).patch
     expect(p.altitudeM).toBeUndefined()
     expect(p.pressureHPa!.value).toBeCloseTo(980.76, 2)
     expect(p.tempC!.value).toBeCloseTo(8.752, 6)

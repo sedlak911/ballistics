@@ -64,7 +64,7 @@ export function forecastUrl(c: Cell, elevationM: number): string {
   return (
     `https://api.open-meteo.com/v1/forecast?latitude=${fmt(c.lat, 2)}&longitude=${fmt(c.lon, 2)}` +
     `&elevation=${fmt(Math.round(elevationM), 0)}` +
-    '&current=temperature_2m,relative_humidity_2m,surface_pressure&timezone=auto'
+    '&current=temperature_2m,relative_humidity_2m,surface_pressure,wind_speed_10m,wind_direction_10m&wind_speed_unit=ms&timezone=auto'
   )
 }
 
@@ -72,6 +72,9 @@ export interface Weather {
   tempC: number | null
   humidityPct: number | null
   stationPressureHPa: number | null
+  /** The forecast wind at 10 m above the ground (m/s) and the direction it blows from (degrees). */
+  windMs10: number | null
+  windFromDeg: number | null
   modelTime: string
   fetchedAt: number
 }
@@ -81,6 +84,12 @@ export const isModelTime = (v: unknown): v is string => typeof v === 'string' &&
 
 const inRange = (v: unknown, lo: number, hi: number): number | null =>
   typeof v === 'number' && Number.isFinite(v) && v >= lo && v <= hi ? v : null
+
+/** Each of the two wind values on its own: one out of range never drops the other, or the weather. */
+const checkedWind = (speed: unknown, dir: unknown): Pick<Weather, 'windMs10' | 'windFromDeg'> => ({
+  windMs10: inRange(speed, 0, 75),
+  windFromDeg: inRange(dir, 0, 360),
+})
 
 /** The three values, each checked on its own: one out of range becomes null. Null when none is left. */
 function checked(tempC: unknown, humidityPct: unknown, stationPressureHPa: unknown): Pick<Weather, 'tempC' | 'humidityPct' | 'stationPressureHPa'> | null {
@@ -98,7 +107,7 @@ export function parseForecast(json: unknown, fetchedAt: number): Weather | null 
   const c = cur as Record<string, unknown>
   if (!isModelTime(c.time)) return null
   const values = checked(c.temperature_2m, c.relative_humidity_2m, c.surface_pressure)
-  return values && { ...values, modelTime: c.time, fetchedAt }
+  return values && { ...values, ...checkedWind(c.wind_speed_10m, c.wind_direction_10m), modelTime: c.time, fetchedAt }
 }
 
 export type Freshness = 'fresh' | 'aging' | 'stale'
@@ -126,7 +135,9 @@ export function readWeatherCache(raw: unknown): CachedWeather | null {
   if (inRange(r.elevationM, -500, 9000) === null || !isModelTime(r.modelTime)) return null
   const values = checked(r.tempC, r.humidityPct, r.stationPressureHPa)
   if (!values) return null
-  return { cell: { lat: cell.lat, lon: cell.lon }, elevationM: r.elevationM, ...values, modelTime: r.modelTime, fetchedAt: r.fetchedAt }
+  // A cache written before 0.1.6 has no wind: it reads as null, and weatherByLocation asks again.
+  const wind = checkedWind(r.windMs10, r.windFromDeg)
+  return { cell: { lat: cell.lat, lon: cell.lon }, elevationM: r.elevationM, ...values, ...wind, modelTime: r.modelTime, fetchedAt: r.fetchedAt }
 }
 
 function loadCache(): CachedWeather | null {
@@ -216,7 +227,7 @@ async function getJson(url: string): Promise<{ json: unknown } | WeatherError> {
 
 /**
  * Position -> (fresh cache) -> grid -> elevation -> forecast -> cache. The only fetch in src/. A cache for the same cell
- * (and altitude) under 30 minutes old answers without a request; offline and service failures hand back the cache under
+ * (and altitude) under 30 minutes old, with its wind, answers without a request; offline and service failures hand back the cache under
  * 3 h. A typed altitude (`elevationM`) is the forecast's elevation: the grid request is skipped, so less leaves the
  * phone, and the forecast is for that height.
  */
@@ -231,7 +242,8 @@ export async function weatherByLocation(
   const typed = opts.elevationM === undefined || !Number.isFinite(opts.elevationM) ? undefined : Math.round(opts.elevationM)
 
   const cache = cachedFor(cell, now, typed)
-  if (cache && freshness(cache.fetchedAt, now) === 'fresh') {
+  // A cache without the wind is no answer: the wind is what the quick setup offers. It stays the offline fallback below.
+  if (cache && freshness(cache.fetchedAt, now) === 'fresh' && cache.windMs10 !== null && cache.windFromDeg !== null) {
     const { cell: _cell, elevationM, ...weather } = cache
     return { ok: true, cached: true, cell, elevationM, latitudeDeg: pos.lat, weather, accuracyM: pos.accuracyM }
   }

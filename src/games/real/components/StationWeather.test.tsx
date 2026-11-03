@@ -29,7 +29,7 @@ function positionError(code: number) {
   getPosition.mockImplementation((_ok: unknown, err: (e: { code: number }) => void) => err({ code }))
 }
 const weatherJson = (over: Record<string, unknown> = {}) => ({
-  current: { time: '2026-10-31T14:05', temperature_2m: 10, relative_humidity_2m: 76, surface_pressure: 1003.5, ...over },
+  current: { time: '2026-10-31T14:05', temperature_2m: 10, relative_humidity_2m: 76, surface_pressure: 1003.5, wind_speed_10m: 3.1, wind_direction_10m: 180, ...over },
 })
 function network(opts: { status?: number; reject?: boolean; forecast?: Record<string, unknown> } = {}) {
   const f = vi.fn(async (url: string) => {

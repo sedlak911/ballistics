@@ -5,7 +5,7 @@ import { isModelTime } from './weather'
 export type StationSource = 'manual' | 'standard' | 'model' | 'location'
 export interface Field<T> { value: T; source: StationSource }
 /** When the forecast behind the 'model' fields was made (Open-Meteo's local time) and fetched (epoch ms). */
-export interface ModelInfo { time: string; fetchedAt: number }
+export interface ModelInfo { time: string; fetchedAt: number; windMs10?: number | null; windFromDeg?: number | null }
 export interface Station {
   tempC: Field<number>
   /** Station pressure, or QNH (sea level) when pressureKind is 'qnh'. */
@@ -15,6 +15,8 @@ export interface Station {
   altitudeM: Field<number>
   latitudeDeg: Field<number>
   azimuthDeg: Field<number> | null
+  /** Height of the muzzle and the line of fire above the ground, for the wind profile. */
+  heightAboveGroundM: Field<number>
   powderTempC: Field<number> | null
   model: ModelInfo | null
 }
@@ -27,8 +29,10 @@ const std = (value: number): Field<number> => ({ value, source: 'standard' })
  */
 export const STANDARD_STATION: Station = {
   tempC: std(15), pressureHPa: std(1013.25), pressureKind: 'qnh', humidityPct: std(0),
-  altitudeM: std(0), latitudeDeg: std(50), azimuthDeg: null, powderTempC: null, model: null,
+  altitudeM: std(0), latitudeDeg: std(50), azimuthDeg: null, heightAboveGroundM: std(1), powderTempC: null, model: null,
 }
+
+export const HEIGHT_ABOVE_GROUND = { min: 0, max: 200 }
 
 /** The air at the shooter: QNH is reduced to the station altitude; a 'standard' pressure is the ISA one for it. */
 export function stationAir(s: Station): AirInput {
@@ -58,7 +62,13 @@ function readModel(raw: unknown): ModelInfo | null {
   if (!isRecord(raw) || typeof raw.fetchedAt !== 'number' || !Number.isFinite(raw.fetchedAt)) return null
   // A forecast time as Open-Meteo writes it, and a fetch that has happened (5 minutes of clock skew allowed).
   if (!isModelTime(raw.time) || raw.fetchedAt > Date.now() + 5 * 60_000) return null
-  return { time: raw.time.slice(0, 32), fetchedAt: raw.fetchedAt }
+  // The wind keys are new in 0.1.6: a model stored without them stays without them; a bad one becomes null.
+  const wind = (v: unknown, hi: number) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= hi ? v : null)
+  return {
+    time: raw.time.slice(0, 32), fetchedAt: raw.fetchedAt,
+    ...('windMs10' in raw && { windMs10: wind(raw.windMs10, 75) }),
+    ...('windFromDeg' in raw && { windFromDeg: wind(raw.windFromDeg, 360) }),
+  }
 }
 
 export function readStation(raw: unknown): Station {
@@ -74,6 +84,7 @@ export function readStation(raw: unknown): Station {
     altitudeM: field(raw.altitudeM, -500, 9000, d.altitudeM),
     latitudeDeg: field(raw.latitudeDeg, -90, 90, d.latitudeDeg),
     azimuthDeg: optional(raw.azimuthDeg, 0, 360),
+    heightAboveGroundM: field(raw.heightAboveGroundM, HEIGHT_ABOVE_GROUND.min, HEIGHT_ABOVE_GROUND.max, d.heightAboveGroundM),
     powderTempC: optional(raw.powderTempC, -60, 80),
     model: readModel(raw.model),
   }
@@ -131,9 +142,9 @@ export type WeatherField = 'tempC' | 'pressureHPa' | 'humidityPct'
  */
 export function applyWeather(
   s: Station,
-  r: { cell: { lat: number }; elevationM: number; weather: { tempC: number | null; humidityPct: number | null; stationPressureHPa: number | null; modelTime: string; fetchedAt: number } },
+  r: { cell: { lat: number }; elevationM: number; weather: { tempC: number | null; humidityPct: number | null; stationPressureHPa: number | null; windMs10: number | null; windFromDeg: number | null; modelTime: string; fetchedAt: number } },
 ): { patch: Partial<Station>; dropped: WeatherField[] } {
-  const patch: Partial<Station> = { model: { time: r.weather.modelTime, fetchedAt: r.weather.fetchedAt } }
+  const patch: Partial<Station> = { model: { time: r.weather.modelTime, fetchedAt: r.weather.fetchedAt, windMs10: r.weather.windMs10, windFromDeg: r.weather.windFromDeg } }
   const dropped: WeatherField[] = []
   const model = (value: number): Field<number> => ({ value, source: 'model' })
   const values: Record<WeatherField, number | null> = { tempC: r.weather.tempC, pressureHPa: r.weather.stationPressureHPa, humidityPct: r.weather.humidityPct }

@@ -77,8 +77,30 @@ describe('forecast', () => {
     expect(u).toMatch(/surface_pressure/)
     expect(u).not.toMatch(/pressure_msl/)
     expect(u).toBe(
-      'https://api.open-meteo.com/v1/forecast?latitude=50.08&longitude=14.42&elevation=208&current=temperature_2m,relative_humidity_2m,surface_pressure&timezone=auto',
+      'https://api.open-meteo.com/v1/forecast?latitude=50.08&longitude=14.42&elevation=208&current=temperature_2m,relative_humidity_2m,surface_pressure,wind_speed_10m,wind_direction_10m&wind_speed_unit=ms&timezone=auto',
     )
+  })
+
+  it('asks for the 10 m wind in m/s', () => {
+    const u = forecastUrl({ lat: 50.08, lon: 14.42 }, 208)
+    expect(u).toContain('current=temperature_2m,relative_humidity_2m,surface_pressure,wind_speed_10m,wind_direction_10m')
+    expect(u).toContain('&wind_speed_unit=ms')
+  })
+
+  it('parses the wind, each value on its own', () => {
+    const base = { time: '2026-11-03T14:00', temperature_2m: 10, relative_humidity_2m: 50, surface_pressure: 980 }
+    expect(parseForecast({ current: { ...base, wind_speed_10m: 3.1, wind_direction_10m: 180 } }, 1)).toMatchObject({ windMs10: 3.1, windFromDeg: 180 })
+    expect(parseForecast({ current: base }, 1)).toMatchObject({ tempC: 10, windMs10: null, windFromDeg: null })
+    for (const bad of [-1, 120]) {
+      expect(parseForecast({ current: { ...base, wind_speed_10m: bad, wind_direction_10m: 90 } }, 1)).toMatchObject({ tempC: 10, windMs10: null, windFromDeg: 90 })
+    }
+    for (const bad of [400, 'x']) {
+      expect(parseForecast({ current: { ...base, wind_speed_10m: 2, wind_direction_10m: bad } }, 1)).toMatchObject({ tempC: 10, windMs10: 2, windFromDeg: null })
+    }
+  })
+
+  it('a forecast with only wind is still no forecast', () => {
+    expect(parseForecast({ current: { time: '2026-11-03T14:00', wind_speed_10m: 3, wind_direction_10m: 180 } }, 0)).toBeNull()
   })
 
   it("parses the research's Prague response", () => {
@@ -138,6 +160,11 @@ describe('cache', () => {
     fetchedAt: 0,
   }
   beforeEach(() => localStorage.clear())
+
+  it('a cache without the wind keys reads with both wind values null', () => {
+    expect(readWeatherCache(cached)).toMatchObject({ windMs10: null, windFromDeg: null })
+    expect(readWeatherCache({ ...cached, windMs10: 4, windFromDeg: 270 })).toMatchObject({ windMs10: 4, windFromDeg: 270 })
+  })
 
   it('a cache from another cell or a stale one is not current', () => {
     localStorage.setItem(KEY, JSON.stringify(cached))
@@ -295,7 +322,7 @@ describe('weatherByLocation', () => {
   describe('the cache step', () => {
     const where = () => geo((ok) => ok({ coords: { latitude: 50.0851, longitude: 14.4151, accuracy: 12 } }))
     const entry = (fetchedAt: number, cell = { lat: 50.09, lon: 14.42 }) => ({
-      cell, elevationM: 208, tempC: 10, humidityPct: 76, stationPressureHPa: 1003.5, modelTime: '2026-10-31T14:05', fetchedAt,
+      cell, elevationM: 208, tempC: 10, humidityPct: 76, stationPressureHPa: 1003.5, modelTime: '2026-10-31T14:05', fetchedAt, windMs10: 3, windFromDeg: 180,
     })
     const NOW = 10_000_000
     const MINUTE = 60_000
@@ -311,6 +338,24 @@ describe('weatherByLocation', () => {
         ok: true, cached: true, cell: { lat: 50.09, lon: 14.42 }, elevationM: 208, latitudeDeg: 50.0851, accuracyM: 12,
         weather: { tempC: 10, stationPressureHPa: 1003.5, fetchedAt: NOW - 10 * MINUTE },
       })
+    })
+
+    it('a fresh cache without wind goes to the network, a fresh one with wind does not', async () => {
+      where()
+      const f = vi.fn(async (url: string) =>
+        url.includes('/elevation')
+          ? { ok: true, json: async () => ({ elevation: Array.from({ length: 100 }, () => 208) }) }
+          : { ok: true, json: async () => ({ current: { time: '2026-10-31T14:05', temperature_2m: 5, relative_humidity_2m: 50, surface_pressure: 990, wind_speed_10m: 2, wind_direction_10m: 90 } }) })
+      vi.stubGlobal('fetch', f)
+      localStorage.setItem(KEY, JSON.stringify({ ...entry(NOW - 10 * MINUTE), windMs10: null, windFromDeg: null }))
+      const r = await weatherByLocation(NOW)
+      expect(f).toHaveBeenCalled()
+      expect(r).toMatchObject({ ok: true, weather: { windMs10: 2, windFromDeg: 90 } })
+      expect((r as { cached?: boolean }).cached).toBeUndefined()
+      f.mockClear()
+      localStorage.setItem(KEY, JSON.stringify({ ...entry(NOW - 10 * MINUTE), windMs10: 4, windFromDeg: 270 }))
+      expect(await weatherByLocation(NOW)).toMatchObject({ ok: true, cached: true, weather: { windMs10: 4, windFromDeg: 270 } })
+      expect(f).not.toHaveBeenCalled()
     })
 
     it('an aging cache is not enough: the request goes out and a success is not marked cached', async () => {

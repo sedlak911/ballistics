@@ -390,11 +390,11 @@ describe('CalcSheet: says what is off', () => {
   })
 
   it('says the vertical Coriolis is off without the azimuth', () => {
-    expect(text(sheetWith({}), 'Coriolis and Eötvös')).toContain("Off: the azimuth isn't set, so the vertical part of Coriolis is left out.")
+    expect(text(sheetWith({}), 'Coriolis and Eötvös')).toContain("Off: the shooting direction isn't set, so the vertical part of Coriolis is left out.")
     cleanup()
-    expect(text(sheetWith({}, {}, { lang: 'cs' }), 'Coriolis a Eötvös')).toContain('Vypnuto: chybí azimut, svislá část Coriolise se nepočítá.')
+    expect(text(sheetWith({}, {}, { lang: 'cs' }), 'Coriolis a Eötvös')).toContain('Vypnuto: není zadaný směr střelby, svislá část Coriolise se nepočítá.')
     cleanup()
-    expect(text(sheetWith({}, {}, { azimuth: true }), 'Coriolis and Eötvös')).not.toContain('azimuth isn')
+    expect(text(sheetWith({}, {}, { azimuth: true }), 'Coriolis and Eötvös')).not.toContain("direction isn't set")
   })
 
   it("keeps the effect's switch disabled with the sentence as its description", () => {
