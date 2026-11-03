@@ -317,6 +317,25 @@ describe('By location', () => {
   })
 })
 
+describe('the automatic refresh switch', () => {
+  it('is hidden before the location note was seen, shown after, and toggling it stores the choice', () => {
+    open()
+    openSheet()
+    expect(within(sheet()).queryByRole('switch')).toBeNull()
+    cleanup()
+    localStorage.setItem('gb.real.profile', JSON.stringify({ locationNoteSeen: true }))
+    open()
+    openSheet()
+    const sw = within(sheet()).getByRole('switch', { name: 'Refresh by itself every 15 min' })
+    expect(sw).toHaveAttribute('aria-checked', 'true')
+    fireEvent.click(sw)
+    expect(sw).toHaveAttribute('aria-checked', 'false')
+    expect(JSON.parse(localStorage.getItem('gb.real.profile')!).weatherAutoRefresh).toBe(false)
+    fireEvent.click(sw)
+    expect(JSON.parse(localStorage.getItem('gb.real.profile')!).weatherAutoRefresh).toBe(true)
+  })
+})
+
 describe('the pressure kind on a model pressure', () => {
   const seed = () =>
     localStorage.setItem('gb.real.station', JSON.stringify({

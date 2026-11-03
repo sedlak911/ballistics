@@ -91,7 +91,8 @@ describe('App shell', () => {
       matches: query === PHONE, media: query, addEventListener: () => {}, removeEventListener: () => {},
     }))
     open('#/real/workbench')
-    expect(screen.getByRole('status')).toHaveTextContent('Add Ballistics to your home screen')
+    // The dock's own (empty) status region is on the page too.
+    expect(screen.getByText(/^Add Ballistics to your home screen/).closest('[role="status"]')).not.toBeNull()
   })
 
   it('opens REAL on a bare URL and GZW on its own route', () => {

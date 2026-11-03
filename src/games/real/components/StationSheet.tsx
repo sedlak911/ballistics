@@ -2,6 +2,7 @@ import { useState, type RefObject } from 'react'
 import { NumberField } from '../../../components/NumberField'
 import { Popover } from '../../../components/Popover'
 import { Segmented } from '../../../components/Segmented'
+import { Switch } from '../../../components/Switch'
 import { cToF, fToC, PRESSURE_TO_HPA } from '../../../engine/units'
 import { useSettings } from '../../../settings/SettingsContext'
 import { useRealProfile } from '../profile'
@@ -192,6 +193,12 @@ export function StationSheet({ now, open, onClose, anchorRef, pUnit, setPUnit }:
             {stage === 'locating' ? t('st.loc.locating') : stage === 'loading' ? t('st.loc.loading')
               : s.model || weatherInUse(s) ? t('st.loc.refresh') : t('st.loc.button')}
           </button>
+        )}
+        {profile.locationNoteSeen && stage !== 'note' && (
+          <div className="st-auto">
+            <span className="label">{t('st.loc.auto')}</span>
+            <Switch on={profile.weatherAutoRefresh} label={t('st.loc.auto')} onChange={(on) => setProfile({ weatherAutoRefresh: on })} />
+          </div>
         )}
         {(failure || droppedText) && stage !== 'note' && (
           <div className="st-status" role="status">

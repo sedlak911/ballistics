@@ -1,0 +1,126 @@
+/* The camera aiming view: the rear camera full screen, a crosshair, the title and ✕ on top, the reading and Use at the foot.
+   It lives in the dock (z-index 20), over the page; the ⓘ and ⚙ sheets (30 and up) still go over it. */
+.real-cam {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.real-cam-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The cross: four arms round an open centre and a dot, in the signal red so it shows on grass and sky alike. */
+.real-cam-cross {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.real-cam-cross::before,
+.real-cam-cross::after,
+.real-cam-cross i {
+  content: '';
+  position: absolute;
+  background: var(--bad);
+}
+
+/* Horizontal arms (::before) and vertical arms (::after) are each one bar with the centre cut out by the dot's gap. */
+.real-cam-cross::before {
+  left: -120px;
+  top: -1px;
+  width: 240px;
+  height: 2px;
+  mask: linear-gradient(90deg, black 0 calc(50% - 20px), transparent 0 calc(50% + 20px), black 0);
+}
+
+.real-cam-cross::after {
+  top: -120px;
+  left: -1px;
+  height: 240px;
+  width: 2px;
+  mask: linear-gradient(180deg, black 0 calc(50% - 20px), transparent 0 calc(50% + 20px), black 0);
+}
+
+.real-cam-cross i {
+  left: -3px;
+  top: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.real-cam-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(10px + var(--safe-top)) max(16px, var(--safe-right)) 10px max(16px, var(--safe-left));
+}
+
+.real-cam-top .label {
+  margin: 0;
+  color: var(--fg-strong);
+}
+
+.real-cam-top .icon-btn {
+  width: 44px;
+  height: 44px;
+  background: color-mix(in srgb, var(--bg) 50%, transparent);
+}
+
+.real-cam-foot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px max(16px, var(--safe-right)) calc(16px + var(--safe-bottom)) max(16px, var(--safe-left));
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+}
+
+.real-cam-pair {
+  display: flex;
+  gap: 12px;
+}
+
+.real-cam-pair > div {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-strong);
+}
+
+.real-cam-num {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--fg-strong);
+}
+
+.real-cam-num small {
+  margin-left: 4px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.real-cam-foot .rm-msg {
+  margin: 0;
+}
+
+.btn.real-cam-use {
+  width: 100%;
+  min-height: 52px;
+}

@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../../App'
 import type { ToastInput } from '../../../components/Toast'
+import { PHONE } from '../../../components/useMedia'
 import { translate, type TKey } from '../../../i18n'
 import type { Lang } from '../../../settings/url'
 import { PRESETS, presetsOfRifle, rifleIds } from '../data/presets'
@@ -51,6 +52,52 @@ describe('the ⚙ sheet on REAL: Wind in', () => {
     fireEvent.keyDown(document, { key: 'Escape' })
     fireEvent.click(screen.getByRole('button', { name: 'Wind speed: more' }))
     expect((screen.getByLabelText('Wind speed') as HTMLInputElement).value).toBe('2')
+  })
+})
+
+describe('the ⚙ sheet on REAL: Measuring with the phone', () => {
+  afterEach(() => vi.unstubAllGlobals())
+  const gear = () => {
+    open('#/real/workbench?p=p7&d=1000&ws=0')
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+    return screen.getByRole('dialog', { name: 'Settings' })
+  }
+
+  const phone = (wide = false) => vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: !wide && query === PHONE, media: query, addEventListener: () => {}, removeEventListener: () => {},
+  }))
+
+  it('with a compass on a phone shows both rows in one named group, and stores the choices', () => {
+    localStorage.clear()
+    vi.stubGlobal('DeviceOrientationEvent', class {})
+    phone()
+    const g = gear()
+    expect(within(g).getByText('Measuring with the phone')).toBeTruthy()
+    const group = within(g).getByRole('group', { name: 'Measuring with the phone' })
+    expect(within(group).getByRole('group', { name: 'Aiming' })).toBeTruthy()
+    expect(within(group).getByRole('group', { name: 'Forecast wind' })).toBeTruthy()
+    fireEvent.click(within(within(g).getByRole('group', { name: 'Aiming' })).getByRole('button', { name: 'Camera (trial)' }))
+    fireEvent.click(within(within(g).getByRole('group', { name: 'Forecast wind' })).getByRole('button', { name: 'Automatically' }))
+    const stored = JSON.parse(localStorage.getItem('gb.real.profile')!)
+    expect([stored.aimMode, stored.forecastWind]).toEqual(['camera', 'auto'])
+  })
+
+  it('on a desktop width, even with a compass, hides Aiming and keeps Forecast wind', () => {
+    localStorage.clear()
+    vi.stubGlobal('DeviceOrientationEvent', class {})
+    phone(true)
+    const g = gear()
+    expect(within(g).queryByRole('group', { name: 'Aiming' })).toBeNull()
+    expect(within(g).getByRole('group', { name: 'Forecast wind' })).toBeTruthy()
+  })
+
+  it('without a compass hides Aiming and keeps Forecast wind', () => {
+    localStorage.clear()
+    vi.stubGlobal('DeviceOrientationEvent', undefined)
+    phone()
+    const g = gear()
+    expect(within(g).queryByRole('group', { name: 'Aiming' })).toBeNull()
+    expect(within(g).getByRole('group', { name: 'Forecast wind' })).toBeTruthy()
   })
 })
 

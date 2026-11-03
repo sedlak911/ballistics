@@ -56,6 +56,13 @@
   justify-self: start;
 }
 
+.st-auto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .st-note,
 .st-status {
   display: grid;

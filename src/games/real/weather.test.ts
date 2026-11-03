@@ -7,6 +7,9 @@ import {
   forecastUrl,
   freshness,
   interpolateElevation,
+  lastCell,
+  weatherForCell,
+  REFRESH_MS,
   parseForecast,
   readWeatherCache,
   weatherByLocation,
@@ -432,5 +435,41 @@ describe('weatherByLocation', () => {
       localStorage.setItem(KEY, JSON.stringify(entry(NOW - 200 * MINUTE)))
       expect(await weatherByLocation(NOW)).toEqual({ ok: false, error: 'service', cached: null })
     })
+  })
+})
+
+describe('lastCell, weatherForCell and maxCacheAgeMs', () => {
+  const cache = (ageMin: number) => localStorage.setItem(KEY, JSON.stringify({
+    cell: { lat: 50.09, lon: 14.42 }, elevationM: 300, tempC: 4, humidityPct: 60, stationPressureHPa: 980,
+    windMs10: 2, windFromDeg: 90, modelTime: '2026-11-03T12:00', fetchedAt: Date.now() - ageMin * 60_000,
+  }))
+  const okFetch = () => vi.fn(async () => ({ ok: true, json: async () => ({ current: { time: '2026-11-03T12:30', temperature_2m: 9, relative_humidity_2m: 70, surface_pressure: 990 } }) }))
+  beforeEach(() => localStorage.clear())
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('lastCell is the stored cell and elevation at any age, null with no cache', () => {
+    expect(lastCell()).toBeNull()
+    cache(60 * 24)
+    expect(lastCell()).toEqual({ cell: { lat: 50.09, lon: 14.42 }, elevationM: 300 })
+  })
+
+  it('weatherForCell asks the forecast for the cell and the given elevation, without a position', async () => {
+    const f = okFetch()
+    vi.stubGlobal('fetch', f)
+    const r = await weatherForCell({ lat: 50.09, lon: 14.42 }, Date.now(), { elevationM: 300 })
+    expect(r.ok).toBe(true)
+    expect(f).toHaveBeenCalledTimes(1)
+    expect(String((f.mock.calls[0] as unknown[])[0])).toBe(forecastUrl({ lat: 50.09, lon: 14.42 }, 300))
+  })
+
+  it('maxCacheAgeMs replaces the 30 minute freshness', async () => {
+    cache(20)
+    const f = okFetch()
+    vi.stubGlobal('fetch', f)
+    const r = await weatherForCell({ lat: 50.09, lon: 14.42 }, Date.now(), { elevationM: 300, maxCacheAgeMs: 30 * 60_000 })
+    expect(r).toMatchObject({ ok: true, cached: true })
+    expect(f).not.toHaveBeenCalled()
+    await weatherForCell({ lat: 50.09, lon: 14.42 }, Date.now(), { elevationM: 300, maxCacheAgeMs: REFRESH_MS })
+    expect(f).toHaveBeenCalledTimes(1)
   })
 })

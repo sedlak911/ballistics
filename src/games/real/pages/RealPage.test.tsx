@@ -643,6 +643,15 @@ describe('RealPage: the desktop bar', () => {
     expect(within(bar()).getByLabelText('Distance')).toHaveValue('610')
   })
 
+  it('turns the clock button with a typed direction', () => {
+    seedStation(0)
+    open('#/real/workbench?p=p7&d=600&ws=4&wc=3')
+    const input = within(bar()).getByLabelText('Direction')
+    fireEvent.change(input, { target: { value: '90' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(within(bar()).getByRole('button', { name: /from 12 o’clock/ })).toBeInTheDocument()
+  })
+
   it('sends the forecast hint to the Direction field', () => {
     seedStation(null)
     open('#/real/workbench?p=p7&d=600&ws=4&wc=9')
@@ -656,5 +665,75 @@ describe('RealPage: the desktop bar', () => {
     fireEvent.click(within(bar()).getByRole('button', { name: /^Wind direction/ }))
     const letters = [...screen.getByRole('dialog').querySelectorAll('[data-cardinal]')].map((e) => e.getAttribute('data-cardinal'))
     expect(letters.sort()).toEqual(['E', 'N', 'S', 'W'])
+  })
+})
+
+describe('RealPage: Aim on a phone', () => {
+  const seed = (azimuth: number) => localStorage.setItem('gb.real.station', JSON.stringify({
+    v: 1,
+    heightAboveGroundM: { value: 1, source: 'manual' },
+    azimuthDeg: { value: azimuth, source: 'manual' },
+    model: { time: '2026-11-03T12:00', fetchedAt: Date.now(), windMs10: 3.1, windFromDeg: 180 },
+  }))
+  const aimAt = (heading: number, beta: number) => {
+    vi.stubGlobal('DeviceOrientationEvent', class extends Event {})
+    fireEvent.click(screen.getByRole('button', { name: /^Distance \d/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Aim' }))
+    for (let i = 0; i < 6; i++) {
+      const e = new Event('deviceorientation')
+      Object.assign(e, { alpha: 0, gamma: 0, absolute: false, webkitCompassHeading: heading, beta })
+      act(() => { window.dispatchEvent(e) })
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Use' }))
+  }
+
+  afterEach(() => localStorage.clear())
+
+  it('Use writes the slope and the direction together, and the wind stays unset', () => {
+    seed(180)
+    onPhone(() => {
+      open('#/real/workbench?p=p7&d=600')
+      aimAt(274, -4)
+      expect(hash()).toMatch(/sl=-4/)
+      expect(hash()).not.toMatch(/ws=/)
+      expect(JSON.parse(localStorage.getItem('gb.real.station') ?? '{}').azimuthDeg.value).toBe(274)
+    })
+  })
+
+  it('with the forecast wind on Automatic, the wind becomes the forecast at the new hour', () => {
+    seed(180)
+    profile({ forecastWind: 'auto' })
+    onPhone(() => {
+      open('#/real/workbench?p=p7&d=600')
+      const before = hash().match(/wc=(\d+)/)?.[1]
+      aimAt(274, -4)
+      const after = hash().match(/wc=(\d+)/)?.[1]
+      expect(hash()).toMatch(/sl=-4/)
+      expect(after).toBe('9')
+      expect(after).not.toBe(before)
+      expect(hash()).toMatch(/ws=/)
+    })
+  })
+})
+
+describe('RealPage: the forecast follow on a link with missing items', () => {
+  const seed = () => localStorage.setItem('gb.real.station', JSON.stringify({
+    v: 1,
+    heightAboveGroundM: { value: 1, source: 'manual' },
+    azimuthDeg: { value: 270, source: 'manual' },
+    model: { time: '2026-11-03T12:00', fetchedAt: Date.now(), windMs10: 3.1, windFromDeg: 180 },
+  }))
+  afterEach(() => localStorage.clear())
+
+  it('keeps the link-missing note and the unknown id; with no unknown id the forecast applies', () => {
+    seed()
+    profile({ forecastWind: 'auto' })
+    open('#/real/workbench?p=p7&cr=u-x&d=600')
+    expect(screen.getByText("This link uses a custom round you don't have here.")).toBeInTheDocument()
+    expect(hash()).toMatch(/cr=u-x/)
+    expect(hash()).not.toMatch(/ws=/)
+    cleanup()
+    open('#/real/workbench?p=p7&d=600')
+    expect(hash()).toMatch(/ws=/)
   })
 })

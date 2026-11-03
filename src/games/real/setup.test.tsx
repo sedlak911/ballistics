@@ -67,6 +67,14 @@ describe('custom ids in the link', () => {
     expect(writeRealSetup(DEFAULT_SETUP, DISPLAY).has('tg')).toBe(false)
   })
 
+  it('never writes where the wind blows from or its source, with a wind memory in storage', () => {
+    localStorage.setItem('gb.real.wind', JSON.stringify({ fromDeg: 180, hour: 9, speedMs: 2, source: 'forecast' }))
+    const p = writeRealSetup({ ...DEFAULT_SETUP, windSet: true, windMs: 2, windClock: 9 }, DISPLAY)
+    expect([...p.keys()].sort()).toEqual(['a', 'd', 'p', 'sl', 'u', 'wc', 'ws'])
+    expect(p.toString()).not.toMatch(/180|forecast|fromDeg|source/)
+    localStorage.clear()
+  })
+
   it('reads a malformed id as none', () => {
     expect(readRealSetup(q('cr=<b>')).roundId).toBeNull()
     expect(readRealSetup(q('cr=p7&cs=u-&cf=custom'))).toMatchObject({ roundId: null, scopeId: null, customRifleId: null })

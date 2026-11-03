@@ -62,3 +62,15 @@ describe('network', () => {
     expect(offenders).toEqual([])
   })
 })
+
+// The camera is only a viewfinder: no frame is ever captured, drawn, saved or sent.
+describe('camera', () => {
+  it('never captures a frame under games/real', () => {
+    const files = (readdirSync(SRC, { recursive: true }) as string[])
+      .map((f) => f.split('\\').join('/'))
+      .filter((f) => /^games\/real\/.*\.(ts|tsx)$/.test(f) && !/\.test\.tsx?$/.test(f))
+    expect(files.length).toBeGreaterThan(0)
+    const offenders = files.filter((f) => /\b(toDataURL|toBlob|drawImage|captureStream)\b/.test(readFileSync(join(SRC, f), 'utf8')))
+    expect(offenders).toEqual([])
+  })
+})

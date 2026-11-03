@@ -1,5 +1,6 @@
 import { useId, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
+import { Switch } from '../../../components/Switch'
 import { useModalSheet } from '../../../components/useModalSheet'
 import { angleFromRad, cToF, MASS_TO_G, PRESSURE_TO_HPA, radFromAngle, SPEED_TO_MS, toDisplay, type UnitSystem } from '../../../engine/units'
 import { fmtDistance } from '../../../format'
@@ -62,16 +63,6 @@ function Line({ children }: { children: ReactNode[] }) {
         </span>
       ))}
     </p>
-  )
-}
-
-/** An effect's switch; disabled when the effect lacks an input, with the reason (`describedBy`) as its description. */
-function Switch({ on, label, onChange, describedBy }: { on: boolean; label: string; onChange: (on: boolean) => void; describedBy?: string }) {
-  return (
-    <button type="button" role="switch" aria-checked={on} aria-label={label} className="calc-sw" disabled={describedBy !== undefined}
-      aria-describedby={describedBy} onClick={() => onChange(!on)}>
-      <span aria-hidden="true" />
-    </button>
   )
 }
 

@@ -1,13 +1,20 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { WindClock } from '../../../components/WindClock'
 import { SPEED_TO_MS, type UnitSystem } from '../../../engine/units'
 import { useSettings } from '../../../settings/SettingsContext'
-import type { WindUnit } from '../profile'
-import type { RealSetup } from '../setup'
+import { useRealProfile, type WindUnit } from '../profile'
+import { BOUNDS, type RealSetup } from '../setup'
 import { useStation } from '../station'
+import { useSetDirection } from '../useSetDirection'
+import { useWindFlash } from '../windFlash'
+import { AimBar } from './AimBar'
+import { CameraAim } from './CameraAim'
+import { hasCompass } from './compass'
 import { DirectionField, DistanceTool, ForecastLine, ReadingHint, SlopeTool, WindSigmaTool, WindSpeedTool } from './controls'
 import { CloseIcon } from './icons'
+import { useAiming } from './useAiming'
+import { WindTurnedStatus } from './WindTurnedStatus'
 import { NBSP, clockCardinals, rounded, windText } from './realText'
 
 type PanelName = 'shot' | 'wind'
@@ -35,6 +42,75 @@ export function Dock({ setup, update, system, windUnit, now }: {
   const buttons = { shot: useRef<HTMLButtonElement>(null), wind: useRef<HTMLButtonElement>(null) }
   const directionRef = useRef<HTMLInputElement>(null)
   const wantDirection = useRef(false)
+  const cancelAimRef = useRef(() => {})
+  const [profile] = useRealProfile()
+  // The camera is a trial: its stream shows while aiming; when it can't start, that measurement reads the top edge instead
+  // (the setting stays `camera`).
+  const [stream, setStream] = useState<MediaStream | null>(null)
+  const [noCamera, setNoCamera] = useState(false)
+  const camToken = useRef(0)
+  const aiming = useAiming(profile.aimMode === 'camera' && !noCamera ? 'camera' : 'simple')
+  const aimStop = aiming.stop
+  // Ends the aiming and the camera, and drops a stream that is still being asked for.
+  const stopAiming = useCallback(() => {
+    camToken.current++
+    setStream(null)
+    aimStop()
+  }, [aimStop])
+  const setDirection = useSetDirection(setup, update)
+  const [moving, setMoving] = useState(false)
+  const aimingNow = useRef(false)
+  aimingNow.current = aiming.state.status === 'asking' || aiming.state.status === 'live'
+
+  // Aiming belongs to the shot panel: whatever takes the panel away (close, ✕, a press outside, the Wind panel) ends it.
+  useEffect(() => {
+    if (open !== 'shot') stopAiming()
+  }, [open, stopAiming])
+  // A failed measurement (the sensors gave nothing, or the permission was refused) ends the camera too: the panel shows why.
+  const failed = aiming.state.status === 'failed'
+  useEffect(() => {
+    if (failed) { camToken.current++; setStream(null) }
+  }, [failed])
+  // A stream still being asked for when the dock goes is dropped when it comes.
+  useEffect(() => () => { camToken.current++ }, [])
+  // A phone put down, or another app in front, stops it: the sensors aren't kept running unseen.
+  useEffect(() => {
+    if (open !== 'shot') return
+    const onHide = () => { if (document.visibilityState === 'hidden') stopAiming() }
+    document.addEventListener('visibilitychange', onHide)
+    return () => document.removeEventListener('visibilitychange', onHide)
+  }, [open, stopAiming])
+
+  const liveReading = aiming.state.status === 'live' ? aiming.state.reading : null
+  const slopeLive = liveReading ? Math.max(BOUNDS.slopeDeg.min, Math.min(BOUNDS.slopeDeg.max, Math.round(liveReading.pitchDeg))) + 0 : undefined
+  const headingLive = liveReading ? Math.round(liveReading.headingDeg) % 360 : undefined
+  const aim = () => {
+    setMoving(false)
+    setNoCamera(false)
+    aiming.start()
+    if (profile.aimMode !== 'camera') return
+    const token = ++camToken.current
+    const devices = typeof navigator === 'undefined' ? undefined : navigator.mediaDevices
+    if (!devices || typeof devices.getUserMedia !== 'function') { setNoCamera(true); return }
+    // Both calls run in the tap itself: iOS asks for each permission only inside a gesture.
+    devices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }).then(
+      (s) => {
+        if (camToken.current === token) setStream(s)
+        else for (const track of s.getTracks()) track.stop()
+      },
+      () => { if (camToken.current === token) setNoCamera(true) },
+    )
+  }
+  const useAim = () => {
+    const r = aiming.take()
+    if (r === null) return
+    if (r === 'moving') { setMoving(true); return }
+    setMoving(false)
+    setDirection(r.headingDeg, { slopeDeg: r.slopeDeg })
+    stopAiming()
+  }
+  const cancelAim = () => { setMoving(false); stopAiming() }
+  cancelAimRef.current = cancelAim
 
   // The panel takes the focus when it opens or when the other one replaces it; asking for the direction goes on to its field.
   useEffect(() => {
@@ -88,6 +164,8 @@ export function Dock({ setup, update, system, windUnit, now }: {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
+      // The first Escape ends the aiming and keeps the panel; the next one closes it.
+      if (aimingNow.current) { cancelAimRef.current(); return }
       buttons[open].current?.focus()
       setOpen(null)
     }
@@ -113,7 +191,8 @@ export function Dock({ setup, update, system, windUnit, now }: {
   const unit = (u: string) => <>{NBSP}<small>{u}</small></>
   const distance = <>{yards ? Math.round(setup.distanceM / M_PER_YD) : rounded(setup.distanceM, 1)}{unit(yards ? 'yd' : 'm')}</>
   const speed = windText(setup.windMs, windUnit)
-  const wind = <>{rounded(setup.windMs / SPEED_TO_MS[windUnit], 1)}{unit(windUnit)}{setup.windSet && <em>{t('dock.windValue', { s: '', h: setup.windClock })}</em>}</>
+  const flash = useWindFlash()
+  const wind = <>{rounded(setup.windMs / SPEED_TO_MS[windUnit], 1)}{unit(windUnit)}{setup.windSet && <em key={flash?.key} className={flash?.hour === setup.windClock ? 'real-hour-flash' : undefined}>{t('dock.windValue', { s: '', h: setup.windClock })}</em>}</>
   const titles: Record<PanelName, string> = { shot: t('dock.shot'), wind: t('real.wind') }
   const words: Record<PanelName, string> = { shot: t('real.distance'), wind: t('real.wind') }
   const values: Record<PanelName, ReactNode> = { shot: distance, wind }
@@ -136,8 +215,12 @@ export function Dock({ setup, update, system, windUnit, now }: {
           {open === 'shot' ? (
             <div className="real-panel-body">
               <DistanceTool setup={setup} update={update} system={system} />
-              <SlopeTool setup={setup} update={update} hint="line" />
-              <DirectionField compass inputRef={directionRef} />
+              <SlopeTool setup={setup} update={update} hint="line" live={slopeLive} />
+              <div className={aiming.state.status === 'live' ? 'real-dir-aim is-live' : 'real-dir-aim'}>
+                <DirectionField setup={setup} update={update} inputRef={directionRef} live={headingLive} />
+                {hasCompass() && !stream && <AimBar state={aiming.state} message={moving ? 'moving' : null} notice={noCamera && aiming.state.status === 'live' ? t('aim.noCamera') : undefined}
+                  onAim={aim} onUse={useAim} onCancel={cancelAim} />}
+              </div>
             </div>
           ) : (
             <div className="real-panel-body">
@@ -150,12 +233,14 @@ export function Dock({ setup, update, system, windUnit, now }: {
                   <div className="real-tool"><WindSigmaTool /></div>
                 </div>
               </div>
-              <ForecastLine update={update} now={now} onNeedDirection={() => { wantDirection.current = true; setOpen('shot') }} />
+              <ForecastLine setup={setup} update={update} now={now} onNeedDirection={() => { wantDirection.current = true; setOpen('shot') }} />
               <ReadingHint />
             </div>
           )}
         </div>
       )}
+      {stream && <CameraAim aiming={aiming} stream={stream} message={moving ? 'moving' : null} onUse={useAim} onClose={cancelAim} />}
+      <WindTurnedStatus />
       <div className="real-dock-row">
         {(['shot', 'wind'] as const).map((name) => (
           <button key={name} ref={buttons[name]} type="button" className="real-dock-btn" aria-expanded={open === name}

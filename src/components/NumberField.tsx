@@ -39,6 +39,8 @@ export interface NumberFieldProps {
   outOfRange?: boolean
   /** The text box, for a caller that moves focus to it. */
   inputRef?: Ref<HTMLInputElement>
+  /** The box shows the value but can't be edited (the caller says why, e.g. a live reading). */
+  disabled?: boolean
 }
 
 const show = (v: number | null) => (v === null ? '' : String(+v.toPrecision(10)))
@@ -58,7 +60,7 @@ function parse(text: string, min: number, max: number): number | null {
  * aria-describedby) until the user corrects it. A new `value` or `unit` from outside replaces the text. A value
  * `outOfRange` is shown as it is and flagged at once.
  */
-export function NumberField({ label, value, unit, units, onUnit, min, max, step = 1, onChange, invalidText, placeholder, onClear, needed = false, onDraft, commitSame = false, snap = false, aside, mark, outOfRange = false, inputRef }: NumberFieldProps) {
+export function NumberField({ label, value, unit, units, onUnit, min, max, step = 1, onChange, invalidText, placeholder, onClear, needed = false, onDraft, commitSame = false, snap = false, aside, mark, outOfRange = false, inputRef, disabled = false }: NumberFieldProps) {
   const uid = useId()
   const inputId = `nf-${uid}`
   const errorId = `nf-err-${uid}`
@@ -120,6 +122,7 @@ export function NumberField({ label, value, unit, units, onUnit, min, max, step 
           inputMode="decimal"
           autoComplete="off"
           value={text}
+          disabled={disabled}
           placeholder={placeholder}
           aria-invalid={invalid}
           aria-describedby={invalid ? errorId : undefined}

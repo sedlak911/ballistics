@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type RefObject } from 'react'
+import { useId, useRef, type RefObject } from 'react'
 import { NumberField } from '../../../components/NumberField'
 import { Stepper } from '../../../components/Stepper'
 import { useWheelSteps } from '../../../components/useWheelSteps'
@@ -8,7 +8,9 @@ import { cardinalIndex, forecastOffer } from '../forecastWind'
 import { WIND_SIGMA_MS, WIND_STEP, useRealProfile, type WindUnit } from '../profile'
 import { BOUNDS, type RealSetup } from '../setup'
 import { useStation } from '../station'
-import { COMPASS_TIMEOUT_MS, hasCompass, readHeading } from './compass'
+import { useSetDirection } from '../useSetDirection'
+import { offerWind, windSource } from '../windFollow'
+import { saveWindMemory, useWindMemory, windMemoryNow } from '../windMemory'
 import { NBSP, dec, rounded, windText } from './realText'
 import { FT_M } from './stationText'
 
@@ -62,24 +64,26 @@ export function DistanceTool({ setup, update, system, wheel = false }: { setup: 
 
 /**
  * The slope, typed or − and + by a degree. Its hint (which way is plus) is a line under the segment, or with `title` only
- * the segment's tooltip and description, where there is no room for a line.
+ * the segment's tooltip and description, where there is no room for a line. With `live`, the field shows that reading in the
+ * accent and can't be changed until the aiming ends.
  */
-export function SlopeTool({ setup, update, hint }: { setup: RealSetup; update: Update; hint: 'line' | 'title' }) {
+export function SlopeTool({ setup, update, hint, live }: { setup: RealSetup; update: Update; hint: 'line' | 'title'; live?: number }) {
   const { t } = useSettings()
   const hintId = `real-slope-hint-${useId()}`
   const word = t('real.slope')
   const hintText = t('real.slopeHint')
   const { min, max } = BOUNDS.slopeDeg
+  const shown = live ?? setup.slopeDeg
   const go = (dir: 1 | -1) => update({ slopeDeg: Math.min(max, Math.max(min, setup.slopeDeg + dir * SLOPE_STEP)) })
   return (
     <>
-      <div className="real-tool real-slope" title={hint === 'title' ? hintText : undefined} aria-describedby={hint === 'title' ? hintId : undefined}
+      <div className={live === undefined ? 'real-tool real-slope' : 'real-tool real-slope real-live'} title={hint === 'title' ? hintText : undefined} aria-describedby={hint === 'title' ? hintId : undefined}
         role={hint === 'title' ? 'group' : undefined} aria-label={hint === 'title' ? word : undefined}>
-        <button type="button" className="real-step" aria-label={t('step.dec', { what: word })} disabled={setup.slopeDeg <= min}
+        <button type="button" className="real-step" aria-label={t('step.dec', { what: word })} disabled={live !== undefined || shown <= min}
           onClick={() => go(-1)}>−</button>
-        <NumberField label={word} value={setup.slopeDeg} unit="°" min={min} max={max} step={SLOPE_STEP}
+        <NumberField label={word} value={shown} unit="°" min={min} max={max} step={SLOPE_STEP} disabled={live !== undefined}
           onChange={(v) => update({ slopeDeg: v })} invalidText={t('real.slopeInvalid')} />
-        <button type="button" className="real-step" aria-label={t('step.inc', { what: word })} disabled={setup.slopeDeg >= max}
+        <button type="button" className="real-step" aria-label={t('step.inc', { what: word })} disabled={live !== undefined || shown >= max}
           onClick={() => go(1)}>+</button>
         {hint === 'title' && <span id={hintId} className="real-hint-vh">{hintText}</span>}
       </div>
@@ -131,57 +135,44 @@ export function WindSigmaTool() {
 }
 
 /**
- * The bearing to the target, typed or from the phone's compass (on a phone only). Empty is unknown. The nearest compass
- * point shows beside the unit. A reading in progress is dropped when the field goes.
+ * The bearing to the target, typed (the phone's Aim fills it from the dock's shot panel). Empty is unknown. The nearest
+ * compass point shows beside the unit. With `live`, the field shows that heading in the accent and can't be changed until
+ * the aiming ends.
  */
-export function DirectionField({ compass, inputRef }: { compass: boolean; inputRef?: RefObject<HTMLInputElement | null> }) {
+export function DirectionField({ setup, update, inputRef, live }: {
+  setup: RealSetup
+  update: Update
+  inputRef?: RefObject<HTMLInputElement | null>
+  live?: number
+}) {
   const { t } = useSettings()
-  const [station, set] = useStation()
-  const [reading, setReading] = useState<'idle' | 'busy' | 'failed'>('idle')
-  const abort = useRef<AbortController | null>(null)
-  useEffect(() => () => abort.current?.abort(), [])
+  const [station] = useStation()
+  const setDirection = useSetDirection(setup, update)
 
-  const takeReading = async () => {
-    abort.current?.abort()
-    const ctl = new AbortController()
-    abort.current = ctl
-    setReading('busy')
-    const deg = await readHeading(ctl.signal)
-    if (ctl.signal.aborted) return
-    if (deg === null) setReading('failed')
-    else {
-      set({ azimuthDeg: { value: deg, source: 'manual' } })
-      setReading('idle')
-    }
-  }
-
-  const value = station.azimuthDeg?.value ?? null
+  const value = live ?? station.azimuthDeg?.value ?? null
   const point = value === null ? '' : `${NBSP}·${NBSP}${t('real.cardinals').split(' ')[cardinalIndex(value)]}`
   return (
     <div className="real-direction">
-      <div className="real-direction-row">
+      <div className={live === undefined ? 'real-direction-row' : 'real-direction-row real-live'}>
         <NumberField commitSame label={t('real.direction')} value={value} unit={`°${point}`} min={AZIMUTH.min} max={AZIMUTH.max} step={5}
           placeholder={t('st.unknown')} inputRef={inputRef} invalidText={t('rm.range', { min: AZIMUTH.min, max: AZIMUTH.max })}
-          onChange={(v) => set({ azimuthDeg: { value: v, source: 'manual' } })} onClear={() => set({ azimuthDeg: null })} />
-        {compass && hasCompass() && (
-          <button type="button" className="btn ghost" disabled={reading === 'busy'} onClick={takeReading}>{t('st.compass')}</button>
-        )}
+          disabled={live !== undefined} onChange={(v) => setDirection(v)} onClear={() => setDirection(null)} />
       </div>
       <span className="rm-note">{t('real.directionNote')}</span>
-      {reading === 'busy' && <span className="rm-note" role="status">{t('st.compassBusy', { s: COMPASS_TIMEOUT_MS / 1000 })}</span>}
-      {reading === 'failed' && <span className="rm-msg bad" role="alert">{t('st.compassFail')}</span>}
     </div>
   )
 }
 
 /**
- * The forecast wind as an offer, never applied by itself: Use is the only way it reaches the wind. A calm offers Use
- * without a direction; otherwise, with no direction there is no hour to set, and a hint asks for the direction instead.
+ * The forecast wind line: an offer by default, where Use is the way it reaches the wind. In Automaticky (useForecastFollow)
+ * it applies by itself, and the line then says the wind is from the forecast, until a hand wind takes over. A calm offers
+ * Use without a direction; otherwise, with no direction there is no hour to set, and a hint asks for the direction instead.
  */
-export function ForecastLine({ update, now, onNeedDirection }: { update: Update; now: number; onNeedDirection: () => void }) {
+export function ForecastLine({ setup, update, now, onNeedDirection }: { setup: RealSetup; update: Update; now: number; onNeedDirection: () => void }) {
   const { t, display } = useSettings()
   const [profile] = useRealProfile()
   const [station] = useStation()
+  const mem = useWindMemory()
   const offer = forecastOffer(station, now, profile.windUnit)
   if (!offer) return null
 
@@ -190,15 +181,23 @@ export function ForecastLine({ update, now, onNeedDirection }: { update: Update;
   const where = offer.heightM <= GROUND_M ? t('fc.ground') : t('fc.at', { h: height })
   const speed = `${dec(offer.shown, 1, display.lang).replace(/[.,]0$/, '')}${NBSP}${profile.windUnit}`
   const from = t('real.cardinals').split(' ')[offer.cardinal]
-  const text = offer.calm ? t('fc.calm', { where })
+  const following = profile.forecastWind === 'auto' && windSource(setup, mem) === 'forecast' && (offer.calm || offer.hour !== null)
+  const text = following ? (offer.calm ? t('fc.followingCalm', { where }) : t('fc.following', { where, speed, from, h: offer.hour ?? 0 }))
+    : offer.calm ? t('fc.calm', { where })
     : offer.hour === null ? t('fc.line', { where, speed, from })
     : t('fc.lineHour', { where, speed, from, h: offer.hour })
-  const use = () => update({ windMs: offer.speedMs, ...(!offer.calm && offer.hour !== null && { windClock: offer.hour }), windSet: true })
+  const use = () => {
+    const model = station.model
+    if (!model || model.windFromDeg == null) return
+    const { patch, memory } = offerWind(offer, model.windFromDeg, setup, windMemoryNow(), station.azimuthDeg?.value ?? null)
+    saveWindMemory(memory)
+    update(patch)
+  }
   return (
     <div className="est real-forecast">
       <span>{text}</span>
-      {(offer.calm || offer.hour !== null) && <button type="button" className="btn ghost real-forecast-use" onClick={use}>{t('fc.use')}</button>}
-      {!offer.calm && offer.hour === null && (
+      {!following && (offer.calm || offer.hour !== null) && <button type="button" className="btn ghost real-forecast-use" onClick={use}>{t('fc.use')}</button>}
+      {!following && !offer.calm && offer.hour === null && (
         <button type="button" className="real-forecast-ask" onClick={onNeedDirection}>{t('fc.needDirection')}</button>
       )}
     </div>

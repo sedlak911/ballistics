@@ -1,7 +1,6 @@
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../../App'
-import { readHeading } from './compass'
 
 function open(hash = '#/real/workbench?p=p7&d=1000&ws=0') {
   window.location.hash = hash
@@ -241,30 +240,5 @@ describe('the station line', () => {
     type(h, '30')
     expect(stored().heightAboveGroundM.value).toBeCloseTo(9.144, 2)
     expect(h).toHaveValue('30')
-  })
-})
-
-describe('readHeading', () => {
-  it('iOS: asks permission then reads webkitCompassHeading', async () => {
-    const ask = vi.fn().mockResolvedValue('granted')
-    vi.stubGlobal('DeviceOrientationEvent', Object.assign(class extends Event {}, { requestPermission: ask }))
-    const p = readHeading()
-    await act(async () => { await Promise.resolve() })
-    const e = new Event('deviceorientation') as Event & { webkitCompassHeading: number }
-    e.webkitCompassHeading = 359.6
-    window.dispatchEvent(e)
-    expect(await p).toBe(0)
-    expect(ask).toHaveBeenCalled()
-  })
-
-  it('a refused permission, or no event in 5 s, gives null', async () => {
-    vi.stubGlobal('DeviceOrientationEvent', Object.assign(class extends Event {}, { requestPermission: () => Promise.resolve('denied') }))
-    expect(await readHeading()).toBeNull()
-    vi.useFakeTimers()
-    vi.stubGlobal('DeviceOrientationEvent', class extends Event {})
-    const p = readHeading()
-    vi.advanceTimersByTime(5001)
-    expect(await p).toBeNull()
-    vi.useRealTimers()
   })
 })

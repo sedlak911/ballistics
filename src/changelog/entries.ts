@@ -15,6 +15,25 @@ export interface Entry {
 /** Newest first. */
 export const ENTRIES: Entry[] = [
   {
+    version: '0.1.7',
+    date: '2026-11-04',
+    title: { cs: 'Telefon změří, vítr se otočí', en: 'The phone measures, the wind turns' },
+    items: {
+      cs: [
+        'Zaměřit v panelu Střelba změří telefonem směr i sklon najednou: míříš horní hranou telefonu na terč. V nastavení si můžeš vyzkoušet míření kamerou.',
+        'Když změníš směr, vítr se otočí s tebou: fouká dál od stejné světové strany a jeho hodina se přepočítá sama.',
+        'V nastavení si můžeš zapnout vítr z předpovědi automaticky. Dokud vítr nezadáš sám, drží se předpovědi.',
+        'Počasí podle polohy se obnovuje samo každých 15 minut, dokud je stránka otevřená. Vypneš to v Atmosféře.',
+      ],
+      en: [
+        "Aim in the shot panel measures the direction and the slope at once: point the phone's top edge at the target. In the settings you can try aiming with the camera.",
+        'When you change the direction, the wind turns with you: it keeps blowing from the same compass point and its hour is recomputed.',
+        'In the settings you can have the forecast wind applied automatically. Until you set the wind yourself, it follows the forecast.',
+        'The weather by location refreshes by itself every 15 minutes while the page is open. You can turn it off in Atmosphere.',
+      ],
+    },
+  },
+  {
     version: '0.1.6',
     date: '2026-11-03',
     title: { cs: 'Vzdálenost a vítr dole', en: 'Distance and wind at the bottom' },

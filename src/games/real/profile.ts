@@ -23,6 +23,12 @@ export interface RealProfile {
   locationNoteSeen: boolean
   /** The iPhone's note before the first own item (home-screen storage is apart from Safari's) has been answered. */
   addNoteSeen: boolean
+  /** How the phone helps to aim: the plain compass sheet, or the trial with the camera. */
+  aimMode: 'simple' | 'camera'
+  /** Where the forecast wind comes from: only when asked (Use), or followed at every weather refresh. */
+  forecastWind: 'tap' | 'auto'
+  /** The weather refreshes by itself (the switch lives in the station sheet). */
+  weatherAutoRefresh: boolean
 }
 
 export const DEFAULT_REAL_PROFILE: RealProfile = {
@@ -35,6 +41,9 @@ export const DEFAULT_REAL_PROFILE: RealProfile = {
   windUnit: 'm/s',
   locationNoteSeen: false,
   addNoteSeen: false,
+  aimMode: 'simple',
+  forecastWind: 'tap',
+  weatherAutoRefresh: true,
 }
 
 /** The wind uncertainty the stepper offers; storage accepts the same. */
@@ -62,6 +71,9 @@ export function readRealProfile(raw: unknown): RealProfile {
     windUnit: WIND_UNITS.includes(raw.windUnit as WindUnit) ? (raw.windUnit as WindUnit) : d.windUnit,
     locationNoteSeen: raw.locationNoteSeen === true,
     addNoteSeen: raw.addNoteSeen === true,
+    aimMode: raw.aimMode === 'camera' ? 'camera' : 'simple',
+    forecastWind: raw.forecastWind === 'auto' ? 'auto' : 'tap',
+    weatherAutoRefresh: typeof raw.weatherAutoRefresh === 'boolean' ? raw.weatherAutoRefresh : d.weatherAutoRefresh,
   }
 }
 

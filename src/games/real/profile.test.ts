@@ -37,6 +37,23 @@ describe('readRealProfile', () => {
   })
 })
 
+describe('readRealProfile: measuring with the phone', () => {
+  it('defaults the three new fields', () => {
+    const p = readRealProfile({})
+    expect([p.aimMode, p.forecastWind, p.weatherAutoRefresh]).toEqual(['simple', 'tap', true])
+  })
+  it('falls back to the defaults on values it could not have written', () => {
+    const p = readRealProfile({ aimMode: 'x', forecastWind: 1, weatherAutoRefresh: 'no' })
+    expect([p.aimMode, p.forecastWind, p.weatherAutoRefresh]).toEqual(['simple', 'tap', true])
+  })
+  it('reads the stored values, and a 0.1.6 profile keeps its fields and gains the defaults', () => {
+    const p = readRealProfile({ aimMode: 'camera', forecastWind: 'auto', weatherAutoRefresh: false })
+    expect([p.aimMode, p.forecastWind, p.weatherAutoRefresh]).toEqual(['camera', 'auto', false])
+    const old = readRealProfile({ v: 1, mode: 'hold', primary: 'clicks', windUnit: 'kn', windSigmaMs: 2, locationNoteSeen: true })
+    expect(old).toMatchObject({ mode: 'hold', primary: 'clicks', windUnit: 'kn', windSigmaMs: 2, locationNoteSeen: true, aimMode: 'simple', forecastWind: 'tap', weatherAutoRefresh: true })
+  })
+})
+
 describe('readRealProfile: the big figure', () => {
   it('takes clicks only for exactly clicks', () => {
     expect(DEFAULT_REAL_PROFILE.primary).toBe('value')

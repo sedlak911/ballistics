@@ -6,8 +6,10 @@ import { useSettings } from '../../../settings/SettingsContext'
 import type { WindUnit } from '../profile'
 import type { RealSetup } from '../setup'
 import { useStation } from '../station'
+import { useWindFlash } from '../windFlash'
 import { DirectionField, DistanceTool, ForecastLine, ReadingHint, SlopeTool, WindSigmaTool, WindSpeedTool } from './controls'
 import { Dock } from './Dock'
+import { WindTurnedStatus } from './WindTurnedStatus'
 import { clockCardinals, rounded, windText } from './realText'
 
 /** The clock face in small: where the wind blows from, an accent line toward the centre. */
@@ -43,6 +45,7 @@ export function BottomBar({ setup, update, system, windUnit, phone, now }: {
   const [clockOpen, setClockOpen] = useState(false)
   const clockRef = useRef<HTMLButtonElement>(null)
 
+  const flash = useWindFlash()
   const from = t('real.windFrom', { h: setup.windClock })
   const shotId = `${useId()}-shot`
   const windId = `${useId()}-wind`
@@ -51,12 +54,13 @@ export function BottomBar({ setup, update, system, windUnit, phone, now }: {
   if (phone) return <Dock setup={setup} update={update} system={system} windUnit={windUnit} now={now} />
   return (
     <div className="real-bar" data-testid="real-bar">
+      <WindTurnedStatus />
       <div role="group" aria-labelledby={shotId} className="real-group">
         <div className="real-group-head"><span id={shotId} className="label">{t('dock.shot')}</span></div>
         <div className="real-group-items">
           <DistanceTool setup={setup} update={update} system={system} wheel />
           <SlopeTool setup={setup} update={update} hint="title" />
-          <div className="real-tool real-dir"><DirectionField compass={false} inputRef={directionRef} /></div>
+          <div className="real-tool real-dir"><DirectionField setup={setup} update={update} inputRef={directionRef} /></div>
         </div>
       </div>
       <div className="real-bar-rule" aria-hidden="true" />
@@ -64,7 +68,7 @@ export function BottomBar({ setup, update, system, windUnit, phone, now }: {
         <div className="real-group-head">
           <span id={windId} className="label">{t('real.wind')}</span>
           <ReadingHint />
-          <ForecastLine update={update} now={now} onNeedDirection={needDirection} />
+          <ForecastLine setup={setup} update={update} now={now} onNeedDirection={needDirection} />
         </div>
         <div className="real-group-items">
           <div className="real-tool real-wind">
@@ -72,7 +76,7 @@ export function BottomBar({ setup, update, system, windUnit, phone, now }: {
             <button ref={clockRef} type="button" className="real-clock-btn" aria-haspopup="dialog" aria-expanded={clockOpen}
               aria-label={`${t('real.windDir')}: ${from}`} onClick={() => setClockOpen((o) => !o)}>
               <MiniClock hour={setup.windClock} />
-              <span className="num">{from}</span>
+              <span key={flash?.key} className={flash?.hour === setup.windClock ? 'num real-hour-flash' : 'num'}>{from}</span>
             </button>
             <Popover open={clockOpen} onClose={() => setClockOpen(false)} anchorRef={clockRef} label={t('real.windDir')} placement="above" className="real-clock-menu">
               <WindClock label={t('real.windBlows')} value={setup.windClock} onChange={(h) => update({ windClock: h })}

@@ -192,6 +192,17 @@
   margin-top: 0;
 }
 
+/* The ⚙ group heading of the phone's measuring rows: the accent, like .real-group-head, so it doesn't read as a row label. */
+.rs-measure {
+  display: contents;
+}
+
+.rs-group {
+  display: block;
+  margin-top: 8px;
+  color: var(--accent);
+}
+
 /* The clicks hero's word. */
 .real-hero.by-clicks .unit {
   font-size: 18px;
@@ -644,6 +655,22 @@
   color: var(--muted);
 }
 
+/* The wind hour that just turned with the direction: the accent, fading back over FLASH_MS (windFlash.ts). */
+.real-hour-flash.real-hour-flash {
+  animation: real-hour-flash 1200ms ease-out;
+}
+
+@keyframes real-hour-flash {
+  from, 50% { color: var(--accent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .real-hour-flash.real-hour-flash {
+    animation: none;
+    color: var(--accent);
+  }
+}
+
 .real-dock-chevron {
   flex: none;
   color: var(--faint);
@@ -866,7 +893,7 @@ body:has(> .real-dock) .app {
   clip-path: inset(50%);
 }
 
-/* The direction field: the figure and its Compass button side by side, the notes under. */
+/* The direction field: the figure, the notes under. */
 .real-direction {
   display: grid;
   gap: 8px;
@@ -877,6 +904,117 @@ body:has(> .real-dock) .app {
   display: flex;
   align-items: flex-end;
   gap: 8px;
+}
+
+/*
+ * Aim sits where the Compass button was: beside the direction figure, its note under the direction's own.
+ * A full-width row would push the panel up over the large figures on a 375×553 screen.
+ * The direction and the Aim bar are laid out as one grid: the figure and the button on the first row, the notes under.
+ */
+.real-dir-aim {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 8px;
+  row-gap: 3px;
+  align-items: end;
+}
+
+.real-dir-aim > .real-direction,
+.real-dir-aim > .real-aimbar {
+  display: contents;
+}
+
+.real-dir-aim .real-direction-row {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+.real-dir-aim .real-direction > .rm-note {
+  grid-row: 2;
+  grid-column: 1 / -1;
+}
+
+/* While the phone reads, the direction's own note gives way to the hold bar and Use, Cancel. */
+.real-dir-aim.is-live .real-direction > .rm-note {
+  display: none;
+}
+
+.real-dir-aim .real-aim {
+  grid-row: 1;
+  grid-column: 2;
+}
+
+.real-aimbar > :not(.real-aim) {
+  grid-column: 1 / -1;
+}
+
+.btn.real-aim {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn.real-aim:disabled {
+  border-color: var(--border-strong);
+  color: var(--muted);
+}
+
+.real-aim-hold {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.real-aim-track {
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+}
+
+.real-aim-track i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.1s linear;
+}
+
+.real-aim-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.real-aim-actions .btn {
+  flex: 1;
+}
+
+.real-aim-actions .btn.primary {
+  flex: 2;
+}
+
+.real-aimbar .rm-note,
+.real-aimbar .rm-msg {
+  margin: 0;
+}
+
+/* A touch smaller, so even the English note takes no more than two lines and both large figures clear the panel at 375×553. */
+.real-aimbar .rm-note {
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+
+/* A live reading: the segment (the slope's) or the box (the direction's) and its figure in the accent, until Use or Cancel. */
+.real-live,
+.real-live input[type='text'] {
+  border-color: var(--accent);
+}
+
+.real-live input[type='text']:disabled {
+  color: var(--accent);
+  -webkit-text-fill-color: var(--accent);
+  opacity: 1;
 }
 
 /* The forecast offer: an estimate box with the line, then Use (small, accent border) or, without a direction, the ask. */

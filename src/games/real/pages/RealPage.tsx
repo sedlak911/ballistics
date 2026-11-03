@@ -16,6 +16,8 @@ import { deleteFallback, useSelection, type FieldRef } from '../selection'
 import { useRealSetup, type RealSetup } from '../setup'
 import { solveReal } from '../solve'
 import { useStation } from '../station'
+import { useForecastFollow } from '../useForecastFollow'
+import { useWeatherRefresh } from '../useWeatherRefresh'
 import { modelFreshness } from '../components/stationText'
 import { useNow } from '../components/useNow'
 
@@ -41,6 +43,8 @@ export function RealPage() {
   const [profile] = useRealProfile()
   const [station] = useStation()
   const now = useNow(station.model?.fetchedAt)
+  useForecastFollow(setup, update, now, { paused: sel.linkMissing !== null })
+  useWeatherRefresh()
   const staleWeather = modelFreshness(station, now) === 'stale'
   const phone = useMedia(PHONE)
   const unit = display.angle

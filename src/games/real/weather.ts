@@ -1,5 +1,5 @@
 // Weather by location from Open-Meteo. The only network code in the app: the two requests below, and only when
-// weatherByLocation() runs. Coordinates leave the phone rounded to 0.01 degrees; the exact position stays in memory.
+// weatherByLocation() or weatherForCell() runs (the button, or the automatic refresh of useWeatherRefresh). Coordinates leave the phone rounded to 0.01 degrees; the exact position stays in memory.
 
 export interface Cell {
   lat: number
@@ -225,25 +225,48 @@ async function getJson(url: string): Promise<{ json: unknown } | WeatherError> {
   }
 }
 
+/** How often the page asks again by itself (useWeatherRefresh), and how old a cache may be to answer such an ask. */
+export const REFRESH_MS = 15 * MIN
+const FRESH_MS = 30 * MIN
+
+/** The last cell and elevation the app asked for, from the stored cache at any age; null with none. */
+export function lastCell(): { cell: Cell; elevationM: number } | null {
+  const v = loadCache()
+  return v && { cell: v.cell, elevationM: v.elevationM }
+}
+
 /**
- * Position -> (fresh cache) -> grid -> elevation -> forecast -> cache. The only fetch in src/. A cache for the same cell
- * (and altitude) under 30 minutes old, with its wind, answers without a request; offline and service failures hand back the cache under
- * 3 h. A typed altitude (`elevationM`) is the forecast's elevation: the grid request is skipped, so less leaves the
- * phone, and the forecast is for that height.
+ * Position -> cell -> (fresh cache) -> grid -> elevation -> forecast -> cache. The only fetch in src/. A position-based
+ * lookup (the button) asks for the position, then runs weatherForCell. See there for the cache and the elevation.
  */
 export async function weatherByLocation(
   now: number = Date.now(),
-  opts: { elevationM?: number; onStage?: (stage: 'loading') => void } = {},
+  opts: { elevationM?: number; maxCacheAgeMs?: number; onStage?: (stage: 'loading') => void } = {},
 ): Promise<WeatherResult> {
   if (typeof window !== 'undefined' && window.isSecureContext === false) return { ok: false, error: 'insecure' }
   const pos = await position()
   if (typeof pos === 'string') return { ok: false, error: pos }
-  const cell = cellOf(pos.lat, pos.lon)
+  return weatherForCell(cellOf(pos.lat, pos.lon), now, { ...opts, pos })
+}
+
+/**
+ * (Fresh cache) -> grid -> elevation -> forecast -> cache, for a cell. A cache for the same cell (and altitude) younger
+ * than `maxCacheAgeMs` (default 30 minutes), with its wind, answers without a request; offline and service failures hand
+ * back the cache under 3 h. A typed altitude (`elevationM`) is the forecast's elevation: the grid request is skipped, so
+ * less leaves the phone, and the forecast is for that height. Without a `pos` (a refresh by the cell alone) the cell's
+ * centre stands in for it.
+ */
+export async function weatherForCell(
+  cell: Cell,
+  now: number,
+  opts: { elevationM?: number; maxCacheAgeMs?: number; pos?: { lat: number; lon: number; accuracyM: number }; onStage?: (stage: 'loading') => void } = {},
+): Promise<WeatherResult> {
+  const pos = opts.pos ?? { lat: cell.lat, lon: cell.lon, accuracyM: 0 }
   const typed = opts.elevationM === undefined || !Number.isFinite(opts.elevationM) ? undefined : Math.round(opts.elevationM)
 
   const cache = cachedFor(cell, now, typed)
   // A cache without the wind is no answer: the wind is what the quick setup offers. It stays the offline fallback below.
-  if (cache && freshness(cache.fetchedAt, now) === 'fresh' && cache.windMs10 !== null && cache.windFromDeg !== null) {
+  if (cache && now - cache.fetchedAt >= 0 && now - cache.fetchedAt < (opts.maxCacheAgeMs ?? FRESH_MS) && cache.windMs10 !== null && cache.windFromDeg !== null) {
     const { cell: _cell, elevationM, ...weather } = cache
     return { ok: true, cached: true, cell, elevationM, latitudeDeg: pos.lat, weather, accuracyM: pos.accuracyM }
   }

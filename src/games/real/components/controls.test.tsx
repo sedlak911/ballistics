@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { useEffect, useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useRoute } from '../../../router'
@@ -13,11 +13,6 @@ const type = (el: HTMLElement, text: string) => {
   fireEvent.blur(el)
 }
 const stored = () => JSON.parse(localStorage.getItem('gb.real.station') ?? '{}')
-const orientation = (alpha: number) => {
-  const e = new Event('deviceorientationabsolute') as Event & { alpha: number }
-  e.alpha = alpha
-  window.dispatchEvent(e)
-}
 
 const latest = { current: DEFAULT_SETUP }
 const NOW = Date.now()
@@ -39,9 +34,15 @@ function Tools({ start, system = 'metric', wheel, hint = 'line', windUnit = 'm/s
       <DistanceTool setup={setup} update={update} system={system} wheel={wheel} />
       <SlopeTool setup={setup} update={update} hint={hint} />
       <WindSpeedTool setup={setup} update={update} windUnit={windUnit} />
-      <ForecastLine update={update} now={NOW} onNeedDirection={needDirection} />
+      <ForecastLine setup={setup} update={update} now={NOW} onNeedDirection={needDirection} />
     </>
   )
+}
+
+function Direction(props: { inputRef?: React.RefObject<HTMLInputElement | null> }) {
+  const [setup, setSetup] = useState<RealSetup>(DEFAULT_SETUP)
+  useEffect(() => { latest.current = setup })
+  return <DirectionField setup={setup} update={(patch) => setSetup((s) => ({ ...s, ...patch }))} {...props} />
 }
 
 const mount = (ui: React.ReactElement) => render(<Page>{ui}</Page>)
@@ -144,7 +145,7 @@ describe('WindSigmaTool', () => {
 
 describe('DirectionField', () => {
   it('is labelled Direction, stores a typed bearing and shows the cardinal', () => {
-    mount(<DirectionField compass={false} />)
+    mount(<Direction />)
     const input = screen.getByLabelText('Direction')
     type(input, '270')
     expect(stored().azimuthDeg).toEqual({ value: 270, source: 'manual' })
@@ -152,7 +153,7 @@ describe('DirectionField', () => {
   })
 
   it('clearing stores null and shows the placeholder', () => {
-    mount(<DirectionField compass={false} />)
+    mount(<Direction />)
     const input = screen.getByLabelText('Direction')
     type(input, '270')
     type(input, '')
@@ -162,70 +163,72 @@ describe('DirectionField', () => {
   })
 
   it('carries the note', () => {
-    mount(<DirectionField compass={false} />)
+    mount(<Direction />)
     expect(screen.getByText("Bearing to the target; rough is enough. Sets the compass points on the wind clock and the forecast's hour. Empty: Coriolis is horizontal only.")).toBeInTheDocument()
   })
 
   it('forwards inputRef to the number input', () => {
     const ref = { current: null as HTMLInputElement | null }
-    mount(<DirectionField compass={false} inputRef={ref} />)
+    mount(<Direction inputRef={ref} />)
     expect(ref.current).toBe(screen.getByLabelText('Direction'))
   })
 
-  it('has no Compass button with compass false or without DeviceOrientationEvent', () => {
+  it('with a live heading shows it in the accent and locks the field', () => {
+    const [setup, update] = [DEFAULT_SETUP, () => {}]
+    mount(<DirectionField setup={setup} update={update} live={274} />)
+    const input = screen.getByLabelText('Direction')
+    expect(input).toHaveValue('274')
+    expect(input).toBeDisabled()
+    expect(screen.getByText(/^°\s·\sW$/)).toBeInTheDocument()
+  })
+
+  it('has no Compass button', () => {
     vi.stubGlobal('DeviceOrientationEvent', class extends Event {})
-    mount(<DirectionField compass={false} />)
+    mount(<Direction />)
     expect(screen.queryByRole('button', { name: 'Compass' })).not.toBeInTheDocument()
-    cleanup()
-    vi.stubGlobal('DeviceOrientationEvent', undefined)
-    mount(<DirectionField compass />)
-    expect(screen.queryByRole('button', { name: 'Compass' })).not.toBeInTheDocument()
+  })
+})
+
+describe('SlopeTool with a live reading', () => {
+  it('shows the reading, locks the field and the steppers, and writes nothing', () => {
+    const update = vi.fn()
+    mount(<SlopeTool setup={DEFAULT_SETUP} update={update} hint="line" live={-4} />)
+    const input = screen.getByLabelText('Slope')
+    expect(input).toHaveValue('-4')
+    expect(input).toBeDisabled()
+    expect(screen.getByRole('button', { name: /Slope: less|less/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /Slope: more|more/i })).toBeDisabled()
+    expect(update).not.toHaveBeenCalled()
   })
 
-  it('Compass stores one reading as a manual bearing, rounded', async () => {
-    vi.stubGlobal('DeviceOrientationEvent', class extends Event {})
-    mount(<DirectionField compass />)
-    fireEvent.click(screen.getByRole('button', { name: 'Compass' }))
-    expect(screen.getByRole('status')).toHaveTextContent('steel throws the compass off')
-    await act(async () => orientation(90.4))
-    expect(stored().azimuthDeg).toEqual({ value: 270, source: 'manual' })
+  it('goes back to the setup value when the reading ends', () => {
+    const { rerender } = mount(<SlopeTool setup={{ ...DEFAULT_SETUP, slopeDeg: 3 }} update={() => {}} hint="line" live={-4} />)
+    rerender(<Page><SlopeTool setup={{ ...DEFAULT_SETUP, slopeDeg: 3 }} update={() => {}} hint="line" /></Page>)
+    expect(screen.getByLabelText('Slope')).toHaveValue('3')
+    expect(screen.getByLabelText('Slope')).toBeEnabled()
+  })
+})
+
+describe('DirectionField turns the wind', () => {
+  const memory = () => JSON.parse(localStorage.getItem('gb.real.wind') ?? 'null')
+  const Wind = ({ start }: { start: Partial<RealSetup> }) => {
+    const [setup, setSetup] = useState<RealSetup>({ ...DEFAULT_SETUP, ...start })
+    useEffect(() => { latest.current = setup })
+    return <DirectionField setup={setup} update={(patch) => setSetup((s) => ({ ...s, ...patch }))} />
+  }
+
+  it('keeps where the wind blows from while the direction is typed', () => {
+    localStorage.setItem('gb.real.station', JSON.stringify({ v: 1, heightAboveGroundM: { value: 1, source: 'manual' }, azimuthDeg: { value: 180, source: 'manual' } }))
+    mount(<Wind start={{ windSet: true, windMs: 3, windClock: 10 }} />)
+    type(screen.getByLabelText('Direction'), '274')
+    expect(latest.current.windClock).toBe(7)
+    expect(memory()).toMatchObject({ fromDeg: 120, hour: 7, source: 'hand' })
   })
 
-  it('iOS: asks permission then reads webkitCompassHeading', async () => {
-    const ask = vi.fn().mockResolvedValue('granted')
-    vi.stubGlobal('DeviceOrientationEvent', Object.assign(class extends Event {}, { requestPermission: ask }))
-    mount(<DirectionField compass />)
-    fireEvent.click(screen.getByRole('button', { name: 'Compass' }))
-    await act(async () => { await Promise.resolve() })
-    await act(async () => {
-      const e = new Event('deviceorientation') as Event & { webkitCompassHeading: number }
-      e.webkitCompassHeading = 359.6
-      window.dispatchEvent(e)
-    })
-    expect(stored().azimuthDeg).toEqual({ value: 0, source: 'manual' })
-    expect(ask).toHaveBeenCalled()
-  })
-
-  it('no reading in time shows the failure alert', async () => {
-    vi.useFakeTimers()
-    try {
-      vi.stubGlobal('DeviceOrientationEvent', class extends Event {})
-      mount(<DirectionField compass />)
-      fireEvent.click(screen.getByRole('button', { name: 'Compass' }))
-      await act(async () => { await vi.advanceTimersByTimeAsync(5001) })
-      expect(screen.getByRole('alert')).toHaveTextContent('No reading from the compass.')
-    } finally {
-      vi.useRealTimers()
-    }
-  })
-
-  it('unmounting drops a reading in progress', async () => {
-    vi.stubGlobal('DeviceOrientationEvent', class extends Event {})
-    const { unmount } = mount(<DirectionField compass />)
-    fireEvent.click(screen.getByRole('button', { name: 'Compass' }))
-    unmount()
-    await act(async () => orientation(90))
-    expect(stored().azimuthDeg ?? null).toBeNull()
+  it('does not turn an unset wind and leaves no hour change', () => {
+    mount(<Wind start={{ windSet: false }} />)
+    type(screen.getByLabelText('Direction'), '90')
+    expect(latest.current.windClock).toBe(DEFAULT_SETUP.windClock)
   })
 })
 
@@ -302,6 +305,32 @@ describe('ForecastLine', () => {
     expect(screen.queryByRole('button', { name: /direction/ })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Use' }))
     expect(latest.current).toMatchObject({ windMs: 0, windClock: 4, windSet: true })
+  })
+
+  const follow = (hour: number, speedMs: number) => {
+    localStorage.setItem('gb.real.profile', JSON.stringify({ forecastWind: 'auto' }))
+    localStorage.setItem('gb.real.wind', JSON.stringify({ fromDeg: 180, hour, speedMs, source: 'forecast' }))
+  }
+
+  it('following with a cleared direction shows the normal offer and the ask, never an empty hour', () => {
+    seed({ azimuth: null })
+    follow(9, 2)
+    mount(<Tools start={{ windSet: true, windMs: 2, windClock: 9 }} />)
+    expect(screen.getByText('Forecast near the ground: ≈ 2 m/s from S')).toBeTruthy()
+    expect(screen.queryByText(/o’clock\)/)).toBeNull()
+    expect(screen.getByRole('button', { name: 'Set the shooting direction to get the hour.' })).toBeTruthy()
+  })
+
+  it('following says the hour; a calm following says calm', () => {
+    seed()
+    follow(9, 2)
+    const a = mount(<Tools start={{ windSet: true, windMs: 2, windClock: 9 }} />)
+    expect(screen.getByText('Wind from the forecast near the ground: ≈ 2 m/s from S (9 o’clock)')).toBeTruthy()
+    a.unmount()
+    seed({ wind: 0.6, azimuth: null })
+    follow(4, 0)
+    mount(<Tools start={{ windSet: true, windMs: 0, windClock: 4 }} />)
+    expect(screen.getByText('Wind from the forecast near the ground: calm')).toBeTruthy()
   })
 
   it('reads in Czech', () => {

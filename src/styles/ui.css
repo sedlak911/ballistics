@@ -868,3 +868,69 @@ body:has(> .real-dock > .real-panel) > .install-note {
     bottom: calc(69px + var(--real-panel-h, 0px) + var(--safe-bottom));
   }
 }
+
+/* The switch: a 30 × 16 track in a larger button; on, the accent with the knob right. */
+.switch {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.switch > span {
+  position: relative;
+  width: 30px;
+  height: 16px;
+  border: 1px solid var(--border-strong);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.switch > span::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  background: var(--faint);
+  transition: left 0.15s, background-color 0.15s;
+}
+
+.switch[aria-checked='true'] > span {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.switch[aria-checked='true'] > span::after {
+  left: 16px;
+  background: var(--accent);
+}
+
+.switch:hover:not(:disabled) > span {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+/* Disabled (the effect lacks an input): no accent, whatever the stored choice. */
+.switch:disabled {
+  cursor: default;
+}
+
+.switch:disabled > span {
+  border-color: var(--border-strong);
+  background: none;
+}
+
+.switch:disabled > span::after {
+  background: var(--faint);
+}
+
+@media (max-width: 699px) {
+  .switch {
+    height: 44px;
+  }
+}
