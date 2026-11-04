@@ -233,3 +233,52 @@ describe('solveFlight: the earth', () => {
     expect(d).toBeGreaterThan(0.0005)
   })
 })
+
+describe('wind by distance', () => {
+  const l308: FlightInput = {
+    muzzleVelocityMs: 790,
+    bc: 0.243,
+    drag: 'G7',
+    sightHeightM: 0.045,
+    zeroM: 100,
+    air: airState(ISA_SEA_LEVEL),
+  }
+  const windageAt600 = (o: Partial<FlightInput>): number => reached(solveFlight({ ...l308, ...o }, 600), 600).windageM
+  const full = { x: 0, z: 4 }
+  const calm = { x: 0, z: 0 }
+  const inThird = (lo: number, hi: number) => (xM: number) => (xM >= lo && xM < hi ? full : calm)
+
+  it('equal winds in every zone are the constant wind', () => {
+    const a = windageAt600({ windAt: () => windFromClock(4, 9) })
+    const b = windageAt600({ wind: windFromClock(4, 9) })
+    expect(Math.abs(a - b)).toBeLessThan(1e-9)
+  })
+
+  it('zone drifts add up', () => {
+    const all = windageAt600({ windAt: () => full })
+    const sum =
+      windageAt600({ windAt: inThird(0, 200) }) +
+      windageAt600({ windAt: inThird(200, 400) }) +
+      windageAt600({ windAt: inThird(400, 600) })
+    expect(Math.abs(sum - all) / all).toBeLessThan(0.005)
+  })
+
+  it('the near third carries about half the drift', () => {
+    const share = windageAt600({ windAt: inThird(0, 200) }) / windageAt600({ windAt: () => full })
+    expect(Math.abs(share - 0.48)).toBeLessThan(0.03)
+  })
+
+  it("a wind that turns doesn't cancel", () => {
+    const turning = (xM: number) => ({ x: 0, z: xM < 200 ? 3 : xM < 400 ? 0 : -3 })
+    const mrad = (windageAt600({ windAt: turning }) / 600) * 1000
+    expect(mrad).toBeGreaterThan(0)
+    expect(Math.abs(mrad - 0.38)).toBeLessThan(0.04)
+  })
+
+  it('replaces the constant wind', () => {
+    const zones = (xM: number) => ({ x: xM < 300 ? -3 : 2, z: 4 })
+    const a = solveFlight({ ...l308, wind: { x: 5, z: -2 }, windAt: zones }, 600)
+    const b = solveFlight({ ...l308, windAt: zones }, 600)
+    expect(a).toEqual(b)
+  })
+})

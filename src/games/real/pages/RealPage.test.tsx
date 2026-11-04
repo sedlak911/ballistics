@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../../App'
 import { PHONE } from '../../../components/useMedia'
@@ -88,6 +88,26 @@ describe('RealPage: the answer in dial mode', () => {
     expect(windy.container.querySelector('.real-cols')).not.toHaveAttribute('aria-hidden')
     expect(windy.container.querySelector('.real-cols')).not.toHaveClass('is-hidden')
     expect(windy.container.querySelector('.real-answer-wind .real-sub')).toHaveClass('is-hidden')
+  })
+
+  it('with wind zones the speed line lists each zone near to far, and a far wind alone shows the columns', () => {
+    open('#/real/workbench?p=p7&d=1000&ws=3&wc=9&zn=1&zm=2,9&zf=1,9')
+    // The columns are the zones' speeds −σ, as set, +σ, floored at 0.
+    const items = within(columns()!).getAllByRole('listitem')
+    expect(items[1].querySelector('.real-col-speed')!.textContent).toBe('3·2·1')
+    expect(items[1].querySelector('.real-col-speed')).toHaveAttribute('aria-label', '3 · 2 · 1\u00a0m/s')
+    expect(items[0].querySelector('.real-col-speed')!.textContent).toBe('2·1·0')
+    cleanup()
+    open('#/real/workbench?p=p7&d=1000&ws=0&wc=9&zn=1&zf=4,9')
+    expect(columns()).toBeInTheDocument()
+  })
+
+  it('in km/h the zone speeds are whole from 10 up and a tenth below', () => {
+    profile({ windUnit: 'km/h' })
+    open('#/real/workbench?p=p7&d=600&ws=4.5&wc=9&zn=1&zm=3.5,9&zf=2.5,9')
+    const speeds = within(columns()!).getAllByRole('listitem').map((li) => li.querySelector('.real-col-speed')!.textContent)
+    expect(speeds[0]).toBe('13·9·5.4')
+    expect(speeds[1]).toBe('16·13·9')
   })
 
   // M2: a wind step per unit that moves the hit visibly, and a tenth of a cm below 10 cm.
@@ -222,6 +242,51 @@ describe('RealPage: the bottom bar', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Distance: more' }))
     expect(screen.getByLabelText('Distance')).toHaveValue('1010')
     expect(hash()).toContain('d=923.544')
+  })
+
+  // WebKit: "SecurityError: Attempt to use history.replaceState() more than 100 times per 10 seconds". Simulated: the
+  // 101st call throws. Thrown inside a state update, it blanked the app; one ruler flick is up to ~55 steps.
+  it('a long ruler drag on a phone keeps the page under a WebKit-like history limit, and the URL ends on its distance', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query === PHONE, media: query, addEventListener: () => {}, removeEventListener: () => {},
+    }))
+    const real = window.history.replaceState.bind(window.history)
+    let calls = 0
+    const writes = vi.spyOn(window.history, 'replaceState').mockImplementation((...args: Parameters<History['replaceState']>) => {
+      calls++
+      if (calls > 100) throw new DOMException('Attempt to use history.replaceState() more than 100 times per 10 seconds', 'SecurityError')
+      real(...args)
+    })
+    const errors: unknown[] = []
+    const onError = (e: ErrorEvent) => { errors.push(e.error); e.preventDefault() }
+    window.addEventListener('error', onError)
+    try {
+      open('#/real/workbench?p=p7&d=300&ws=3&wc=9')
+      const before = calls
+      fireEvent.click(screen.getByRole('button', { name: /^Distance \d/ }))
+      const ruler = document.querySelector<HTMLElement>('.ruler')!
+      // Left in 6 px moves: each is one 10 m step and one setup change.
+      fireEvent.pointerDown(ruler, { pointerId: 1, clientX: 1000, clientY: 0 })
+      for (let i = 1; i <= 130; i++) fireEvent.pointerMove(ruler, { pointerId: 1, clientX: 1000 - i * 6, clientY: 0 })
+      fireEvent.pointerUp(ruler, { pointerId: 1, clientX: 1000 - 130 * 6, clientY: 0 })
+      expect(errors).toEqual([])
+      expect(elevation()).toBeInTheDocument()
+      expect(document.querySelector('.real-dock')).not.toBeNull()
+      expect(calls - before).toBeLessThanOrEqual(80)
+      const shown = screen.getByRole('button', { name: /^Distance \d/ }).textContent!.match(/(\d+)\sm/)![1]
+      expect(Number(shown)).toBeGreaterThan(1000)
+      await waitFor(() => expect(new URLSearchParams(hash().split('?')[1]).get('d')).toBe(shown))
+      expect(calls).toBeLessThanOrEqual(100)
+      // The solve trails the drag (useDeferredValue) but ends on its distance.
+      const figures = [elevation().textContent, windage().textContent]
+      cleanup()
+      open(`#/real/workbench?p=p7&d=${shown}&ws=3&wc=9`)
+      expect([elevation().textContent, windage().textContent]).toEqual(figures)
+    } finally {
+      writes.mockRestore()
+      window.removeEventListener('error', onError)
+      vi.unstubAllGlobals()
+    }
   })
 
   it('shows 25 m in yards unflagged, though 27 yd is under what the box accepts', () => {
@@ -679,10 +744,18 @@ describe('RealPage: Aim on a phone', () => {
     vi.stubGlobal('DeviceOrientationEvent', class extends Event {})
     fireEvent.click(screen.getByRole('button', { name: /^Distance \d/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Aim' }))
-    for (let i = 0; i < 6; i++) {
-      const e = new Event('deviceorientation')
-      Object.assign(e, { alpha: 0, gamma: 0, absolute: false, webkitCompassHeading: heading, beta })
-      act(() => { window.dispatchEvent(e) })
+    // A steady second, 50 ms apart: the phone locks, and only then does Use write.
+    const t0 = Date.now()
+    const clock = vi.spyOn(Date, 'now')
+    try {
+      for (let i = 0; i < 22; i++) {
+        clock.mockReturnValue(t0 + i * 50)
+        const e = new Event('deviceorientation')
+        Object.assign(e, { alpha: 0, gamma: 0, absolute: false, webkitCompassHeading: heading, beta })
+        act(() => { window.dispatchEvent(e) })
+      }
+    } finally {
+      clock.mockRestore()
     }
     fireEvent.click(screen.getByRole('button', { name: 'Use' }))
   }
@@ -713,6 +786,36 @@ describe('RealPage: Aim on a phone', () => {
       expect(after).not.toBe(before)
       expect(hash()).toMatch(/ws=/)
     })
+  })
+})
+
+describe('RealPage: the home-screen app', () => {
+  const track = { stop: vi.fn() }
+  const getUserMedia = vi.fn()
+  afterEach(() => {
+    cleanup()
+    vi.unstubAllGlobals()
+    Reflect.deleteProperty(navigator, 'mediaDevices')
+    localStorage.clear()
+  })
+
+  it('with no aiming style chosen (a 0.1.7 profile), a tap on Distance opens the camera view', async () => {
+    profile({ mode: 'dial', primary: 'value', windUnit: 'm/s' })
+    getUserMedia.mockReset().mockResolvedValue({ getTracks: () => [track] })
+    Object.defineProperty(navigator, 'mediaDevices', { value: { getUserMedia }, configurable: true })
+    vi.stubGlobal('DeviceOrientationEvent', class extends Event {})
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query === PHONE || query === '(display-mode: standalone)', media: query, addEventListener: () => {}, removeEventListener: () => {},
+    }))
+    open('#/real/workbench?p=p7&d=600')
+    const distance = screen.getByRole('button', { name: /^Distance \d/ })
+    fireEvent.click(distance)
+    expect(getUserMedia).toHaveBeenCalledTimes(1)
+    await act(async () => {})
+    expect(screen.getByRole('dialog', { name: 'Aim at the target' })).toBeInTheDocument()
+    expect(distance).toHaveAttribute('aria-expanded', 'true')
+    cleanup()
+    expect(track.stop).toHaveBeenCalled()
   })
 })
 

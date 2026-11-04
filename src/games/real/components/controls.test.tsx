@@ -23,15 +23,15 @@ function Page({ children }: { children: React.ReactNode }) {
   return <SettingsProvider route={route} navigate={navigate}>{children}</SettingsProvider>
 }
 
-function Tools({ start, system = 'metric', wheel, hint = 'line', windUnit = 'm/s' }: {
-  start?: Partial<RealSetup>; system?: UnitSystem; wheel?: boolean; hint?: 'line' | 'title'; windUnit?: WindUnit
+function Tools({ start, system = 'metric', wheel, ruler, hint = 'line', windUnit = 'm/s' }: {
+  start?: Partial<RealSetup>; system?: UnitSystem; wheel?: boolean; ruler?: boolean; hint?: 'line' | 'title'; windUnit?: WindUnit
 }) {
   const [setup, setSetup] = useState<RealSetup>({ ...DEFAULT_SETUP, ...start })
   useEffect(() => { latest.current = setup })
   const update = (patch: Partial<RealSetup>) => setSetup((s) => ({ ...s, ...patch }))
   return (
     <>
-      <DistanceTool setup={setup} update={update} system={system} wheel={wheel} />
+      <DistanceTool setup={setup} update={update} system={system} wheel={wheel} ruler={ruler} />
       <SlopeTool setup={setup} update={update} hint={hint} />
       <WindSpeedTool setup={setup} update={update} windUnit={windUnit} />
       <ForecastLine setup={setup} update={update} now={NOW} onNeedDirection={needDirection} />
@@ -76,6 +76,63 @@ describe('DistanceTool', () => {
     mount(<Tools start={{ distanceM: 300 }} />)
     fireEvent.wheel(screen.getByLabelText('Distance'), { deltaY: -100 })
     expect(latest.current.distanceM).toBe(300)
+  })
+
+  describe('with the ruler', () => {
+    const drag = (from: number, to: number) => {
+      const ruler = document.querySelector<HTMLElement>('.ruler')!
+      fireEvent.pointerDown(ruler, { pointerId: 1, clientX: from, clientY: 0 })
+      fireEvent.pointerMove(ruler, { pointerId: 1, clientX: to, clientY: 0 })
+      fireEvent.pointerUp(ruler, { pointerId: 1, clientX: to, clientY: 0 })
+    }
+
+    it('has no more and less buttons', () => {
+      mount(<Tools start={{ distanceM: 300 }} ruler />)
+      expect(screen.queryByRole('button', { name: 'Distance: more' })).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Distance: less' })).toBeNull()
+      expect(document.querySelector('.ruler')).not.toBeNull()
+    })
+
+    it('keeps more and less without it', () => {
+      mount(<Tools start={{ distanceM: 300 }} />)
+      expect(document.querySelector('.ruler')).toBeNull()
+    })
+
+    it('ArrowRight in the field is 10 more, ArrowLeft 10 less', () => {
+      mount(<Tools start={{ distanceM: 300 }} ruler />)
+      fireEvent.keyDown(screen.getByLabelText('Distance'), { key: 'ArrowRight' })
+      expect(latest.current.distanceM).toBe(310)
+      fireEvent.keyDown(screen.getByLabelText('Distance'), { key: 'ArrowLeft' })
+      fireEvent.keyDown(screen.getByLabelText('Distance'), { key: 'ArrowLeft' })
+      expect(latest.current.distanceM).toBe(290)
+    })
+
+    it('ArrowRight is left to the caret without the ruler', () => {
+      mount(<Tools start={{ distanceM: 300 }} />)
+      fireEvent.keyDown(screen.getByLabelText('Distance'), { key: 'ArrowRight' })
+      expect(latest.current.distanceM).toBe(300)
+    })
+
+    it('typing still commits', () => {
+      mount(<Tools start={{ distanceM: 300 }} ruler />)
+      type(screen.getByLabelText('Distance'), '845')
+      expect(latest.current.distanceM).toBe(845)
+    })
+
+    it('a 60 px drag left is 100 m farther', () => {
+      mount(<Tools start={{ distanceM: 300 }} ruler />)
+      drag(200, 140)
+      expect(latest.current.distanceM).toBe(400)
+      expect(screen.getByLabelText('Distance')).toHaveValue('400')
+    })
+
+    it('in yards a 60 px drag is 100 yd, and the setup keeps metres', () => {
+      mount(<Tools start={{ distanceM: 457.2 }} system="imperial" ruler />)
+      expect(screen.getByLabelText('Distance')).toHaveValue('500')
+      drag(200, 140)
+      expect(screen.getByLabelText('Distance')).toHaveValue('600')
+      expect(latest.current.distanceM).toBeCloseTo(548.64, 3)
+    })
   })
 })
 
@@ -260,6 +317,34 @@ describe('ForecastLine', () => {
     expect(latest.current).toMatchObject({ windMs: 2, windClock: 9, windSet: true })
   })
 
+  it('with zones active ends in (all zones), and Use clears both zones', () => {
+    seed()
+    mount(<Tools start={{ zonesOn: true, distanceM: 700, windMid: { ms: 5, clock: 2 }, windFar: { ms: 7, clock: 3 } }} />)
+    expect(screen.getByText('Forecast near the ground: ≈ 2 m/s from S (9 o’clock) (all zones)')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Use' }))
+    expect(latest.current).toMatchObject({ windMid: null, windFar: null, windClock: 9 })
+  })
+
+  it('adds the suffix to the line without an hour and to a calm too', () => {
+    const start = { zonesOn: true, distanceM: 700 }
+    seed({ azimuth: null })
+    mount(<Tools start={start} />)
+    expect(screen.getByText('Forecast near the ground: ≈ 2 m/s from S (all zones)')).toBeTruthy()
+    cleanup()
+    seed({ wind: 0.6 })
+    mount(<Tools start={start} />)
+    expect(screen.getByText('Forecast near the ground: calm (all zones)')).toBeTruthy()
+  })
+
+  // No zone value is lost without the user's action (spec anti-goal): under 300 m the zones aren't on screen.
+  it('under 300 m has no suffix, and Use sets the near wind and keeps both zones', () => {
+    seed()
+    mount(<Tools start={{ zonesOn: true, distanceM: 200, windMid: { ms: 5, clock: 2 }, windFar: { ms: 7, clock: 3 } }} />)
+    expect(screen.getByText('Forecast near the ground: ≈ 2 m/s from S (9 o’clock)')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Use' }))
+    expect(latest.current).toMatchObject({ windMs: 2, windClock: 9, windMid: { ms: 5, clock: 2 }, windFar: { ms: 7, clock: 3 } })
+  })
+
   it('without an azimuth has no Use and asks for the direction', () => {
     seed({ azimuth: null })
     mount(<Tools />)
@@ -344,6 +429,6 @@ describe('ForecastLine', () => {
 describe('ReadingHint', () => {
   it('says why to read out to half the distance', () => {
     mount(<ReadingHint />)
-    expect(screen.getByText('Read it out to half the distance: that part makes ≈ 70 % of the drift.')).toBeTruthy()
+    expect(screen.getByText('Read it out to half the distance: that part makes about two thirds of the drift.')).toBeTruthy()
   })
 })

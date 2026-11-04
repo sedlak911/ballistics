@@ -37,4 +37,12 @@ describe('wind memory', () => {
     expect(windMemoryNow()).toBeNull()
     expect(() => saveWindMemory(good)).not.toThrow()
   })
+  it('reads a 0.1.7 memory without zones unchanged', () => expect(readWindMemory(good)).toEqual(good))
+  it('reads a bad zone as null and never drops the memory', () => {
+    const r = readWindMemory({ ...good, zones: { mid: { fromDeg: 'x', hour: 3 }, far: null } })
+    expect(r).toMatchObject({ ...good, zones: { mid: { fromDeg: null, hour: 3 }, far: null } })
+    expect(readWindMemory({ ...good, zones: { mid: { fromDeg: 5, hour: 13 }, far: { fromDeg: 5, hour: 4 } } })?.zones)
+      .toEqual({ mid: null, far: { fromDeg: 5, hour: 4 } })
+    expect(readWindMemory({ ...good, zones: 5 })).toEqual(good)
+  })
 })

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { aimMark } from '../../../components/scopeGeometry'
 import { Toast } from '../../../components/Toast'
 import { PHONE, useMedia } from '../../../components/useMedia'
@@ -129,9 +129,13 @@ export function RealPage() {
   const [calcOpen, setCalcOpen] = useState(false)
   if (calcOpen && !complete) setCalcOpen(false)
   const needHit = !phone || calcOpen
+  // The solve trails the setup: during a ruler drag the ruler and the distance render first, and the solves in between
+  // can be skipped. The selection goes with the setup, so a solve never mixes one setup with another's load.
+  const shot = useMemo(() => ({ complete, preset, setup }), [complete, preset, setup])
+  const solving = useDeferredValue(shot)
   const solution = useMemo(
-    () => complete ? solveReal(preset, setup, profile, station, unit, { shares: calcOpen, hit: needHit }) : null,
-    [complete, preset, setup, profile, station, unit, calcOpen, needHit],
+    () => solving.complete ? solveReal(solving.preset, solving.setup, profile, station, unit, { shares: calcOpen, hit: needHit }) : null,
+    [solving, profile, station, unit, calcOpen, needHit],
   )
   // Hold mode: whether the hold point falls beyond the reticle, the way the scope view draws it.
   const offView = solution !== null && solution.reached && profile.mode === 'hold'
@@ -157,7 +161,7 @@ export function RealPage() {
         note={note}
         tags={<RealMenus setup={setup} update={update} sel={sel} own={own} save={save} station={station} sheet={sheet} onSheet={setSheet}
           onReset={reset} onDelete={deleteItem} show={show} onSheetClosed={closeSticky} />}
-        bar={<BottomBar setup={setup} update={update} system={display.system} windUnit={profile.windUnit} phone={phone} now={now} />} />
+        bar={<BottomBar setup={setup} update={update} system={display.system} windUnit={profile.windUnit} phone={phone} now={now} weights={solution?.zoneWeights ?? null} />} />
       <Toast toast={toast} onClose={close} closeLabel={t('toast.close')} />
     </>
   )

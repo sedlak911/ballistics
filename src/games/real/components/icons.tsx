@@ -54,3 +54,44 @@ export function CloseIcon() {
     </svg>
   )
 }
+
+/** The wind zones: a stretch cut into parts by two inner ticks between its end posts. */
+export function ZonesIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" {...line}>
+      <path d="M2 12h20M2 8v8M8.7 9.5v5M15.3 9.5v5M22 8v8" />
+    </svg>
+  )
+}
+
+/** A help glyph: a question mark in a ring. */
+export function HelpIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" {...line}>
+      <circle cx="10" cy="10" r="7.5" />
+      <path d="M7.9 8a2.2 2.2 0 1 1 3.4 1.8c-.8.5-1.3 1-1.3 2M10 14.1v.1" />
+    </svg>
+  )
+}
+
+// The aiming styles: each icon switches to the other way of measuring.
+
+/** A phone with an arrow from its top edge: aim by the top edge, the simple way. */
+export function PhoneEdgeIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" {...line}>
+      <rect x="6" y="8" width="8" height="10.5" rx="1.2" />
+      <path d="M10 6V1.8M7.7 4.1L10 1.8L12.3 4.1" />
+    </svg>
+  )
+}
+
+/** A lens seen from the front: aim through the camera. */
+export function LensIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" {...line}>
+      <circle cx="10" cy="10" r="7.5" />
+      <circle cx="10" cy="10" r="3.5" />
+    </svg>
+  )
+}

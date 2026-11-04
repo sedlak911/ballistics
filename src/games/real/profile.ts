@@ -25,6 +25,8 @@ export interface RealProfile {
   addNoteSeen: boolean
   /** How the phone helps to aim: the plain compass sheet, or the trial with the camera. */
   aimMode: 'simple' | 'camera'
+  /** The owner picked the aiming style in the settings; until then it follows where the app runs. */
+  aimChosen: boolean
   /** Where the forecast wind comes from: only when asked (Use), or followed at every weather refresh. */
   forecastWind: 'tap' | 'auto'
   /** The weather refreshes by itself (the switch lives in the station sheet). */
@@ -42,8 +44,14 @@ export const DEFAULT_REAL_PROFILE: RealProfile = {
   locationNoteSeen: false,
   addNoteSeen: false,
   aimMode: 'simple',
+  aimChosen: false,
   forecastWind: 'tap',
   weatherAutoRefresh: true,
+}
+
+/** The chosen style; before a choice the home-screen app aims with the camera and the browser the simple way. */
+export function effectiveAimMode(p: RealProfile, standalone: boolean): 'simple' | 'camera' {
+  return p.aimChosen ? p.aimMode : standalone ? 'camera' : 'simple'
 }
 
 /** The wind uncertainty the stepper offers; storage accepts the same. */
@@ -72,6 +80,7 @@ export function readRealProfile(raw: unknown): RealProfile {
     locationNoteSeen: raw.locationNoteSeen === true,
     addNoteSeen: raw.addNoteSeen === true,
     aimMode: raw.aimMode === 'camera' ? 'camera' : 'simple',
+    aimChosen: raw.aimChosen === true,
     forecastWind: raw.forecastWind === 'auto' ? 'auto' : 'tap',
     weatherAutoRefresh: typeof raw.weatherAutoRefresh === 'boolean' ? raw.weatherAutoRefresh : d.weatherAutoRefresh,
   }

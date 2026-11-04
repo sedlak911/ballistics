@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode, type RefObject } from 'react'
 import { toDisplay } from '../../../engine/units'
+import { routeHref } from '../../../routeHref'
 import { useSettings } from '../../../settings/SettingsContext'
 import type { ItemKind } from '../library'
 import { scopeValues, sectionKeysIn, type Overrides, type Section } from '../profiles'
@@ -122,7 +123,7 @@ export function RealMenus({ setup, update, sel, own, save, station, sheet, onShe
   // Copies the link; with no clipboard, or one that refuses, the link stays in a toast to copy by hand. A selection
   // with a custom item says what others get instead, for its first custom kind: rifle, round, scope.
   const share = () => {
-    const href = location.href
+    const href = routeHref()
     const once = {}
     const kind = sel.rifle !== null ? 'rifle' : sel.round !== null ? 'round' : sel.scope !== null ? 'scope' : null
     const custom = kind === null ? null : <p className="rs-share-note">{t(SHARE_CUSTOM[kind])}</p>

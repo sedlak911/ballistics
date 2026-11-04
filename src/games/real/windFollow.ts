@@ -1,5 +1,5 @@
 import { clockHour, type ForecastOffer } from './forecastWind'
-import type { RealSetup } from './setup'
+import type { RealSetup, ZoneWind } from './setup'
 import type { WindMemory } from './windMemory'
 
 // The wind follows the direction: the clock hour is turned with the shooting direction, from where the wind blows by the compass.
@@ -37,6 +37,29 @@ export function turnWind(
   }
 }
 
+/** The same for the mid and far zones that have a wind of their own; a zone without one is skipped. */
+export function turnZones(
+  setup: RealSetup,
+  mem: WindMemory | null,
+  from: number | null,
+  to: number | null,
+): { patch: Partial<RealSetup> | null; zones: WindMemory['zones'] } {
+  const patch: Partial<RealSetup> = {}
+  const turn = (w: ZoneWind | null, key: 'mid' | 'far') => {
+    if (w === null) return null
+    const m = mem?.zones?.[key]
+    const anchored = (m && m.hour === w.clock ? m.fromDeg : null) ?? (from !== null ? norm(from + w.clock * 30) : null)
+    if (to === null) return { fromDeg: anchored, hour: w.clock }
+    if (anchored === null) return { fromDeg: norm(to + w.clock * 30), hour: w.clock }
+    const next = clockHour(anchored, to)
+    if (next !== w.clock) patch[key === 'mid' ? 'windMid' : 'windFar'] = { ...w, clock: next }
+    return { fromDeg: anchored, hour: next }
+  }
+  const mid = turn(setup.windMid, 'mid')
+  const far = turn(setup.windFar, 'far')
+  return { patch: Object.keys(patch).length > 0 ? patch : null, zones: mid === null && far === null ? undefined : { mid, far } }
+}
+
 /** Use on a forecast offer (precondition: `offer.calm || offer.hour !== null`). A calm keeps the hour. */
 export function offerWind(
   offer: ForecastOffer,
@@ -44,16 +67,20 @@ export function offerWind(
   setup: RealSetup,
   mem: WindMemory | null,
   directionDeg: number | null,
+  allZones: boolean,
 ): { patch: Partial<RealSetup>; memory: WindMemory } {
+  // The tap on a zoned setup fills every zone; the automatic forecast leaves a zone's own wind alone.
+  const zonesPatch: Partial<RealSetup> = allZones ? { windMid: null, windFar: null } : {}
+  const zones = allZones || !mem?.zones ? {} : { zones: mem.zones }
   if (!offer.calm && offer.hour !== null) {
     return {
-      patch: { windMs: offer.speedMs, windClock: offer.hour, windSet: true },
-      memory: { fromDeg: modelFromDeg, hour: offer.hour, speedMs: offer.speedMs, source: 'forecast' },
+      patch: { windMs: offer.speedMs, windClock: offer.hour, windSet: true, ...zonesPatch },
+      memory: { fromDeg: modelFromDeg, hour: offer.hour, speedMs: offer.speedMs, source: 'forecast', ...zones },
     }
   }
   const fromDeg = liveFromDeg(setup, mem) ?? (directionDeg !== null && setup.windSet ? norm(directionDeg + setup.windClock * 30) : null)
   return {
-    patch: { windMs: offer.speedMs, windSet: true },
-    memory: { fromDeg, hour: setup.windClock, speedMs: offer.speedMs, source: 'forecast' },
+    patch: { windMs: offer.speedMs, windSet: true, ...zonesPatch },
+    memory: { fromDeg, hour: setup.windClock, speedMs: offer.speedMs, source: 'forecast', ...zones },
   }
 }

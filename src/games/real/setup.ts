@@ -6,6 +6,9 @@ import { useLibrary } from './library'
 import { linkedKeys, linkOverrides, readLinkOverrides, sameOverrides, useOverrides, writeLinkOverrides, type Overrides } from './profiles'
 import { dropUnknown, isLegacy, resolveSelection } from './selection'
 
+/** One zone's wind: speed in m/s and where it comes from on the clock face. */
+export interface ZoneWind { ms: number; clock: number }
+
 export interface RealSetup {
   /**
    * The built-in round (its preset); unused while a custom round (`roundId`) is selected. It may also be the retired
@@ -25,11 +28,18 @@ export interface RealSetup {
   windSet: boolean
   /** Where the wind comes from, as a clock face seen from the shooter: 12 is head-on, 9 from the left. */
   windClock: number
+  /** The wind changes with the distance (`zn=1`); the near wind is `windMs`/`windClock`. */
+  zonesOn: boolean
+  /** The middle zone's own wind (`zm=<ms>,<clock>`); null follows the near wind. */
+  windMid: ZoneWind | null
+  /** The far zone's own wind (`zf=<ms>,<clock>`); null follows the near wind. */
+  windFar: ZoneWind | null
   targetCm: number
 }
 
 export const DEFAULT_SETUP: RealSetup = {
-  presetId: DEFAULT_PRESET_ID, roundId: null, scopeId: null, customRifleId: null, distanceM: 300, slopeDeg: 0, windMs: 0, windSet: false, windClock: 9, targetCm: 50,
+  presetId: DEFAULT_PRESET_ID, roundId: null, scopeId: null, customRifleId: null, distanceM: 300, slopeDeg: 0, windMs: 0, windSet: false, windClock: 9,
+  zonesOn: false, windMid: null, windFar: null, targetCm: 50,
 }
 
 /** What the link and the bottom bar accept. */
@@ -41,7 +51,9 @@ export const BOUNDS = {
 
 const KEYS = {
   presetId: 'p', roundId: 'cr', scopeId: 'cs', customRifleId: 'cf', distanceM: 'd', slopeDeg: 'sl', windMs: 'ws', windClock: 'wc',
-} as const satisfies Record<Exclude<keyof RealSetup, 'windSet' | 'targetCm'>, string>
+} as const satisfies Record<Exclude<keyof RealSetup, 'windSet' | 'targetCm' | 'zonesOn' | 'windMid' | 'windFar'>, string>
+/** The zone params, which aren't plain numbers: `zn=1`, and `zm`/`zf` as `<ms>,<clock>`. */
+const ZONE_KEYS = { zonesOn: 'zn', windMid: 'zm', windFar: 'zf' } as const
 /** The current preset's overrides in a link (profiles.ts writeLinkOverrides). The station and the profile never travel. */
 const LINK_KEY = 'o'
 /** A custom item's id as a link may carry it (library.ts newId); anything else reads as none. */
@@ -64,6 +76,14 @@ export function readRealSetup(p: URLSearchParams): RealSetup {
     const raw = p.get(key)
     return raw !== null && ITEM_ID.test(raw) ? raw : null
   }
+  const zoneWind = (key: string): ZoneWind | null => {
+    const parts = (p.get(key) ?? '').split(',')
+    if (parts.length !== 2 || parts[0].trim() === '' || parts[1].trim() === '') return null
+    const ms = Number(parts[0])
+    const clock = Number(parts[1])
+    if (!Number.isFinite(ms) || !Number.isInteger(clock) || clock < 1 || clock > 12) return null
+    return { ms: Math.round(clamp(ms, BOUNDS.windMs.min, BOUNDS.windMs.max) * 1000) / 1000, clock }
+  }
   const id = p.get(KEYS.presetId)
   const ws = p.get(KEYS.windMs)
   return {
@@ -77,6 +97,9 @@ export function readRealSetup(p: URLSearchParams): RealSetup {
     windSet: ws !== null && ws.trim() !== '' && Number.isFinite(Number(ws)),
     windMs: Math.round(num(KEYS.windMs, BOUNDS.windMs.min, BOUNDS.windMs.max, DEFAULT_SETUP.windMs) * 1000) / 1000,
     windClock: Math.round(num(KEYS.windClock, 1, 12, DEFAULT_SETUP.windClock)),
+    zonesOn: p.get(ZONE_KEYS.zonesOn) === '1',
+    windMid: zoneWind(ZONE_KEYS.windMid),
+    windFar: zoneWind(ZONE_KEYS.windFar),
     // Fixed at 50 cm for now: the target is not a link input (a later target type will bring its own).
     targetCm: DEFAULT_SETUP.targetCm,
   }
@@ -90,6 +113,9 @@ function setupParams(s: RealSetup): URLSearchParams {
     const v = s[field]
     if (v !== null) p.set(key, String(v))
   }
+  if (s.zonesOn) p.set(ZONE_KEYS.zonesOn, '1')
+  if (s.windMid !== null) p.set(ZONE_KEYS.windMid, `${s.windMid.ms},${s.windMid.clock}`)
+  if (s.windFar !== null) p.set(ZONE_KEYS.windFar, `${s.windFar.ms},${s.windFar.clock}`)
   return p
 }
 
@@ -109,7 +135,7 @@ export function writeRealSetup(s: RealSetup, d: Display, o?: Overrides): URLSear
 
 const STORAGE_KEY = 'gb.real.setup'
 const NO_LINK_KEYS: ReadonlySet<keyof Overrides> = new Set()
-const hasSetupParams = (p: URLSearchParams) => Object.values(KEYS).some((k) => p.has(k))
+const hasSetupParams = (p: URLSearchParams) => [...Object.values(KEYS), ...Object.values(ZONE_KEYS)].some((k) => p.has(k))
 
 function loadStored(): URLSearchParams {
   try {
@@ -227,7 +253,7 @@ export function useRealSetup(): [RealSetup, (patch: Partial<RealSetup>) => void,
 
   const update = useCallback(
     (patch: Partial<RealSetup>) => {
-      const wind = 'windMs' in patch || 'windClock' in patch
+      const wind = 'windMs' in patch || 'windClock' in patch || patch.windSet === true
       const next = readRealSetup(writeRealSetup({ ...setup, ...patch, windSet: setup.windSet || wind }, display))
       // Another preset brings its own stored overrides; the same one keeps what is on screen, a link's values included.
       // Leaving a custom round for a built-in one brings that preset's stored overrides.

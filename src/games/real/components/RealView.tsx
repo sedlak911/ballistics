@@ -22,6 +22,8 @@ import {
   SENSITIVITY_STEP,
   sizeText,
   UP_DOWN,
+  windsShort,
+  windsText,
   windText,
 } from './realText'
 import { len } from './calcText'
@@ -127,15 +129,26 @@ function Answer({ solution: s, mode, primary, distanceM, targetCm, windUnit, sys
 
   // What the sensitivity step of crosswind does at the target (M2): one decimal below 10 cm, two in the angle.
   const perStepM = s.perMsM * SPEED_TO_MS[windUnit] * SENSITIVITY_STEP[windUnit]
-  const windy = s.windSpeeds[1] > 0
+  // A calm near wind with a far wind of its own is still wind.
+  const windy = s.zoneSpeeds === null ? s.windSpeeds[1] > 0 : s.zoneSpeeds[1].some((v) => v > 0)
   // Both always render in one grid cell, so the block is the taller of the two and wind never moves the page.
+  // With zones the speed line lists the shown zones' speeds near to far without the unit (it never wraps; the full
+  // text is its label), since the unit is in the Wind button and the panel.
+  const speedLine = (i: number) =>
+    s.zoneSpeeds === null ? (
+      <span className="real-col-speed num">{windText(s.windSpeeds[i], windUnit)}</span>
+    ) : (
+      <span className="real-col-speed real-col-zones num" title={windsText(s.zoneSpeeds[i], windUnit)} aria-label={windsText(s.zoneSpeeds[i], windUnit)}>
+        {windsShort(s.zoneSpeeds[i], windUnit)}
+      </span>
+    )
   const windBlock = (
     <div className="real-answer-wind">
       <ul className={windy ? 'real-cols' : 'real-cols is-hidden'} aria-label={t('real.columns')} aria-hidden={windy ? undefined : 'true'}>
         {s.windColumns.map((c, i) => (
           <li key={i} aria-current={windy && i === 1 ? 'true' : undefined}>
             <span className="real-col-v num">{arrowed(c, LEFT_RIGHT)}</span>
-            <span className="real-col-speed num">{windText(s.windSpeeds[i], windUnit)}</span>
+            {speedLine(i)}
           </li>
         ))}
       </ul>

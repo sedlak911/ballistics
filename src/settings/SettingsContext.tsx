@@ -3,6 +3,7 @@ import { translate, type T } from '../i18n'
 import { chooseLang, DISPLAY_KEY, langHref, pathLang } from '../lang'
 import { leave } from '../leave'
 import type { Route } from '../router'
+import { routeHref } from '../routeHref'
 import { readDisplay, type Display, type Lang } from './url'
 
 function loadStored(): Partial<Display> {
@@ -57,7 +58,7 @@ export function SettingsProvider({ route, navigate, children }: { route: Route; 
       store(next)
       // On a language's page, the other language is the other page, with the same hash.
       if (next.lang !== display.lang && pathLang(window.location.pathname) !== null) {
-        leave(langHref(window.location.href, next.lang))
+        leave(langHref(routeHref(), next.lang))
         return
       }
       setLang(next.lang)

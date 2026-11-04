@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { DEFAULT_REAL_PROFILE, readRealProfile } from './profile'
+import { DEFAULT_REAL_PROFILE, effectiveAimMode, readRealProfile } from './profile'
 
 describe('useRealProfile', () => {
   beforeEach(() => { vi.resetModules(); localStorage.clear() })
@@ -66,5 +66,20 @@ describe('readRealProfile: the big figure', () => {
     expect(p.primary).toBe('value')
     expect(p.mode).toBe('hold')
     expect(p.windUnit).toBe('kn')
+  })
+
+  it('a 0.1.7 profile with a stored aimMode reads as not chosen', () => {
+    expect(readRealProfile({ aimMode: 'simple' }).aimChosen).toBe(false)
+    expect(readRealProfile({ aimMode: 'camera' }).aimChosen).toBe(false)
+    expect(readRealProfile({ aimMode: 'simple', aimChosen: true }).aimChosen).toBe(true)
+  })
+
+  it('the effective aim mode follows where the app runs until one is chosen', () => {
+    const p = readRealProfile({ aimMode: 'simple' })
+    expect(effectiveAimMode(p, true)).toBe('camera')
+    expect(effectiveAimMode(p, false)).toBe('simple')
+    const chosen = readRealProfile({ aimMode: 'simple', aimChosen: true })
+    expect(effectiveAimMode(chosen, true)).toBe('simple')
+    expect(effectiveAimMode(readRealProfile({ aimMode: 'camera', aimChosen: true }), false)).toBe('camera')
   })
 })

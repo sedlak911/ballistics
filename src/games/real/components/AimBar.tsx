@@ -3,11 +3,10 @@ import type { AimState } from './useAiming'
 
 /**
  * What goes under the Direction field in the shot panel: the Aim button and its note; while the phone reads, the steadiness
- * bar with Use and Cancel. It writes nothing: the panel decides what Use does.
+ * bar with Use and Cancel. It writes nothing: the panel decides what Use does, and Use works once the phone has locked.
  */
-export function AimBar({ state, message, notice, onAim, onUse, onCancel }: {
+export function AimBar({ state, notice, onAim, onUse, onCancel }: {
   state: AimState
-  message: 'moving' | null
   /** Said above the bar: the camera wasn't available, so the phone is read the simple way. */
   notice?: string
   onAim: () => void
@@ -20,12 +19,11 @@ export function AimBar({ state, message, notice, onAim, onUse, onCancel }: {
       <div className="real-aimbar">
         {notice && <span className="rm-note" role="status">{notice}</span>}
         <div className="real-aim-hold">
-          <span>{t('aim.hold')}</span>
+          <span>{state.locked ? t('aim.measured') : t('aim.hold')}</span>
           <span className="real-aim-track" aria-hidden="true"><i style={{ width: `${Math.round(state.steady * 100)}%` }} /></span>
         </div>
-        {message === 'moving' && <span className="rm-msg bad" role="alert">{t('aim.moving')}</span>}
         <div className="real-aim-actions">
-          <button type="button" className="btn primary" onClick={onUse}>{t('aim.use')}</button>
+          <button type="button" className={state.locked ? 'btn primary is-ready' : 'btn primary'} aria-disabled={!state.locked} onClick={onUse}>{t('aim.use')}</button>
           <button type="button" className="btn ghost" onClick={onCancel}>{t('aim.cancel')}</button>
         </div>
       </div>

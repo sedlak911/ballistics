@@ -7,8 +7,11 @@ import type { WindUnit } from '../profile'
 import type { RealSetup } from '../setup'
 import { useStation } from '../station'
 import { useWindFlash } from '../windFlash'
+import { zoneWind, zonesActive } from '../zones'
 import { DirectionField, DistanceTool, ForecastLine, ReadingHint, SlopeTool, WindSigmaTool, WindSpeedTool } from './controls'
 import { Dock } from './Dock'
+import { WindZones, ZoneButtons, ZoneReset, useZoneSelection, zoneClockPatch } from './WindZones'
+import { WindHelpSheet } from './WindHelpSheet'
 import { WindTurnedStatus } from './WindTurnedStatus'
 import { clockCardinals, rounded, windText } from './realText'
 
@@ -31,27 +34,52 @@ function MiniClock({ hour }: { hour: number }) {
  * The inputs that change at the range, as two labelled groups on one row: the shot (distance, slope, direction) and the wind
  * (speed with where it blows from, uncertainty, the forecast offer). Under 1366px they wrap. On a phone it is the dock (`Dock`).
  */
-export function BottomBar({ setup, update, system, windUnit, phone, now }: {
+export function BottomBar({ setup, update, system, windUnit, phone, now, weights = null }: {
   setup: RealSetup
   update: (patch: Partial<RealSetup>) => void
   system: UnitSystem
   windUnit: WindUnit
   phone: boolean
   now: number
+  /** Each shown zone's share of the drift, near to far (the solution's `zoneWeights`). */
+  weights?: number[] | null
 }) {
   const { t } = useSettings()
   const [station] = useStation()
   const directionRef = useRef<HTMLInputElement>(null)
   const [clockOpen, setClockOpen] = useState(false)
   const clockRef = useRef<HTMLButtonElement>(null)
+  // The sheet on how to read the wind, for the dock's ? and the desktop one; the focus goes back to the ? that opened it.
+  const [helpOpen, setHelpOpen] = useState(false)
+  const helpFrom = useRef<HTMLElement | null>(null)
+  const onHelp = (from: HTMLElement) => {
+    helpFrom.current = from
+    setHelpOpen(true)
+  }
+  const closeHelp = () => {
+    // That ? can be gone by now (the phone turned and the dock became the bar): the ? on screen takes the focus.
+    if (helpFrom.current?.isConnected === false) document.querySelector<HTMLElement>('[data-wind-help]')?.focus()
+    setHelpOpen(false)
+  }
+  const helpSheet = helpOpen && <WindHelpSheet onClose={closeHelp} returnFocus={helpFrom} />
 
   const flash = useWindFlash()
-  const from = t('real.windFrom', { h: setup.windClock })
+  const [zone, setZone] = useZoneSelection(setup)
+  const zones = zonesActive(setup)
+  const zw = zoneWind(setup, zone)
+  const from = t('real.windFrom', { h: zw.clock })
   const shotId = `${useId()}-shot`
   const windId = `${useId()}-wind`
   const needDirection = () => directionRef.current?.focus()
 
-  if (phone) return <Dock setup={setup} update={update} system={system} windUnit={windUnit} now={now} />
+  if (phone) {
+    return (
+      <>
+        <Dock setup={setup} update={update} system={system} windUnit={windUnit} now={now} weights={weights} onHelp={onHelp} />
+        {helpSheet}
+      </>
+    )
+  }
   return (
     <div className="real-bar" data-testid="real-bar">
       <WindTurnedStatus />
@@ -66,28 +94,32 @@ export function BottomBar({ setup, update, system, windUnit, phone, now }: {
       <div className="real-bar-rule" aria-hidden="true" />
       <div role="group" aria-labelledby={windId} className="real-group real-group-wind">
         <div className="real-group-head">
-          <span id={windId} className="label">{t('real.wind')}</span>
-          <ReadingHint />
+          <span id={windId} className="label">{zones ? t('zones.title') : t('real.wind')}</span>
+          <ZoneButtons setup={setup} update={update} onHelp={onHelp} />
+          {!zones && <ReadingHint />}
           <ForecastLine setup={setup} update={update} now={now} onNeedDirection={needDirection} />
         </div>
+        {zones && <WindZones setup={setup} system={system} windUnit={windUnit} weights={weights} selected={zone} onSelect={setZone} />}
         <div className="real-group-items">
           <div className="real-tool real-wind">
-            <WindSpeedTool setup={setup} update={update} windUnit={windUnit} />
+            <WindSpeedTool setup={setup} update={update} windUnit={windUnit} zone={zones ? zone : undefined} />
             <button ref={clockRef} type="button" className="real-clock-btn" aria-haspopup="dialog" aria-expanded={clockOpen}
               aria-label={`${t('real.windDir')}: ${from}`} onClick={() => setClockOpen((o) => !o)}>
-              <MiniClock hour={setup.windClock} />
-              <span key={flash?.key} className={flash?.hour === setup.windClock ? 'num real-hour-flash' : 'num'}>{from}</span>
+              <MiniClock hour={zw.clock} />
+              <span key={flash?.key} className={flash?.hour === zw.clock && zone === 'near' ? 'num real-hour-flash' : 'num'}>{from}</span>
             </button>
             <Popover open={clockOpen} onClose={() => setClockOpen(false)} anchorRef={clockRef} label={t('real.windDir')} placement="above" className="real-clock-menu">
-              <WindClock label={t('real.windBlows')} value={setup.windClock} onChange={(h) => update({ windClock: h })}
-                speedMs={rounded(setup.windMs / SPEED_TO_MS[windUnit], 1)} unit={windUnit}
+              <WindClock label={t('real.windBlows')} value={zw.clock} onChange={(h) => update(zoneClockPatch(setup, zones ? zone : null, h))}
+                speedMs={rounded(zw.ms / SPEED_TO_MS[windUnit], 1)} unit={windUnit}
                 cardinals={clockCardinals(station.azimuthDeg?.value, t('real.cardinals'))}
-                valueText={t('real.clockValue', { h: setup.windClock, s: windText(setup.windMs, windUnit) })} />
+                valueText={t('real.clockValue', { h: zw.clock, s: windText(zw.ms, windUnit) })} />
             </Popover>
           </div>
           <div className="real-tool"><WindSigmaTool /></div>
+          {zones && <ZoneReset setup={setup} update={update} zone={zone} />}
         </div>
       </div>
+      {helpSheet}
     </div>
   )
 }

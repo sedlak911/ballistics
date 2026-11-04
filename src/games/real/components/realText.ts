@@ -55,6 +55,16 @@ export function windText(ms: number, unit: WindUnit): string {
   return `${rounded(ms / SPEED_TO_MS[unit], 1)}${NBSP}${unit}`
 }
 
+/** Several wind speeds in m/s joined by ` · ` with the unit once: `4 · 3 · 2 m/s`. */
+export function windsText(ms: number[], unit: WindUnit): string {
+  return `${ms.map((v) => rounded(v / SPEED_TO_MS[unit], 1)).join(' · ')}${NBSP}${unit}`
+}
+
+/** The same without the unit, to fit a column: `4.5·3.5·2.5`, a tenth below 10 and whole from 10 up. */
+export function windsShort(ms: number[], unit: WindUnit): string {
+  return ms.map((v) => rounded(v / SPEED_TO_MS[unit], v / SPEED_TO_MS[unit] < 10 ? 1 : 0)).join('·')
+}
+
 /**
  * The crosswind the no-wind line speaks of, per unit (M2): a step that moves the hit enough to read, where 1 km/h moved
  * it 0.4 cm at 200 m and read as "wind doesn't matter".

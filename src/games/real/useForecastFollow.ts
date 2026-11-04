@@ -26,7 +26,7 @@ export function useForecastFollow(setup: RealSetup, update: (p: Partial<RealSetu
     const from = station.model?.windFromDeg
     if (!offer || offer.hour === null || from == null) return
     if (windSource(setup, mem) === 'hand') return
-    const { patch, memory } = offerWind(offer, from, setup, mem, station.azimuthDeg?.value ?? null)
+    const { patch, memory } = offerWind(offer, from, setup, mem, station.azimuthDeg?.value ?? null, false)
     const changes = patch.windMs !== setup.windMs || patch.windClock !== undefined && patch.windClock !== setup.windClock || !setup.windSet
     const memoryChanges = mem === null || mem.fromDeg !== memory.fromDeg || mem.hour !== memory.hour || mem.speedMs !== memory.speedMs || mem.source !== memory.source
     if (memoryChanges) saveWindMemory(memory)

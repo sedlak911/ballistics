@@ -76,10 +76,23 @@ describe('the ⚙ sheet on REAL: Measuring with the phone', () => {
     const group = within(g).getByRole('group', { name: 'Measuring with the phone' })
     expect(within(group).getByRole('group', { name: 'Aiming' })).toBeTruthy()
     expect(within(group).getByRole('group', { name: 'Forecast wind' })).toBeTruthy()
-    fireEvent.click(within(within(g).getByRole('group', { name: 'Aiming' })).getByRole('button', { name: 'Camera (trial)' }))
+    fireEvent.click(within(within(g).getByRole('group', { name: 'Aiming' })).getByRole('button', { name: 'Camera' }))
     fireEvent.click(within(within(g).getByRole('group', { name: 'Forecast wind' })).getByRole('button', { name: 'Automatically' }))
     const stored = JSON.parse(localStorage.getItem('gb.real.profile')!)
-    expect([stored.aimMode, stored.forecastWind]).toEqual(['camera', 'auto'])
+    expect([stored.aimMode, stored.aimChosen, stored.forecastWind]).toEqual(['camera', true, 'auto'])
+    expect(within(g).getByText('The app on the home screen starts with the camera, the browser with the simple way.')).toBeTruthy()
+  })
+
+  it('in the home-screen app a 0.1.7 profile shows Camera until one is chosen', () => {
+    localStorage.clear()
+    localStorage.setItem('gb.real.profile', JSON.stringify({ v: 1, aimMode: 'simple' }))
+    vi.stubGlobal('DeviceOrientationEvent', class {})
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query === PHONE || query === '(display-mode: standalone)', media: query, addEventListener: () => {}, removeEventListener: () => {},
+    }))
+    const g = gear()
+    const aiming = within(g).getByRole('group', { name: 'Aiming' })
+    expect(within(aiming).getByRole('button', { name: 'Camera' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('on a desktop width, even with a compass, hides Aiming and keeps Forecast wind', () => {

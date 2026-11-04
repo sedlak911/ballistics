@@ -87,6 +87,14 @@ describe('useForecastFollow', () => {
     expect(screen.queryByRole('button', { name: 'Use' })).toBeNull()
   })
 
+  it('auto leaves a zone\'s own wind as it was', () => {
+    seed(); setMode('auto')
+    mount({ zonesOn: true, distanceM: 700, windFar: { ms: 7, clock: 2 } })
+    act(() => updateStation(() => ({ model: model({ windFromDeg: 200 }) })))
+    expect(latest.current).toMatchObject({ windSet: true, windClock: 1, windFar: { ms: 7, clock: 2 } })
+    expect(updates.mock.calls.every(([p]) => !('windFar' in p) && !('windMid' in p))).toBe(true)
+  })
+
   it('a setup from a link with a wind counts as hand', () => {
     seed(); setMode('auto')
     mount({ windSet: true, windMs: 4, windClock: 3 })

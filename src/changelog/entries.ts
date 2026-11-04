@@ -15,6 +15,25 @@ export interface Entry {
 /** Newest first. */
 export const ENTRIES: Entry[] = [
   {
+    version: '0.1.8',
+    date: '2026-11-04',
+    title: { cs: 'Zóny větru a míření kamerou', en: 'Wind zones and the camera aim' },
+    items: {
+      cs: [
+        'Zóny větru: od 300 m můžeš vítr rozdělit na dvě, od 600 m na tři části trati. Každá má svou rychlost a směr a výpočet je počítá přesně, ne průměrem.',
+        'Nápověda, jak číst vítr: měřák, mirage, vlajky, tráva a stromy.',
+        'Zaměření kamerou vypadá jako puškohled, samo se zamkne, když telefon držíš v klidu, a v aplikaci na ploše ho otevře rovnou klepnutí na Vzdálenost.',
+        'Vzdálenost nastavíš tažením po stupnici do strany.',
+      ],
+      en: [
+        'Wind zones: from 300 m you can split the wind into two stretches, from 600 m into three. Each has its own speed and direction, and the solver uses them exactly, not as an average.',
+        'Help on reading the wind: the meter, mirage, flags, grass and trees.',
+        'Aiming with the camera looks like a scope, locks by itself when you hold the phone still, and in the home-screen app a tap on Distance opens it straight away.',
+        'Set the distance by dragging the scale sideways.',
+      ],
+    },
+  },
+  {
     version: '0.1.7',
     date: '2026-11-04',
     title: { cs: 'Telefon změří, vítr se otočí', en: 'The phone measures, the wind turns' },

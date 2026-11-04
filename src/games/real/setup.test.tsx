@@ -13,7 +13,8 @@ describe('readRealSetup', () => {
   it('gives the defaults for an empty link', () => {
     expect(readRealSetup(q(''))).toEqual(DEFAULT_SETUP)
     expect(DEFAULT_SETUP).toEqual({
-      presetId: 'p7', roundId: null, scopeId: null, customRifleId: null, distanceM: 300, slopeDeg: 0, windMs: 0, windSet: false, windClock: 9, targetCm: 50,
+      presetId: 'p7', roundId: null, scopeId: null, customRifleId: null, distanceM: 300, slopeDeg: 0, windMs: 0, windSet: false, windClock: 9,
+      zonesOn: false, windMid: null, windFar: null, targetCm: 50,
     })
   })
 
@@ -51,6 +52,34 @@ describe('readRealSetup', () => {
 
 const DISPLAY: Display = { lang: 'en', system: 'metric', angle: 'mil' }
 
+describe('wind zones in the link', () => {
+  it('a 0.1.7 link is one wind', () => {
+    expect(readRealSetup(q('p=p7&d=600&ws=4&wc=9'))).toMatchObject({ zonesOn: false, windMid: null, windFar: null })
+  })
+
+  it('zones round-trip', () => {
+    const s = { ...DEFAULT_SETUP, distanceM: 600, windSet: true, zonesOn: true, windFar: { ms: 2.5, clock: 3 } }
+    const p = writeRealSetup(s, DISPLAY)
+    expect(p.get('zn')).toBe('1')
+    expect(p.get('zf')).toBe('2.5,3')
+    expect(p.has('zm')).toBe(false)
+    expect(readRealSetup(p)).toEqual(s)
+  })
+
+  it('garbage zones read as null', () => {
+    expect(readRealSetup(q('zn=yes&zm=abc&zf=4,13'))).toMatchObject({ zonesOn: false, windMid: null, windFar: null })
+    for (const bad of ['4', '4,3,2', ',3', '4,2.5', 'Infinity,3']) expect(readRealSetup(q(`zf=${bad}`)).windFar).toBeNull()
+  })
+
+  it('clamps a far wind speed', () => {
+    expect(readRealSetup(q('zf=99,3')).windFar).toEqual({ ms: 25, clock: 3 })
+  })
+
+  it('keeps a zone wind without zn', () => {
+    expect(readRealSetup(q('zm=3,6'))).toMatchObject({ zonesOn: false, windMid: { ms: 3, clock: 6 } })
+  })
+})
+
 describe('custom ids in the link', () => {
   it('writes cr, cs and cf and never o= with a custom round', () => {
     const s = { ...DEFAULT_SETUP, roundId: 'u-r1', scopeId: 'u-s1', customRifleId: 'u-f1' }
@@ -71,6 +100,8 @@ describe('custom ids in the link', () => {
     localStorage.setItem('gb.real.wind', JSON.stringify({ fromDeg: 180, hour: 9, speedMs: 2, source: 'forecast' }))
     const p = writeRealSetup({ ...DEFAULT_SETUP, windSet: true, windMs: 2, windClock: 9 }, DISPLAY)
     expect([...p.keys()].sort()).toEqual(['a', 'd', 'p', 'sl', 'u', 'wc', 'ws'])
+    const z = writeRealSetup({ ...DEFAULT_SETUP, windSet: true, zonesOn: true, windMid: { ms: 3, clock: 6 }, windFar: { ms: 2, clock: 3 } }, DISPLAY)
+    expect([...z.keys()].sort()).toEqual(['a', 'd', 'p', 'sl', 'u', 'wc', 'ws', 'zf', 'zm', 'zn'])
     expect(p.toString()).not.toMatch(/180|forecast|fromDeg|source/)
     localStorage.clear()
   })
@@ -119,6 +150,16 @@ describe('useRealSetup', () => {
     const p = new URLSearchParams(window.location.hash.split('?')[1])
     expect([p.get('ws'), p.get('wc')]).toEqual(['0', '3'])
     expect(result.current[0].windSet).toBe(true)
+  })
+
+  it('counts the edit of a far zone as setting the wind: the near wind then counts at its shown value', () => {
+    window.location.hash = '#/real/workbench?p=p7&d=600&zn=1'
+    const { result } = renderHook(() => useRealSetup(), { wrapper: Wrapper })
+    expect(result.current[0].windSet).toBe(false)
+    act(() => result.current[1]({ windFar: { ms: 2, clock: 3 }, windSet: true }))
+    const p = new URLSearchParams(window.location.hash.split('?')[1])
+    expect([p.get('ws'), p.get('wc'), p.get('zf')]).toEqual(['0', '9', '2,3'])
+    expect(result.current[0]).toMatchObject({ windSet: true, windFar: { ms: 2, clock: 3 } })
   })
 
   it('keeps today\'s links and stored setups set', () => {

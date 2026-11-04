@@ -7,6 +7,8 @@ export const AIM_TIMEOUT_MS = 5000
 export const MIN_SAMPLES = 5
 export const STEADY_PITCH_DEG = 2
 export const STEADY_HEADING_DEG = 5
+/** While locked, the mean of this much of the newest readings is compared with the lock. */
+export const UNLOCK_WINDOW_MS = 300
 /** Raw samples older than this are dropped. */
 const KEEP_MS = 1500
 
@@ -15,8 +17,9 @@ export type AimState =
   | { status: 'idle' }
   | { status: 'asking' }
   | { status: 'failed' }
-  | { status: 'live'; reading: Reading | null; steady: number }
-export type AimResult = { headingDeg: number; slopeDeg: number } | 'moving'
+  | { status: 'live'; reading: Reading | null; steady: number; locked: AimLock | null }
+/** What the phone settled on: the mean of the steady second, rounded and clamped like the fields take it. */
+export type AimLock = { headingDeg: number; slopeDeg: number }
 
 type OrientationEvent = DeviceOrientationEvent & { webkitCompassHeading?: number }
 type OrientationCtor = { requestPermission?: () => Promise<'granted' | 'denied'> }
@@ -38,23 +41,34 @@ function isSteady(rs: Reading[]): boolean {
   )
 }
 
-/** The share of the last window, counted back from the newest reading, that has stayed steady (0..1). */
-function steadyShare(window: Timed[], now: number): number {
-  let from = window.length
-  while (from > 0 && isSteady(window.slice(from - 1).map((x) => x.r))) from--
-  if (from === window.length) return 0
-  return Math.min(1, (now - window[from].t) / AIM_WINDOW_MS)
+/**
+ * How much of the window the newest readings have stayed steady for (0..1), measured over everything kept (1.5 s) so it
+ * reaches 1 at any sample rate: it is 1 once the steady stretch, from its oldest reading to the newest, lasts the whole window.
+ */
+function steadyShare(kept: Timed[]): number {
+  let from = kept.length
+  while (from > 0 && isSteady(kept.slice(from - 1).map((x) => x.r))) from--
+  if (from === kept.length) return 0
+  return Math.min(1, (kept[kept.length - 1].t - kept[from].t) / AIM_WINDOW_MS)
 }
+
+const roundLock = (heading: number, pitch: number): AimLock => ({
+  headingDeg: Math.round(heading) % 360,
+  // `+ 0` turns a rounded -0 into 0.
+  slopeDeg: Math.max(BOUNDS.slopeDeg.min, Math.min(BOUNDS.slopeDeg.max, Math.round(pitch))) + 0,
+})
 
 /**
  * Reads the phone's orientation while aiming. `start()` must be called from the tap (iOS asks for the permission
  * only inside a gesture). Raw samples are kept for 1.5 s and turned into readings for the mode current at read time.
  */
-export function useAiming(mode: AimMode): { state: AimState; start: () => void; take: () => AimResult | null; stop: () => void } {
+export function useAiming(mode: AimMode): { state: AimState; start: () => void; take: () => AimLock | null; stop: () => void } {
   const [state, setState] = useState<AimState>({ status: 'idle' })
   const modeRef = useRef(mode)
   const statusRef = useRef<AimState['status']>('idle')
   const samples = useRef<Sample[]>([])
+  // The lock, and the unrounded mean it was made from (what the unlock compares against).
+  const lock = useRef<{ lock: AimLock; heading: number; pitch: number } | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const session = useRef(0)
   const gotReading = useRef(false)
@@ -64,6 +78,11 @@ export function useAiming(mode: AimMode): { state: AimState; start: () => void; 
   useEffect(() => {
     if (modeRef.current === mode) return
     modeRef.current = mode
+    // The lock and the samples kept so far (taken while the camera prompt was up) belong to the other mode: the new hold
+    // needs a fresh steady second.
+    lock.current = null
+    samples.current = []
+    setState((s) => (s.status === 'live' ? { ...s, locked: null, steady: 0 } : s))
     if (!onEventRef.current || gotReading.current) return
     const mine = session.current
     clearTimeout(timer.current)
@@ -73,10 +92,11 @@ export function useAiming(mode: AimMode): { state: AimState; start: () => void; 
 
   const toReading = (o: RawOrientation) => (modeRef.current === 'camera' ? cameraReading(o) : topEdgeReading(o))
 
-  const window1s = (now: number): Timed[] => {
+  /** The kept samples as readings in the current mode, up to `now`. */
+  const kept = (now: number): Timed[] => {
     const out: Timed[] = []
     for (const s of samples.current) {
-      if (s.t < now - AIM_WINDOW_MS || s.t > now) continue
+      if (s.t > now) continue
       const r = toReading(s.o)
       if (r) out.push({ t: s.t, r })
     }
@@ -101,6 +121,7 @@ export function useAiming(mode: AimMode): { state: AimState; start: () => void; 
     session.current++
     unlisten()
     samples.current = []
+    lock.current = null
     statusRef.current = 'idle'
     setState({ status: 'idle' })
   }, [unlisten])
@@ -132,19 +153,51 @@ export function useAiming(mode: AimMode): { state: AimState; start: () => void; 
         clearTimeout(timer.current)
         timer.current = undefined
       }
-      const win = window1s(now)
-      setStatus({ status: 'live', reading: latest ?? win[win.length - 1]?.r ?? null, steady: steadyShare(win, now) })
+      let win = kept(now)
+      if (lock.current) {
+        // The mean of the newest 300 ms against the lock: one trembling sample can't move it past the threshold.
+        const recent = win.filter((x) => x.t >= now - UNLOCK_WINDOW_MS).map((x) => x.r)
+        if (recent.length >= 3) {
+          const pitch = mean(recent.map((r) => r.pitchDeg))
+          const hs = recent.map((r) => r.headingDeg)
+          if (Math.abs(pitch - lock.current.pitch) > STEADY_PITCH_DEG ||
+              angularSpread([circularMean(hs)], lock.current.heading) > STEADY_HEADING_DEG) {
+            lock.current = null
+            // The old readings can't lock it again.
+            samples.current = samples.current.filter((s) => s.t >= now - UNLOCK_WINDOW_MS)
+            win = win.filter((x) => x.t >= now - UNLOCK_WINDOW_MS)
+          }
+        }
+      }
+      let steady = 0
+      if (!lock.current) {
+        const share = steadyShare(win)
+        const last = win.filter((x) => x.t >= now - AIM_WINDOW_MS).map((x) => x.r)
+        if (share >= 1 && last.length >= MIN_SAMPLES) {
+          const heading = circularMean(last.map((r) => r.headingDeg))
+          const pitch = mean(last.map((r) => r.pitchDeg))
+          lock.current = { lock: roundLock(heading, pitch), heading, pitch }
+        } else steady = Math.min(share, 0.99)
+      }
+      if (lock.current) steady = 1
+      setStatus({
+        status: 'live',
+        reading: latest ?? win[win.length - 1]?.r ?? null,
+        steady,
+        locked: lock.current ? lock.current.lock : null,
+      })
     }
     onEventRef.current = onEvent
     for (const n of EVENTS) window.addEventListener(n, onEvent)
     timer.current = setTimeout(() => { if (session.current === mine && !gotReading.current) fail() }, AIM_TIMEOUT_MS)
-    setStatus({ status: 'live', reading: null, steady: 0 })
+    setStatus({ status: 'live', reading: null, steady: 0, locked: null })
   }
 
   const start = () => {
     unlisten()
     session.current++
     samples.current = []
+    lock.current = null
     const mine = session.current
     const ask = typeof window.DeviceOrientationEvent === 'undefined'
       ? undefined
@@ -168,15 +221,8 @@ export function useAiming(mode: AimMode): { state: AimState; start: () => void; 
     }
   }
 
-  const take = (): AimResult | null => {
-    if (statusRef.current !== 'live') return null
-    const win = window1s(Date.now()).map((x) => x.r)
-    if (win.length < MIN_SAMPLES || !isSteady(win)) return 'moving'
-    const headingDeg = Math.round(circularMean(win.map((r) => r.headingDeg))) % 360
-    const slope = Math.round(mean(win.map((r) => r.pitchDeg)))
-    // `+ 0` turns a rounded -0 into 0.
-    return { headingDeg, slopeDeg: Math.max(BOUNDS.slopeDeg.min, Math.min(BOUNDS.slopeDeg.max, slope)) + 0 }
-  }
+  /** The lock, or null before it. */
+  const take = (): AimLock | null => (statusRef.current === 'live' && lock.current ? lock.current.lock : null)
 
   useEffect(() => () => {
     session.current++

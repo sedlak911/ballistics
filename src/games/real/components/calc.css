@@ -289,3 +289,67 @@
     margin-left: 0;
   }
 }
+
+/* How to read the wind: the calculation sheet's frame around three short sections and a table. */
+.wind-help-body {
+  padding: 4px 16px calc(24px + var(--safe-bottom));
+}
+
+@media (min-width: 641px) {
+  .wind-help-body {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+.wind-help-body h3 {
+  margin: 20px 0 6px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-strong);
+}
+
+.wind-help-body p,
+.wind-help-body li {
+  margin: 6px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.wind-help-body ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.wind-help-body table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.wind-help-body th,
+.wind-help-body td {
+  padding: 7px 0;
+  border-top: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.4;
+}
+
+.wind-help-body th {
+  width: 7.5em;
+  padding-right: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--fg-strong);
+}
+
+.wind-help-body .wind-help-note {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--muted);
+}

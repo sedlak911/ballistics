@@ -18,6 +18,7 @@ import { angleFromRad, radFromAngle, type AngleUnit } from '../../engine/units'
 import { EFFECTS, type Effect, type RealProfile } from './profile'
 import { scopeValues, type ResolvedPreset } from './profiles'
 import type { RealSetup } from './setup'
+import { shownZones, windAtBy, windAtFor, zoneWind, zonesActive, type ZoneName } from './zones'
 import { stationAir, type Field, type Station } from './station'
 import type { Sourced, Trust } from './types'
 
@@ -83,6 +84,10 @@ export interface RealSolution {
   windColumns: [number, number, number]
   /** m/s; the lowest is never below 0. */
   windSpeeds: [number, number, number]
+  /** With zones active: per column (−σ, wind, +σ), the shown zones' speeds near to far, m/s; null otherwise. */
+  zoneSpeeds: [number[], number[], number[]] | null
+  /** With zones active: per shown zone, its share of the drift, whole percent (they needn't sum to 100); null otherwise. */
+  zoneWeights: number[] | null
   /** Horizontal shift of 1 m/s full crosswind at the target, m (the no-wind sensitivity line). */
   perMsM: number
   timeS: number
@@ -108,9 +113,16 @@ export interface RealExplain {
   wind: { yM: number; xM: number } | null
   /**
    * Didion's lag rule, the check on the wind: crosswind · (time of flight − distance / MV). `crossMs` is the crosswind,
-   * + blowing right; `vacuumTimeS` is distance / the MV that went in; `driftM` the drift it gives, + right.
+   * + blowing right; `vacuumTimeS` is distance / the MV that went in; `driftM` the drift it gives, + right. Null while
+   * the zones are active: one lag rule can't speak for several winds.
    */
-  lag: { crossMs: number; timeS: number; vacuumTimeS: number; driftM: number }
+  lag: { crossMs: number; timeS: number; vacuumTimeS: number; driftM: number } | null
+  /**
+   * With zones active: per shown zone, its crosswind (+ blowing right) and its part of the wind's own horizontal share
+   * (`wind.xM`): crosswind × the zone's 1 m/s drift, plus a share of the rest by that part's size, so the parts sum to it.
+   * Null otherwise.
+   */
+  zones: { name: ZoneName; crossMs: number; driftM: number }[] | null
   /** The wind along the line of fire, m/s: + a tailwind, − a headwind. */
   tailMs: number
   /** The drag the flight used: a G model with the BC, or the preset's measured Cd table. */
@@ -270,6 +282,8 @@ export function solveReal(
     windage: 0,
     windColumns: [0, 0, 0],
     windSpeeds: [0, 0, 0],
+    zoneSpeeds: null,
+    zoneWeights: null,
     perMsM: 0,
     timeS: 0,
     velocityMs: 0,
@@ -296,6 +310,7 @@ export function solveReal(
     zeroM: preset.zeroM,
     ...withAir(airIn),
     wind,
+    windAt: windAtFor(setup),
     lookAngleRad: setup.slopeDeg * DEG,
     coriolis: fx.coriolis ? coriolis : undefined,
     earthCurvature: fx.curvature,
@@ -318,7 +333,12 @@ export function solveReal(
 
   const impact = hitOf(base)
   // The same shot with 1 m/s more crosswind: drift is linear in crosswind (the lag rule), so this spaces the columns.
-  const gust = at({ ...base, wind: { x: wind.x, z: wind.z + 1 } })
+  // With zones the extra metre is added everywhere along the way.
+  const gust = at(
+    base.windAt === undefined
+      ? { ...base, wind: { x: wind.x, z: wind.z + 1 } }
+      : { ...base, windAt: (xM) => ({ x: base.windAt!(xM).x, z: base.windAt!(xM).z + 1 }) },
+  )
   if (impact === null || gust === null) return unreached()
   const { p } = impact
   const perMsSigned = gust.windageM - p.windageM
@@ -330,6 +350,32 @@ export function solveReal(
   const windSpeeds: [number, number, number] = [Math.max(0, setup.windMs - sigma), setup.windMs, setup.windMs + sigma]
   const column = (speedMs: number) => toUnit(-(impact.xM + (windFromClock(speedMs, setup.windClock).z - wind.z) * perMsSigned))
 
+  // With zones: the shown zones' speeds per column; the weights are one run per zone with 1 m/s of crosswind in that
+  // zone only, and the outer columns are built from those runs.
+  const zoned = zonesActive(setup)
+  const shown = zoned ? shownZones(d) : []
+  const zoneSpeeds: RealSolution['zoneSpeeds'] = zoned
+    ? [-sigma, 0, sigma].map((dv) => shown.map((z) => Math.max(0, zoneWind(setup, z).ms + dv))) as [number[], number[], number[]]
+    : null
+  const calmShot = zoned ? at({ ...base, wind: { x: 0, z: 0 }, windAt: undefined }) : null
+  const zoneRaw = zoned
+    ? shown.map((zone) => {
+        const only = at({ ...base, windAt: windAtBy(setup, (z) => (z === zone ? { x: 0, z: 1 } : { x: 0, z: 0 })) })
+        return only === null || calmShot === null ? 0 : only.windageM - calmShot.windageM
+      })
+    : null
+  // The outer columns: each zone's speed change, times its crosswind per m/s and its 1 m/s drift (linear, like the
+  // single-wind columns above, but per zone).
+  const zoneColumn = (ci: 0 | 2): number => {
+    const shift = shown.reduce((acc, z, i) => {
+      const w = zoneWind(setup, z)
+      return acc + (zoneSpeeds![ci][i] - w.ms) * windFromClock(1, w.clock).z * zoneRaw![i]
+    }, 0)
+    return toUnit(-(impact.xM + shift))
+  }
+  const rawSum = zoneRaw === null ? 0 : zoneRaw.reduce((a, b) => a + b, 0)
+  const zoneWeights = zoneRaw && zoneRaw.map((r) => (rawSum === 0 ? 0 : Math.round((r / rawSum) * 100)))
+
   // Spec: "transonic (below Mach 1.2) or subsonic".
   if (p.mach < 1) warnings.push('subsonic')
   else if (p.mach < 1.2) warnings.push('transonic')
@@ -340,8 +386,10 @@ export function solveReal(
     elevation,
     dial: dialFor(elevation, clickValue, travelUp),
     windage,
-    windColumns: [column(windSpeeds[0]), windage, column(windSpeeds[2])],
+    windColumns: zoneRaw === null ? [column(windSpeeds[0]), windage, column(windSpeeds[2])] : [zoneColumn(0), windage, zoneColumn(2)],
     windSpeeds,
+    zoneSpeeds,
+    zoneWeights,
     perMsM: Math.abs(perMsSigned),
     timeS: p.timeS,
     velocityMs: p.velocityMs,
@@ -355,7 +403,8 @@ export function solveReal(
 
   // Two more runs for the view: the shot in calm air (the wind's own share) and, on a slope, the level shot at D·cos θ.
   function explainShot(): RealExplain {
-    const calm = at({ ...base, wind: { x: 0, z: 0 } })
+    const calm = calmShot ?? at({ ...base, wind: { x: 0, z: 0 }, windAt: undefined })
+    const windShare = calm && { yM: p.dropM - calm.dropM, xM: p.windageM - calm.windageM }
     const vacuumTimeS = d / mv
     const look = setup.slopeDeg * DEG
     let slope: RealExplain['slope'] = null
@@ -372,9 +421,10 @@ export function solveReal(
     return {
       hitYM: impact!.yM,
       hitXM: impact!.xM,
-      wind: calm && { yM: p.dropM - calm.dropM, xM: p.windageM - calm.windageM },
+      wind: windShare,
       // + 0: no wind is a plain 0, never −0.
-      lag: { crossMs: wind.z + 0, timeS: p.timeS, vacuumTimeS, driftM: wind.z * (p.timeS - vacuumTimeS) + 0 },
+      lag: zoned ? null : { crossMs: wind.z + 0, timeS: p.timeS, vacuumTimeS, driftM: wind.z * (p.timeS - vacuumTimeS) + 0 },
+      zones: zoned ? zoneLines(windShare && windShare.xM) : null,
       tailMs: wind.x + 0,
       dragModel: 'table' in dragValue ? 'table' : dragValue.model,
       dragNoteKey: 'table' in dragValue ? dragValue.noteKey : null,
@@ -385,6 +435,23 @@ export function solveReal(
       cantPerDegM: Math.sin(DEG) * (alphaRad * d - sightHeightM),
       cantAlphaRad: alphaRad,
     }
+  }
+
+  // Each zone's straight-line part, crosswind × its 1 m/s drift, plus a share of what the parts leave of the wind's
+  // horizontal share (the headwind's longer flight, the nonlinear rest), by the part's size; so the lines sum to it.
+  // Scaling the parts to the share instead blows up when they nearly cancel (a near wind against a far one).
+  function zoneLines(windXM: number | null): NonNullable<RealExplain['zones']> {
+    const cross = shown.map((z) => windFromClock(zoneWind(setup, z).ms, zoneWind(setup, z).clock).z)
+    const parts = cross.map((c, i) => c * zoneRaw![i])
+    const rest = windXM === null ? 0 : windXM - parts.reduce((a, b) => a + b, 0)
+    const size = parts.reduce((a, b) => a + Math.abs(b), 0)
+    const drift = (i: number) => {
+      if (windXM === null) return 0
+      // No zone has a crosswind: what is left (next to nothing) goes evenly.
+      if (size === 0) return windXM / parts.length
+      return parts[i] + (rest * Math.abs(parts[i])) / size
+    }
+    return shown.map((name, i) => ({ name, crossMs: cross[i] + 0, driftM: drift(i) + 0 }))
   }
 
   // A run effect's share is the hit with it minus the hit without it, from one run with its switch flipped.

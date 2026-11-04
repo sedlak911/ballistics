@@ -28,7 +28,9 @@ export interface Sensitivities {
  * rifle. Null when the bullet doesn't reach the distance.
  */
 export function sensitivities(input: FlightInput, distanceM: number): Sensitivities | null {
-  const calm = { ...input, wind: { x: 0, z: 0 } }
+  // Still air with its own winds: zones (windAt) would override every run's wind.
+  const { windAt: _zones, ...rest } = input
+  const calm = { ...rest, wind: { x: 0, z: 0 } }
   const fixed = { ...calm, boreAngleRad: input.boreAngleRad ?? boreAngle(calm) }
   const at = (i: FlightInput) => flightAt(solveFlight(i, distanceM), distanceM)
   const base = at(fixed)

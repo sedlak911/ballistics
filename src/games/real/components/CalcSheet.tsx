@@ -20,6 +20,9 @@ import './calc.css'
 const FT_M = 0.3048
 const MM_PER_IN = 25.4
 
+/** The side sheets' backdrop (this one and how to read the wind): the dock's guards tell a press or an Escape on a sheet by it. */
+export const SHEET_BACKDROP = 'calc-backdrop'
+
 /** Where an input comes from, as a tag: a preset value by its maker (an estimate dashed), yours, a station source. */
 function Src({ i, t, trued, sys }: { i: RealInput | null; t: T; trued?: number | null; sys: UnitSystem }) {
   if (!i) return null
@@ -307,26 +310,44 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
 
   // 5 Wind
   const windMs = val('windMs')
-  const cross = x.lag.crossMs
+  const cross = x.lag?.crossMs ?? x.zones?.[0].crossMs ?? 0
   const crossText = (v: number) => `${fix(Math.abs(v), 1, lang)}${NBSP}m/s`
   const windUnit = profile.windUnit
+  const unitLen = toDisplay(1, 'length', sys).unit
+  // The view's predicate: any zone's wind, or the near one, above 0.
+  const windy = s.zoneSpeeds === null ? windMs > 0 : s.zoneSpeeds[1].some((v) => v > 0)
+  // Signed like the sum in step 6: `→20 cm`, `←5.6 cm` or `0`.
+  const zoneDrift = (m: number) => {
+    const tm = term(m, sys, LEFT_RIGHT, lang)
+    return tm === '0' ? tm : `${tm}${NBSP}${unitLen}`
+  }
   const windStep = (
     <Step n={5} t={t} title={t('calc.s.wind')} why={t('calc.why.wind')}
       result={x.wind ? <Lines lines={shareLines(x.wind.yM, x.wind.xM, d, unit, sys)} /> : '—'}>
-      {windMs > 0 ? (
+      {windy ? (
         <>
           <Line>{[
-            <Item key="w" v={t('calc.in.windFrom', { s: windText(windMs, windUnit), h: val('windClock') })}
+            <Item key="w" v={`${x.zones ? `${t('zones.near')}: ` : ''}${t('calc.in.windFrom', { s: windText(windMs, windUnit), h: val('windClock') })}`}
               c={windUnit === 'm/s' ? undefined : windText(windMs, 'm/s')} />,
-            rounded(cross, 1) !== 0 && <Item key="x" v={t(cross > 0 ? 'calc.in.crossLeft' : 'calc.in.crossRight', { s: crossText(cross) })} />,
+            x.zones === null && rounded(cross, 1) !== 0 && <Item key="x" v={t(cross > 0 ? 'calc.in.crossLeft' : 'calc.in.crossRight', { s: crossText(cross) })} />,
             rounded(x.tailMs, 1) !== 0 && <Item key="h" v={t(x.tailMs > 0 ? 'calc.in.tail' : 'calc.in.head', { s: crossText(x.tailMs) })} />,
           ]}</Line>
-          <Line>{[
-            <Item key="lag" v={t('calc.in.lag', {
-              w: fix(Math.abs(cross), 1, lang), t: fix(x.lag.timeS, 3, lang), d: num(d, 1, lang), v: num(d / x.lag.vacuumTimeS, 1, lang),
-              lag: fix(x.lag.timeS - x.lag.vacuumTimeS, 3, lang), drift: fix(Math.abs(x.lag.driftM), 2, lang),
-            })} />,
-          ]}</Line>
+          {x.zones !== null && x.zones.map((zn) => (
+            <Line key={zn.name}>{[
+              <Item key="zone" v={t(
+                rounded(zn.crossMs, 1) === 0 ? 'calc.in.zone' : zn.crossMs > 0 ? 'calc.in.zoneLeft' : 'calc.in.zoneRight',
+                { zone: t(`zones.${zn.name}`), s: crossText(zn.crossMs), d: zoneDrift(zn.driftM) },
+              )} />,
+            ]}</Line>
+          ))}
+          {x.lag !== null && (
+            <Line>{[
+              <Item key="lag" v={t('calc.in.lag', {
+                w: fix(Math.abs(cross), 1, lang), t: fix(x.lag.timeS, 3, lang), d: num(d, 1, lang), v: num(d / x.lag.vacuumTimeS, 1, lang),
+                lag: fix(x.lag.timeS - x.lag.vacuumTimeS, 3, lang), drift: fix(Math.abs(x.lag.driftM), 2, lang),
+              })} />,
+            ]}</Line>
+          )}
         </>
       ) : (
         <Line>{[<Item key="n" v={t('calc.in.noWind', {
@@ -409,7 +430,6 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
   if (spin && !isMissing(spin) && spin.on) parts.push(spin.xM)
   const cor = shareOf('coriolis')
   if (cor && !isMissing(cor) && cor.on) parts.push(cor.xM)
-  const unitLen = toDisplay(1, 'length', sys).unit
   const windageStep = (
     <Step numbered={false} t={t} title={t('calc.s.windage')} why={t('calc.why.windage')}
       result={t('calc.in.hold', { v: `${arrowed(s.windage, LEFT_RIGHT)}${NBSP}${U}` })}>
@@ -496,7 +516,7 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
   function frame(body: ReactNode) {
     // On <body>, so no sticky bar or stacked column paints over it.
     return createPortal(
-      <div className="calc-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className={SHEET_BACKDROP} onClick={(e) => e.target === e.currentTarget && onClose()}>
         <div ref={ref} className="calc-sheet panel" role="dialog" aria-modal="true" aria-labelledby="calc-title" tabIndex={-1} onKeyDown={trap}>
           <div className="calc-head">
             <h2 id="calc-title">{t('calc.title')} <span className="calc-dist num">· {fmtDistance(d, sys)}</span></h2>

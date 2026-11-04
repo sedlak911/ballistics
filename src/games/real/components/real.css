@@ -273,6 +273,10 @@
   color: var(--muted);
 }
 
+.real-col-zones {
+  white-space: nowrap;
+}
+
 .real-unreached {
   margin: 0;
   font-family: var(--font-display);
@@ -718,10 +722,11 @@
 .real-panel-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
 }
 
 .real-panel-head h2 {
+  flex: 1;
   margin: 0;
   color: var(--accent);
 }
@@ -809,6 +814,32 @@
   height: 1px;
   overflow: hidden;
   clip-path: inset(50%);
+}
+
+/* The distance with a ruler (frame A): the figure centred, the scale a thin strip under it, in the field's own box. */
+.real-panel .real-distance.has-ruler {
+  flex-direction: column;
+  align-items: stretch;
+  height: 60px;
+  min-height: 60px;
+}
+
+.real-distance.has-ruler .number-field-row {
+  flex: none;
+  justify-content: center;
+  height: 34px;
+  border-left: 0;
+}
+
+.real-distance.has-ruler .number-field-row input {
+  flex: none;
+  width: 4.2ch;
+  padding: 0;
+}
+
+.real-distance.has-ruler .number-field-row .unit {
+  flex: none;
+  padding: 0 0 0 6px;
 }
 
 body:has(> .real-dock) .app {
@@ -980,6 +1011,21 @@ body:has(> .real-dock) .app {
   transition: width 0.1s linear;
 }
 
+/* Use before the lock: inert, a hairline and the muted word, no fill (the camera mockup's dimmed Use). */
+.real-aimbar .btn.primary[aria-disabled='true'],
+.real-cam .btn.primary[aria-disabled='true'] {
+  cursor: default;
+  border: 1px solid var(--border-strong);
+  background: none;
+  color: var(--muted);
+}
+
+/* The lock: Use is filled and glows softly. Steady, so reduced motion changes nothing. */
+.btn.primary.is-ready {
+  background: var(--accent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
 .real-aim-actions {
   display: flex;
   gap: 8px;
@@ -1041,4 +1087,87 @@ body:has(> .real-dock) .app {
   color: var(--accent);
   text-align: left;
   cursor: pointer;
+}
+
+/* The wind zones: a strip of cells (the stretches of the shot, near to far) sharing the panel's width; the selected one is
+   the zone the clock and the speed edit. */
+.real-zones {
+  display: flex;
+}
+
+.real-zone {
+  display: grid;
+  flex: 1 1 0;
+  gap: 1px;
+  min-width: 0;
+  padding: 5px 8px 6px;
+  border: 1px solid var(--border-strong);
+  margin-left: -1px;
+  text-align: left;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.real-zone:first-child {
+  margin-left: 0;
+}
+
+.real-zone[aria-pressed='true'] {
+  position: relative;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.real-zone-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  color: var(--muted);
+}
+
+.real-zone[aria-pressed='true'] .label {
+  color: var(--accent);
+}
+
+.real-zone-weight {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.real-zone-wind {
+  overflow: hidden;
+  font-size: 14px;
+  color: var(--fg-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.real-zone-same {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.real-zone-range {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* A text button, so the zone's own wind costs no height: it takes the free room under the speed beside the clock. */
+.real-zone-reset {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+/* Desktop: the strip sits under the group's word, no wider than the speed and the hour need. */
+.real-group-wind > .real-zones {
+  max-width: 520px;
 }

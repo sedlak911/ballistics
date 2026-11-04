@@ -14,6 +14,11 @@ export interface FlightInput {
   airAt?: (dyM: number) => AirState
   /** m/s; +x blows downrange (tailwind), +z blows to the right. */
   wind?: { x: number; z: number }
+  /**
+   * Wind by distance: m/s at the horizontal downrange distance xM from the muzzle (the state's x), same axes as `wind`.
+   * When given it replaces `wind` wherever the flight and the Mach number use the wind, with no averaging.
+   */
+  windAt?: (xM: number) => { x: number; z: number }
   /** Line-of-sight angle, + uphill. */
   lookAngleRad?: number
   coriolis?: { latitudeRad: number; azimuthRad: number | null }
@@ -58,8 +63,8 @@ function muzzleState(input: FlightInput, elevationRad: number): State {
 /** Point-mass flight with gravity and drag, RK4 in time. Calls `visit` after every step until it returns false. */
 function fly(input: FlightInput, elevationRad: number, visit: (prev: State, next: State, t: number) => boolean): void {
   const { air, airAt, bc, drag } = input
-  const wx = input.wind?.x ?? 0
-  const wz = input.wind?.z ?? 0
+  const constantWind = input.wind ?? { x: 0, z: 0 }
+  const windAt = input.windAt ?? (() => constantWind)
   // Deceleration a = ρ·v²·Cd(M)·π / (8·BC), with BC in kg/m²; zero when BC is Infinity.
   const scaleIn = (a: AirState) => (a.densityKgM3 * Math.PI) / (8 * bc * LB_PER_IN2_TO_KG_PER_M2)
   const still = scaleIn(air)
@@ -78,6 +83,7 @@ function fly(input: FlightInput, elevationRad: number, visit: (prev: State, next
     : null
 
   const deriv = ([x, y, , vx, vy, vz]: State): State => {
+    const { x: wx, z: wz } = windAt(x)
     // Drag works on the velocity relative to the air.
     const rx = vx - wx
     const rz = vz - wz
@@ -161,10 +167,11 @@ export function solveFlight(input: FlightInput, maxDistanceM: number, sampleEver
   const cos = Math.cos(look)
   const sin = Math.sin(look)
   const h = input.sightHeightM
-  const wx = input.wind?.x ?? 0
-  const wz = input.wind?.z ?? 0
-  const mach = ([, y, , vx, vy, vz]: State) =>
-    Math.hypot(vx - wx, vy, vz - wz) / (input.airAt ? input.airAt(y) : input.air).speedOfSoundMs
+  const windAt = input.windAt ?? (() => input.wind ?? { x: 0, z: 0 })
+  const mach = ([x, y, , vx, vy, vz]: State) => {
+    const { x: wx, z: wz } = windAt(x)
+    return Math.hypot(vx - wx, vy, vz - wz) / (input.airAt ? input.airAt(y) : input.air).speedOfSoundMs
+  }
   // The line of sight's frame: slant range along it, drop perpendicular to it.
   const range = ([x, y]: State) => x * cos + y * sin
   const height = ([x, y]: State) => -x * sin + y * cos

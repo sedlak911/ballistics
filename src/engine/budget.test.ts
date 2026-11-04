@@ -40,6 +40,10 @@ describe('hitChanceCircle', () => {
 })
 
 describe('sensitivities', () => {
+  it('fly in still air whatever zones the input has', () =>
+    expect(sensitivities({ ...l338, windAt: (x) => ({ x: 2, z: x < 500 ? 5 : -3 }) }, 1000)).toEqual(
+      sensitivities(l338, 1000),
+    ))
   it('keeps the bore of the real zero: a 600 m zero does not hide the MV spread', () => {
     // Re-solving the zero for MV + 1 m/s gave 1.36 cm per m/s at 1000 m; the fixed bore gives 2.52.
     for (const zeroM of [100, 300, 600]) expect(sensitivities({ ...l338, zeroM }, 1000)!.mvM).toBeCloseTo(0.02516, 3)

@@ -1,5 +1,6 @@
 import { useId, useRef, type RefObject } from 'react'
 import { NumberField } from '../../../components/NumberField'
+import { Ruler } from '../../../components/Ruler'
 import { Stepper } from '../../../components/Stepper'
 import { useWheelSteps } from '../../../components/useWheelSteps'
 import { SPEED_TO_MS, type UnitSystem } from '../../../engine/units'
@@ -9,6 +10,7 @@ import { WIND_SIGMA_MS, WIND_STEP, useRealProfile, type WindUnit } from '../prof
 import { BOUNDS, type RealSetup } from '../setup'
 import { useStation } from '../station'
 import { useSetDirection } from '../useSetDirection'
+import { setZoneWind, zoneWind, zonesActive, type ZoneName } from '../zones'
 import { offerWind, windSource } from '../windFollow'
 import { saveWindMemory, useWindMemory, windMemoryNow } from '../windMemory'
 import { NBSP, dec, rounded, windText } from './realText'
@@ -25,8 +27,12 @@ type Update = (patch: Partial<RealSetup>) => void
 
 /**
  * The distance: typed, or − and + to the next 10 m or 10 yd. With `wheel`, a wheel notch over it is one such step too.
+ * With `ruler` (the phone), − and + give way to a scale under the figure, dragged sideways in the same steps, and the
+ * arrow keys step it. `shortWord` shows in place of the word Distance (the camera view's), which stays the field's name.
  */
-export function DistanceTool({ setup, update, system, wheel = false }: { setup: RealSetup; update: Update; system: UnitSystem; wheel?: boolean }) {
+export function DistanceTool({ setup, update, system, wheel = false, ruler = false, shortWord }: {
+  setup: RealSetup; update: Update; system: UnitSystem; wheel?: boolean; ruler?: boolean; shortWord?: string
+}) {
   const { t } = useSettings()
   const ref = useRef<HTMLDivElement>(null)
 
@@ -50,14 +56,17 @@ export function DistanceTool({ setup, update, system, wheel = false }: { setup: 
   useWheelSteps(ref, (n) => stepDistance(n > 0 ? 1 : -1, Math.abs(n)), { enabled: wheel, pxPerStep: 100 })
   const distanceWord = t('real.distance')
   return (
-    <div ref={ref} className="real-tool real-distance">
-      <button type="button" className="real-step" aria-label={t('step.dec', { what: distanceWord })} disabled={shown <= lo}
-        onClick={() => stepDistance(-1)}>−</button>
-      <NumberField label={distanceWord} value={shown} unit={distUnit} min={lo} max={hi} step={DISTANCE_STEP} snap
+    <div ref={ref} className={ruler ? 'real-tool real-distance has-ruler' : 'real-tool real-distance'}>
+      {!ruler && <button type="button" className="real-step" aria-label={t('step.dec', { what: distanceWord })} disabled={shown <= lo}
+        onClick={() => stepDistance(-1)}>−</button>}
+      <NumberField label={shortWord ?? distanceWord} ariaLabel={shortWord ? distanceWord : undefined} value={shown} unit={distUnit} min={lo} max={hi}
+        step={DISTANCE_STEP} snap sideArrows={ruler}
         onChange={(v) => update({ distanceM: toMetres(v) })}
         invalidText={t('real.distanceInvalid', { min: lo, max: `${hi}${NBSP}${distUnit}` })} />
-      <button type="button" className="real-step" aria-label={t('step.inc', { what: distanceWord })} disabled={shown >= hi}
-        onClick={() => stepDistance(1)}>+</button>
+      {ruler && <Ruler value={shown} min={lo} max={hi} step={DISTANCE_STEP} pxPerStep={6} labelEvery={100}
+        onChange={(v) => update({ distanceM: toMetres(v) })} />}
+      {!ruler && <button type="button" className="real-step" aria-label={t('step.inc', { what: distanceWord })} disabled={shown >= hi}
+        onClick={() => stepDistance(1)}>+</button>}
     </div>
   )
 }
@@ -67,7 +76,9 @@ export function DistanceTool({ setup, update, system, wheel = false }: { setup: 
  * the segment's tooltip and description, where there is no room for a line. With `live`, the field shows that reading in the
  * accent and can't be changed until the aiming ends.
  */
-export function SlopeTool({ setup, update, hint, live }: { setup: RealSetup; update: Update; hint: 'line' | 'title'; live?: number }) {
+export function SlopeTool({ setup, update, hint, live, inputRef }: {
+  setup: RealSetup; update: Update; hint: 'line' | 'title'; live?: number; inputRef?: RefObject<HTMLInputElement | null>
+}) {
   const { t } = useSettings()
   const hintId = `real-slope-hint-${useId()}`
   const word = t('real.slope')
@@ -82,7 +93,7 @@ export function SlopeTool({ setup, update, hint, live }: { setup: RealSetup; upd
         <button type="button" className="real-step" aria-label={t('step.dec', { what: word })} disabled={live !== undefined || shown <= min}
           onClick={() => go(-1)}>−</button>
         <NumberField label={word} value={shown} unit="°" min={min} max={max} step={SLOPE_STEP} disabled={live !== undefined}
-          onChange={(v) => update({ slopeDeg: v })} invalidText={t('real.slopeInvalid')} />
+          inputRef={inputRef} onChange={(v) => update({ slopeDeg: v })} invalidText={t('real.slopeInvalid')} />
         <button type="button" className="real-step" aria-label={t('step.inc', { what: word })} disabled={live !== undefined || shown >= max}
           onClick={() => go(1)}>+</button>
         {hint === 'title' && <span id={hintId} className="real-hint-vh">{hintText}</span>}
@@ -94,16 +105,20 @@ export function SlopeTool({ setup, update, hint, live }: { setup: RealSetup; upd
 
 /**
  * The wind speed in the owner's unit, snapped to that unit's step; the setup keeps m/s. Until the wind is set, typing the
- * calm it shows sets it too.
+ * calm it shows sets it too. With `zone`, it edits that zone's wind (the first edit of a mid or far zone gives it a wind of
+ * its own); without, the near wind.
  */
-export function WindSpeedTool({ setup, update, windUnit }: { setup: RealSetup; update: Update; windUnit: WindUnit }) {
+export function WindSpeedTool({ setup, update, windUnit, zone }: { setup: RealSetup; update: Update; windUnit: WindUnit; zone?: ZoneName }) {
   const { t, display } = useSettings()
   const perUnit = SPEED_TO_MS[windUnit]
   const windStep = WIND_STEP[windUnit]
-  const windShown = setup.windMs / perUnit
+  const windShown = (zone ? zoneWind(setup, zone).ms : setup.windMs) / perUnit
   const speedWord = t('real.windSpeed')
   const windMax = Math.floor((BOUNDS.windMs.max / perUnit) * 10 + 1e-9) / 10
-  const storeWind = (v: number) => update({ windMs: Math.min(BOUNDS.windMs.max, Math.round(rounded(v, 1) * perUnit * 1000) / 1000) })
+  const storeWind = (v: number) => {
+    const ms = Math.min(BOUNDS.windMs.max, Math.round(rounded(v, 1) * perUnit * 1000) / 1000)
+    update(zone ? setZoneWind(setup, zone, { ms }) : { windMs: ms })
+  }
   const stepWind = (dir: 1 | -1) => {
     const base = rounded(windShown, 1)
     const next = (dir > 0 ? Math.floor(base / windStep + 1e-9) + 1 : Math.ceil(base / windStep - 1e-9) - 1) * windStep
@@ -182,14 +197,17 @@ export function ForecastLine({ setup, update, now, onNeedDirection }: { setup: R
   const speed = `${dec(offer.shown, 1, display.lang).replace(/[.,]0$/, '')}${NBSP}${profile.windUnit}`
   const from = t('real.cardinals').split(' ')[offer.cardinal]
   const following = profile.forecastWind === 'auto' && windSource(setup, mem) === 'forecast' && (offer.calm || offer.hour !== null)
+  // Use fills every zone only while the line says ` (all zones)`: under 300 m the mid and far winds are off screen, and stay.
+  const allZones = zonesActive(setup)
+  const all = allZones ? t('fc.allZones') : ''
   const text = following ? (offer.calm ? t('fc.followingCalm', { where }) : t('fc.following', { where, speed, from, h: offer.hour ?? 0 }))
-    : offer.calm ? t('fc.calm', { where })
+    : (offer.calm ? t('fc.calm', { where })
     : offer.hour === null ? t('fc.line', { where, speed, from })
-    : t('fc.lineHour', { where, speed, from, h: offer.hour })
+    : t('fc.lineHour', { where, speed, from, h: offer.hour })) + all
   const use = () => {
     const model = station.model
     if (!model || model.windFromDeg == null) return
-    const { patch, memory } = offerWind(offer, model.windFromDeg, setup, windMemoryNow(), station.azimuthDeg?.value ?? null)
+    const { patch, memory } = offerWind(offer, model.windFromDeg, setup, windMemoryNow(), station.azimuthDeg?.value ?? null, allZones)
     saveWindMemory(memory)
     update(patch)
   }

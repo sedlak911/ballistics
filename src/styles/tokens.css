@@ -16,6 +16,8 @@
   /* Scope inks */
   --reticle: #0a0a0a;
   --target: #141517;
+  /* The camera view's illuminated centre: red reads against sky and trees alike. */
+  --reticle-lit: #ff5a5a;
 
   /* Penetration ratings: 2 usually penetrates, 1 magdump only, 0 pointless */
   --pen-2: var(--accent);

@@ -1,6 +1,7 @@
 import { Segmented } from '../../../components/Segmented'
 import { useSettings } from '../../../settings/SettingsContext'
-import { WIND_UNITS, useRealProfile } from '../profile'
+import { isStandalone } from '../../../install'
+import { WIND_UNITS, effectiveAimMode, useRealProfile } from '../profile'
 import { useMedia, PHONE } from '../../../components/useMedia'
 import { hasCompass } from './compass'
 
@@ -27,8 +28,9 @@ export function RealDisplaySettings() {
       {phone && hasCompass() && (
         <div className="sheet-row">
           <span className="label">{t('rs.aiming')}</span>
-          <Segmented label={t('rs.aiming')} value={profile.aimMode} onChange={(aimMode) => setProfile({ aimMode })}
+          <Segmented label={t('rs.aiming')} value={effectiveAimMode(profile, isStandalone())} onChange={(aimMode) => setProfile({ aimMode, aimChosen: true })}
             options={[{ value: 'simple', label: t('rs.aimSimple') }, { value: 'camera', label: t('rs.aimCamera') }]} />
+          <span className="hint">{t('rs.aimHint')}</span>
         </div>
       )}
       <div className="sheet-row rs-primary">

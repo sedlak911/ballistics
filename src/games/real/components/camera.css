@@ -1,14 +1,16 @@
-/* The camera aiming view: the rear camera full screen, a crosshair, the title and ✕ on top, the reading and Use at the foot.
-   It lives in the dock (z-index 20), over the page; the ⓘ and ⚙ sheets (30 and up) still go over it. */
+/* The camera view, the shot screen of the camera style: the rear camera full screen behind frosted glass, with a clear lens
+   cut in it; the title, the compass tape, the lens, then the status, the figures, the distance and Use.
+   It lives in the dock (z-index 20), over the panel and the page; the ⓘ and ⚙ sheets (30 and up) still go over it. */
 .real-cam {
   position: fixed;
   inset: 0;
   z-index: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  overflow: hidden;
   background: var(--bg);
   color: var(--fg);
+  outline: none;
 }
 
 .real-cam-video {
@@ -19,58 +21,36 @@
   object-fit: cover;
 }
 
-/* The cross: four arms round an open centre and a dot, in the signal red so it shows on grass and sky alike. */
-.real-cam-cross {
+/* The surround: the app's glass over the camera, so the picture shows through blurred and dimmed. The lens is a hole in it,
+   where CameraAim measures the lens (--hole-x, --hole-y, --hole-r). Plain --panel under reduced transparency (tokens.css). */
+.real-cam-glass {
   position: absolute;
-  left: 50%;
-  top: 46%;
-  width: 0;
-  height: 0;
-  pointer-events: none;
+  inset: 0;
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  mask-image: radial-gradient(circle var(--hole-r, 0px) at var(--hole-x, 50%) var(--hole-y, 50%),
+      transparent calc(var(--hole-r, 0px) - 0.5px), black var(--hole-r, 0px));
 }
 
-.real-cam-cross::before,
-.real-cam-cross::after,
-.real-cam-cross i {
-  content: '';
-  position: absolute;
-  background: var(--bad);
-}
-
-/* Horizontal arms (::before) and vertical arms (::after) are each one bar with the centre cut out by the dot's gap. */
-.real-cam-cross::before {
-  left: -120px;
-  top: -1px;
-  width: 240px;
-  height: 2px;
-  mask: linear-gradient(90deg, black 0 calc(50% - 20px), transparent 0 calc(50% + 20px), black 0);
-}
-
-.real-cam-cross::after {
-  top: -120px;
-  left: -1px;
-  height: 240px;
-  width: 2px;
-  mask: linear-gradient(180deg, black 0 calc(50% - 20px), transparent 0 calc(50% + 20px), black 0);
-}
-
-.real-cam-cross i {
-  left: -3px;
-  top: -3px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+/* The rows sit over the glass. */
+.real-cam-top,
+.real-cam-tape,
+.real-cam-room,
+.real-cam-foot {
+  position: relative;
+  z-index: 1;
 }
 
 .real-cam-top {
-  position: relative;
   display: flex;
+  flex: none;
   align-items: center;
-  justify-content: space-between;
-  padding: calc(10px + var(--safe-top)) max(16px, var(--safe-right)) 10px max(16px, var(--safe-left));
+  gap: 8px;
+  padding: calc(8px + var(--safe-top)) max(16px, var(--safe-right)) 8px max(16px, var(--safe-left));
 }
 
-.real-cam-top .label {
+.real-cam-top h2 {
+  flex: 1;
   margin: 0;
   color: var(--fg-strong);
 }
@@ -78,49 +58,210 @@
 .real-cam-top .icon-btn {
   width: 44px;
   height: 44px;
-  background: color-mix(in srgb, var(--bg) 50%, transparent);
+}
+
+/* The compass tape: it slides under the fixed accent mark; its ends fade like the ruler's. */
+.real-cam-tape {
+  display: flex;
+  flex: none;
+  justify-content: center;
+  height: 38px;
+  mask-image: linear-gradient(to right, transparent, black 18%, black 82%, transparent);
+}
+
+.real-cam-tape svg {
+  display: block;
+  flex: none;
+}
+
+.real-cam-tick {
+  fill: none;
+  stroke: color-mix(in srgb, var(--fg) 45%, transparent);
+  stroke-width: 1;
+}
+
+.real-cam-deg {
+  fill: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.real-cam-deg.is-cardinal {
+  fill: var(--fg);
+}
+
+.real-cam-mark {
+  fill: var(--accent);
+}
+
+/* The room left between the tape and the foot: the lens is centred in it, nearly the full width, and never taller than
+   the room (a short screen, a browser's bars), with space for the ring round it and a little air under the tape's mark. */
+.real-cam-room {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+  container-type: size;
+}
+
+/* The lens: clear, a soft dark vignette inside its edge and a hairline rim. */
+.real-cam-lens {
+  position: relative;
+  width: min(92vw, 360px, 100cqh - 40px);
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, transparent 80%, rgb(0 0 0 / 0.5));
+}
+
+/* The reticle's units put the lens's radius at 165 and the drawing's edge at 180, so the ring (171) fits round it. */
+.real-cam-reticle {
+  position: absolute;
+  left: calc(-15 / 330 * 100%);
+  top: calc(-15 / 330 * 100%);
+  width: calc(360 / 330 * 100%);
+  height: calc(360 / 330 * 100%);
+  overflow: visible;
+}
+
+/* The duplex: black posts with a faint light halo, then a thin red centre and dot, lit so they read on sky and trees alike. */
+.real-cam-post-halo,
+.real-cam-post,
+.real-cam-lit-halo,
+.real-cam-lit {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.real-cam-post-halo {
+  stroke: rgb(255 255 255 / 0.3);
+  stroke-width: 6;
+}
+
+.real-cam-post {
+  stroke: var(--reticle);
+  stroke-width: 4;
+}
+
+.real-cam-lit-halo {
+  stroke: color-mix(in srgb, var(--reticle-lit) 35%, transparent);
+  stroke-width: 4;
+}
+
+.real-cam-lit {
+  stroke: var(--reticle-lit);
+  stroke-width: 1.8;
+}
+
+.real-cam-dot {
+  fill: var(--reticle-lit);
+}
+
+/* Holding still fills the ring round the rim from 12 o'clock; locked, it is full and glows softly (steady, no animation). */
+.real-cam-track,
+.real-cam-ring {
+  fill: none;
+  stroke-width: 3;
+}
+
+.real-cam-track {
+  stroke: var(--border-strong);
+}
+
+.real-cam-ring {
+  stroke: var(--accent);
+  transition: stroke-dasharray 0.1s linear;
+}
+
+.real-cam-ring.is-locked {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 70%, transparent));
 }
 
 .real-cam-foot {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px max(16px, var(--safe-right)) calc(16px + var(--safe-bottom)) max(16px, var(--safe-left));
-  border-top: 1px solid var(--border);
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-}
-
-.real-cam-pair {
-  display: flex;
+  display: grid;
+  flex: none;
   gap: 12px;
+  padding: 4px max(16px, var(--safe-right)) calc(16px + var(--safe-bottom)) max(16px, var(--safe-left));
 }
 
-.real-cam-pair > div {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid var(--border-strong);
-}
-
-.real-cam-num {
-  font-size: 32px;
-  font-weight: 600;
-  line-height: 1.15;
-  color: var(--fg-strong);
-}
-
-.real-cam-num small {
-  margin-left: 4px;
-  font-size: 14px;
-  font-weight: 400;
+.real-cam-status {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
   color: var(--muted);
 }
 
-.real-cam-foot .rm-msg {
-  margin: 0;
+.real-cam-status.is-locked {
+  color: var(--accent);
 }
 
+/* Direction and slope: two large figures without boxes, a hairline between; a tap types the field instead. */
+.real-cam-duo {
+  display: flex;
+  align-items: flex-end;
+}
+
+.real-cam-read {
+  display: grid;
+  flex: 1;
+  justify-items: start;
+  gap: 2px;
+  min-width: 0;
+  padding: 0 4px;
+  text-align: left;
+}
+
+.real-cam-read + .real-cam-read {
+  padding-left: 16px;
+  border-left: 1px solid var(--border-strong);
+}
+
+.real-cam-read .num {
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  color: var(--fg-strong);
+}
+
+.real-cam-read .num small {
+  margin-left: 4px;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+
+.real-cam-none {
+  color: var(--muted);
+}
+
+/* The distance: the shot panel's ruler field, with its short word in the corner. The glass behind it is blur enough. */
+.real-cam .real-distance.has-ruler {
+  flex-direction: column;
+  align-items: stretch;
+  height: 60px;
+  background: color-mix(in srgb, var(--bg) 25%, transparent);
+  backdrop-filter: none;
+}
+
+.real-cam .real-distance .number-field > .label {
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  padding: 0;
+}
+
+.real-cam .real-distance .number-field-row input {
+  font-size: 21px;
+  font-weight: 600;
+}
+
+/* Inert until the lock, then lit: the looks are in real.css, shared with the shot panel's Use. */
 .btn.real-cam-use {
   width: 100%;
-  min-height: 52px;
+  height: 52px;
 }

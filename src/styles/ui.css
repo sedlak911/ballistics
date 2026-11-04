@@ -143,7 +143,8 @@
 }
 
 .icon-btn:hover,
-.icon-btn[aria-expanded='true'] {
+.icon-btn[aria-expanded='true'],
+.icon-btn[aria-pressed='true'] {
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 60%, transparent);
 }
@@ -933,4 +934,54 @@ body:has(> .real-dock > .real-panel) > .install-note {
   .switch {
     height: 44px;
   }
+}
+
+/* Ruler: a tape-measure scale dragged sideways under a number. A swipe up or down still scrolls the page. */
+.ruler {
+  position: relative;
+  flex: none;
+  height: 24px;
+  touch-action: pan-y;
+  cursor: ew-resize;
+  user-select: none;
+  -webkit-user-select: none;
+  mask-image: linear-gradient(to right, transparent, black 22%, black 78%, transparent);
+}
+
+.ruler svg {
+  display: block;
+}
+
+.ruler-tick {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.ruler-tick-mid {
+  opacity: 0.8;
+}
+
+.ruler-tick-long {
+  opacity: 1;
+}
+
+.ruler-label {
+  fill: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The value: a fixed accent mark at the centre, over the scale. */
+.ruler-mark {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 2px;
+  height: 15px;
+  margin-left: -1px;
+  background: var(--accent);
+  pointer-events: none;
 }

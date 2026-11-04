@@ -41,6 +41,10 @@ export interface NumberFieldProps {
   inputRef?: Ref<HTMLInputElement>
   /** The box shows the value but can't be edited (the caller says why, e.g. a live reading). */
   disabled?: boolean
+  /** ArrowLeft and ArrowRight step like ArrowDown and ArrowUp (for a field with a sideways ruler), at the cost of moving the caret. */
+  sideArrows?: boolean
+  /** The field's accessible name, where the label shown is a short form of it (`Dist.` for Distance). */
+  ariaLabel?: string
 }
 
 const show = (v: number | null) => (v === null ? '' : String(+v.toPrecision(10)))
@@ -60,7 +64,7 @@ function parse(text: string, min: number, max: number): number | null {
  * aria-describedby) until the user corrects it. A new `value` or `unit` from outside replaces the text. A value
  * `outOfRange` is shown as it is and flagged at once.
  */
-export function NumberField({ label, value, unit, units, onUnit, min, max, step = 1, onChange, invalidText, placeholder, onClear, needed = false, onDraft, commitSame = false, snap = false, aside, mark, outOfRange = false, inputRef, disabled = false }: NumberFieldProps) {
+export function NumberField({ label, value, unit, units, onUnit, min, max, step = 1, onChange, invalidText, placeholder, onClear, needed = false, onDraft, commitSame = false, snap = false, aside, mark, outOfRange = false, inputRef, disabled = false, sideArrows = false, ariaLabel }: NumberFieldProps) {
   const uid = useId()
   const inputId = `nf-${uid}`
   const errorId = `nf-err-${uid}`
@@ -124,14 +128,15 @@ export function NumberField({ label, value, unit, units, onUnit, min, max, step 
           value={text}
           disabled={disabled}
           placeholder={placeholder}
+          aria-label={ariaLabel}
           aria-invalid={invalid}
           aria-describedby={invalid ? errorId : undefined}
           onChange={(e) => { setText(e.target.value); setInvalid(false); setTyped(true); onDraft?.(parse(e.target.value, min, max)) }}
           onBlur={commit}
           onKeyDown={(e) => {
             if (e.key === 'Enter') { e.preventDefault(); commit() }
-            else if (e.key === 'ArrowUp') { e.preventDefault(); stepBy(1) }
-            else if (e.key === 'ArrowDown') { e.preventDefault(); stepBy(-1) }
+            else if (e.key === 'ArrowUp' || (sideArrows && e.key === 'ArrowRight')) { e.preventDefault(); stepBy(1) }
+            else if (e.key === 'ArrowDown' || (sideArrows && e.key === 'ArrowLeft')) { e.preventDefault(); stepBy(-1) }
           }}
         />
         {units && units.length > 1 && onUnit
