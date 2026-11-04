@@ -19,7 +19,7 @@ function Page({ start, system, windUnit = 'm/s' }: { start?: Partial<RealSetup>;
   return (
     <SettingsProvider route={route} navigate={navigate}>
       <button type="button">elsewhere</button>
-      {[250, 450, 650].map((d) => <button key={d} type="button" onClick={() => setSetup((s) => ({ ...s, distanceM: d }))}>to {d}</button>)}
+      {[250, 450, 650, 950, 1250, 1600].map((d) => <button key={d} type="button" onClick={() => setSetup((s) => ({ ...s, distanceM: d }))}>to {d}</button>)}
       <Dock setup={setup} update={(patch) => setSetup((s) => ({ ...s, ...patch }))} system={system} windUnit={windUnit} now={NOW} weights={[48, 37, 15]} />
     </SettingsProvider>
   )
@@ -450,6 +450,9 @@ describe('Aim in the shot panel', () => {
 })
 
 describe('The wind zones', () => {
+  // The zones start at 1000 m: every mount here is at 1500 m unless a test says otherwise.
+  const mountZoned = (start?: Partial<RealSetup>, system: UnitSystem = 'metric', windUnit: WindUnit = 'm/s') =>
+    mount({ distanceM: 1500, ...start }, system, windUnit)
   const openWind = () => {
     fireEvent.click(windButton())
     return screen.getByRole('region', { name: /^Wind/ })
@@ -458,20 +461,20 @@ describe('The wind zones', () => {
   const cells = (panel: HTMLElement) => within(panel).getAllByRole('button', { name: /^(Near|Middle|Far)/ })
   const own = { zonesOn: true, windMid: { ms: 3, clock: 9 } }
 
-  it('offers the ? always and the zones icon only from 300 m', () => {
-    mount({ distanceM: 250 })
+  it('offers the ? always and the zones icon only from 1000 m', () => {
+    mountZoned({ distanceM: 950 })
     let panel = openWind()
     expect(within(panel).getByRole('button', { name: 'How to read the wind' })).toBeInTheDocument()
     expect(zonesIcon(panel)).toBeNull()
     cleanup()
-    mount({ distanceM: 600 })
+    mountZoned({ distanceM: 1000 })
     panel = openWind()
     expect(within(panel).getByRole('button', { name: 'How to read the wind' })).toBeInTheDocument()
     expect(zonesIcon(panel)).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('turns the zones on and off with the icon', () => {
-    mount()
+    mountZoned()
     const panel = openWind()
     fireEvent.click(zonesIcon(panel)!)
     expect(latest.current.zonesOn).toBe(true)
@@ -483,7 +486,7 @@ describe('The wind zones', () => {
   })
 
   it('shows the hint with one wind and the strip instead of it with zones', () => {
-    mount()
+    mountZoned()
     const panel = openWind()
     expect(within(panel).getByText(/^Read it out to half the distance/)).toBeInTheDocument()
     fireEvent.click(zonesIcon(panel)!)
@@ -491,18 +494,18 @@ describe('The wind zones', () => {
   })
 
   it('draws a cell for each zone, with its weight, wind and range', () => {
-    mount(own)
+    mountZoned(own)
     const panel = openWind()
     const [near, mid, far] = cells(panel)
-    expect(near).toHaveTextContent('Near48 %4 · 9 h0–200 m')
-    expect(mid).toHaveTextContent('Middle37 %3 · 9 h200–400 m')
-    expect(far).toHaveTextContent('Far15 %same as near400–600 m')
+    expect(near).toHaveTextContent('Near48 %4 · 9 h0–500 m')
+    expect(mid).toHaveTextContent('Middle37 %3 · 9 h500–1000 m')
+    expect(far).toHaveTextContent('Far15 %same as near1000–1500 m')
     expect(near).toHaveAttribute('aria-pressed', 'true')
     expect(mid).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('edits the selected zone and leaves the near wind alone', () => {
-    mount(own)
+    mountZoned(own)
     const panel = openWind()
     fireEvent.click(cells(panel)[1])
     expect(cells(panel)[1]).toHaveAttribute('aria-pressed', 'true')
@@ -512,7 +515,7 @@ describe('The wind zones', () => {
   })
 
   it('gives a zone with no wind of its own the near hour, then its own on a clock edit', () => {
-    mount({ zonesOn: true })
+    mountZoned({ zonesOn: true })
     const panel = openWind()
     fireEvent.click(cells(panel)[2])
     fireEvent.keyDown(within(panel).getByRole('slider'), { key: 'ArrowRight' })
@@ -521,7 +524,7 @@ describe('The wind zones', () => {
   })
 
   it('returns an own zone to the near wind with Same as near', () => {
-    mount({ zonesOn: true, windFar: { ms: 2, clock: 3 } })
+    mountZoned({ zonesOn: true, windFar: { ms: 2, clock: 3 } })
     const panel = openWind()
     expect(within(panel).queryByRole('button', { name: 'Same as near' })).toBeNull()
     fireEvent.click(cells(panel)[2])
@@ -532,7 +535,7 @@ describe('The wind zones', () => {
   })
 
   it('shows no reset on the near zone or on a zone that follows it', () => {
-    mount(own)
+    mountZoned(own)
     const panel = openWind()
     expect(within(panel).queryByRole('button', { name: 'Same as near' })).toBeNull()
     fireEvent.click(cells(panel)[2])
@@ -541,19 +544,19 @@ describe('The wind zones', () => {
 
   it('crosses the thresholds with the panel open', () => {
     seedStation(180, true)
-    mount({ zonesOn: true, windFar: { ms: 2, clock: 3 } })
+    mountZoned({ zonesOn: true, windFar: { ms: 2, clock: 3 } })
     const panel = openWind()
     expect(within(panel).getByText(/all zones/)).toBeInTheDocument()
     fireEvent.click(cells(panel)[1])
-    fireEvent.click(screen.getByRole('button', { name: 'to 450' }))
+    fireEvent.click(screen.getByRole('button', { name: 'to 1250' }))
     expect(within(panel).getByText(/all zones/)).toBeInTheDocument()
     expect(cells(panel)).toHaveLength(2)
     expect(cells(panel)[0]).toHaveAttribute('aria-pressed', 'true')
     expect(cells(panel)[1]).toHaveTextContent('Far')
-    expect(cells(panel)[1]).toHaveTextContent('230–450 m')
+    expect(cells(panel)[1]).toHaveTextContent('630–1250 m')
     expect(windButton()).toHaveTextContent('2 zones')
 
-    fireEvent.click(screen.getByRole('button', { name: 'to 250' }))
+    fireEvent.click(screen.getByRole('button', { name: 'to 950' }))
     expect(within(panel).queryByRole('group', { name: 'Wind · zones' })).toBeNull()
     expect(within(panel).getByText('Wind')).toBeInTheDocument()
     expect(within(panel).getByText(/^Read it out to half the distance/)).toBeInTheDocument()
@@ -562,41 +565,41 @@ describe('The wind zones', () => {
     expect(zonesIcon(panel)).toBeNull()
     expect(latest.current.zonesOn).toBe(true)
 
-    fireEvent.click(screen.getByRole('button', { name: 'to 650' }))
+    fireEvent.click(screen.getByRole('button', { name: 'to 1600' }))
     expect(cells(panel)).toHaveLength(3)
     expect(cells(panel)[0]).toHaveAttribute('aria-pressed', 'true')
     expect(cells(panel)[2]).toHaveTextContent('2 · 3 h')
   })
 
   it('reads 3 zones on the closed dock button', () => {
-    mount(own)
+    mountZoned(own)
     expect(windButton()).toHaveTextContent('3 zones')
   })
 
   it('keeps the hour in every cell: the speed is shown without its unit, in full in the cell\'s name', () => {
-    mount({ zonesOn: true, windMs: 4.5, windClock: 10, windMid: { ms: 16.2 / 3.6, clock: 12 } }, 'metric', 'km/h')
+    mountZoned({ zonesOn: true, windMs: 4.5, windClock: 10, windMid: { ms: 16.2 / 3.6, clock: 12 } }, 'metric', 'km/h')
     const panel = openWind()
     const [near, mid] = cells(panel)
     expect(near).toHaveTextContent('16.2 · 10 h')
     expect(mid).toHaveTextContent('16.2 · 12 h')
-    expect(label(near)).toBe('Near, 48 %, 16.2 km/h · 10 h, 0–200 m')
-    expect(label(cells(panel)[2])).toBe('Far, 15 %, same as near, 400–600 m')
+    expect(label(near)).toBe('Near, 48 %, 16.2 km/h · 10 h, 0–500 m')
+    expect(label(cells(panel)[2])).toBe('Far, 15 %, same as near, 1000–1500 m')
   })
 
   it('shows the ranges in yards and the speeds converted to the wind unit with imperial units', () => {
-    mount({ ...own, windMs: 4.5, windClock: 10 }, 'imperial', 'mph')
+    mountZoned({ ...own, windMs: 4.5, windClock: 10 }, 'imperial', 'mph')
     const panel = openWind()
     const [near, mid, far] = cells(panel)
-    expect(near).toHaveTextContent('0–220 yd')
-    expect(mid).toHaveTextContent('220–440 yd')
-    expect(far).toHaveTextContent('440–660 yd')
+    expect(near).toHaveTextContent('0–550 yd')
+    expect(mid).toHaveTextContent('550–1090 yd')
+    expect(far).toHaveTextContent('1090–1640 yd')
     expect(near).toHaveTextContent('10.1 · 10 h')
     expect(mid).toHaveTextContent('6.7 · 9 h')
-    expect(label(near)).toBe('Near, 48 %, 10.1 mph · 10 h, 0–220 yd')
+    expect(label(near)).toBe('Near, 48 %, 10.1 mph · 10 h, 0–550 yd')
   })
 
   it('goes back to Near when the zones are turned off and on again', () => {
-    mount(own)
+    mountZoned(own)
     const panel = openWind()
     fireEvent.click(cells(panel)[1])
     fireEvent.click(zonesIcon(panel)!)

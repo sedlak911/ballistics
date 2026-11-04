@@ -27,8 +27,9 @@ type Update = (patch: Partial<RealSetup>) => void
 
 /**
  * The distance: typed, or − and + to the next 10 m or 10 yd. With `wheel`, a wheel notch over it is one such step too.
- * With `ruler` (the phone), − and + give way to a scale under the figure, dragged sideways in the same steps, and the
- * arrow keys step it. `shortWord` shows in place of the word Distance (the camera view's), which stays the field's name.
+ * With `ruler` (the phone), − and + give way to a scale under the figure: the whole box drags sideways in the same steps,
+ * a tap on the figure types, and the arrow keys step it. `shortWord` shows in place of the word Distance (the camera
+ * view's), which stays the field's name.
  */
 export function DistanceTool({ setup, update, system, wheel = false, ruler = false, shortWord }: {
   setup: RealSetup; update: Update; system: UnitSystem; wheel?: boolean; ruler?: boolean; shortWord?: string
@@ -55,16 +56,20 @@ export function DistanceTool({ setup, update, system, wheel = false, ruler = fal
   // A 100 px mouse notch is one step.
   useWheelSteps(ref, (n) => stepDistance(n > 0 ? 1 : -1, Math.abs(n)), { enabled: wheel, pxPerStep: 100 })
   const distanceWord = t('real.distance')
+  const field = (
+    <NumberField label={shortWord ?? distanceWord} ariaLabel={shortWord ? distanceWord : undefined} value={shown} unit={distUnit} min={lo} max={hi}
+      step={DISTANCE_STEP} snap sideArrows={ruler}
+      onChange={(v) => update({ distanceM: toMetres(v) })}
+      invalidText={t('real.distanceInvalid', { min: lo, max: `${hi}${NBSP}${distUnit}` })} />
+  )
   return (
     <div ref={ref} className={ruler ? 'real-tool real-distance has-ruler' : 'real-tool real-distance'}>
       {!ruler && <button type="button" className="real-step" aria-label={t('step.dec', { what: distanceWord })} disabled={shown <= lo}
         onClick={() => stepDistance(-1)}>−</button>}
-      <NumberField label={shortWord ?? distanceWord} ariaLabel={shortWord ? distanceWord : undefined} value={shown} unit={distUnit} min={lo} max={hi}
-        step={DISTANCE_STEP} snap sideArrows={ruler}
-        onChange={(v) => update({ distanceM: toMetres(v) })}
-        invalidText={t('real.distanceInvalid', { min: lo, max: `${hi}${NBSP}${distUnit}` })} />
-      {ruler && <Ruler value={shown} min={lo} max={hi} step={DISTANCE_STEP} pxPerStep={6} labelEvery={100}
-        onChange={(v) => update({ distanceM: toMetres(v) })} />}
+      {ruler ? (
+        <Ruler value={shown} min={lo} max={hi} step={DISTANCE_STEP} pxPerStep={6} labelEvery={100}
+          onChange={(v) => update({ distanceM: toMetres(v) })}>{field}</Ruler>
+      ) : field}
       {!ruler && <button type="button" className="real-step" aria-label={t('step.inc', { what: distanceWord })} disabled={shown >= hi}
         onClick={() => stepDistance(1)}>+</button>}
     </div>
@@ -197,7 +202,7 @@ export function ForecastLine({ setup, update, now, onNeedDirection }: { setup: R
   const speed = `${dec(offer.shown, 1, display.lang).replace(/[.,]0$/, '')}${NBSP}${profile.windUnit}`
   const from = t('real.cardinals').split(' ')[offer.cardinal]
   const following = profile.forecastWind === 'auto' && windSource(setup, mem) === 'forecast' && (offer.calm || offer.hour !== null)
-  // Use fills every zone only while the line says ` (all zones)`: under 300 m the mid and far winds are off screen, and stay.
+  // Use fills every zone only while the line says ` (all zones)`: under 1000 m the mid and far winds are off screen, and stay.
   const allZones = zonesActive(setup)
   const all = allZones ? t('fc.allZones') : ''
   const text = following ? (offer.calm ? t('fc.followingCalm', { where }) : t('fc.following', { where, speed, from, h: offer.hour ?? 0 }))

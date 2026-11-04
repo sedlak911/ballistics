@@ -936,19 +936,34 @@ body:has(> .real-dock > .real-panel) > .install-note {
   }
 }
 
-/* Ruler: a tape-measure scale dragged sideways under a number. A swipe up or down still scrolls the page. */
+/* Ruler: a number over a tape-measure scale; the whole surface drags sideways. It takes the whole touch, so the browser
+   never turns a slanted swipe into a scroll (a swipe up or down on it scrolls nothing). */
 .ruler {
+  display: flex;
+  flex-direction: column;
+  touch-action: none;
+  cursor: ew-resize;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The word and the unit are part of the drag surface; the input is not, so a tap there selects and types. */
+.ruler .label,
+.ruler .unit {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.ruler-scale {
   position: relative;
   flex: none;
   height: 24px;
-  touch-action: pan-y;
-  cursor: ew-resize;
   user-select: none;
   -webkit-user-select: none;
   mask-image: linear-gradient(to right, transparent, black 22%, black 78%, transparent);
 }
 
-.ruler svg {
+.ruler-scale svg {
   display: block;
 }
 

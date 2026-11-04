@@ -21,7 +21,7 @@ const OPEN_SURFACES: [string, string][] = [
   ['src/games/real/components/settings.css', '.rs-sheet.panel'],
   ['src/games/real/components/calc.css', '.calc-sheet.panel'],
   ['src/games/real/components/real.css', '.real-panel'],
-  ['src/games/real/components/camera.css', '.real-cam-glass'],
+  ['src/games/real/components/camera.css', '.real-cam'],
   ['src/games/gzw/components/import.css', '.modal.panel'],
 ]
 
@@ -30,6 +30,14 @@ describe('the open surfaces', () => {
     const body = rule(path, selector)
     expect(body).toContain('background: var(--glass);')
     expect(body).toContain('backdrop-filter: var(--glass-blur);')
+  })
+
+  it("show the page round the camera view's lens: the picture is only in the lens, and no hole is cut in the glass", () => {
+    const camera = 'src/games/real/components/camera.css'
+    expect(rule(camera, '.real-cam')).not.toContain('mask')
+    expect(rule(camera, '.real-cam-video')).toContain('border-radius: 50%;')
+    expect(rule(camera, '.real-cam-video')).toContain('object-fit: cover;')
+    expect(css(camera)).not.toMatch(/--hole-|\.real-cam-glass/)
   })
 
   it('turn opaque when the system asks for less transparency', () => {

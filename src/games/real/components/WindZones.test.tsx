@@ -7,7 +7,7 @@ import { DEFAULT_SETUP, type RealSetup } from '../setup'
 import type { ZoneName } from '../zones'
 import { WindZones } from './WindZones'
 
-const SETUP: RealSetup = { ...DEFAULT_SETUP, distanceM: 600, windMs: 4, windClock: 9, windSet: true, zonesOn: true, windMid: { ms: 3, clock: 9 } }
+const SETUP: RealSetup = { ...DEFAULT_SETUP, distanceM: 1500, windMs: 4, windClock: 9, windSet: true, zonesOn: true, windMid: { ms: 3, clock: 9 } }
 
 function Strip({ setup = SETUP, weights = [48, 37, 15], onSelect }: { setup?: RealSetup; weights?: number[] | null; onSelect?: (z: ZoneName) => void }) {
   const [route, navigate] = useRoute()
@@ -47,9 +47,9 @@ describe('WindZones', () => {
     expect(screen.getByRole('button', { name: /^Near/ })).not.toHaveTextContent('%')
   })
 
-  it('draws two cells at 450 m, halves of the distance rounded to 10 m', () => {
-    render(<Strip setup={{ ...SETUP, distanceM: 450 }} weights={[60, 40]} />)
-    expect(screen.getByRole('button', { name: /^Near/ })).toHaveTextContent('0–230 m')
-    expect(screen.getByRole('button', { name: /^Far/ })).toHaveTextContent('230–450 m')
+  it('draws two cells at 1250 m, halves of the distance rounded to 10 m', () => {
+    render(<Strip setup={{ ...SETUP, distanceM: 1250 }} weights={[60, 40]} />)
+    expect(screen.getByRole('button', { name: /^Near/ })).toHaveTextContent('0–630 m')
+    expect(screen.getByRole('button', { name: /^Far/ })).toHaveTextContent('630–1250 m')
   })
 })

@@ -95,6 +95,12 @@ describe('camera aiming', () => {
     expect(document.querySelector('video')).toHaveAttribute('playsinline')
   })
 
+  it('shows the picture only in the lens', async () => {
+    await openOverlay()
+    const video = view().querySelector('video')
+    expect(video?.parentElement).toHaveClass('real-cam-lens')
+  })
+
   it('shows the live Direction and Slope; Use writes them from the camera reading and closes to the page', async () => {
     const on = orientationListeners()
     await openOverlay()

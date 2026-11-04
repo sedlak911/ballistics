@@ -13,6 +13,8 @@ const type = (el: HTMLElement, text: string) => {
   fireEvent.blur(el)
 }
 const stored = () => JSON.parse(localStorage.getItem('gb.real.station') ?? '{}')
+/** Chromium still made a tap (and focused the field) of a 14 px swipe on the 0.1.8 number. */
+const TAP_SLOP_PX = 15
 
 const latest = { current: DEFAULT_SETUP }
 const NOW = Date.now()
@@ -132,6 +134,94 @@ describe('DistanceTool', () => {
       drag(200, 140)
       expect(screen.getByLabelText('Distance')).toHaveValue('600')
       expect(latest.current.distanceM).toBeCloseTo(548.64, 3)
+    })
+
+    describe('a touch on the box', () => {
+      // jsdom has no pointer capture: a stand-in that records where a handler sets it.
+      beforeEach(() => {
+        Element.prototype.setPointerCapture = vi.fn()
+        Element.prototype.releasePointerCapture = vi.fn()
+      })
+      afterEach(() => {
+        delete (Element.prototype as Partial<Element>).setPointerCapture
+        delete (Element.prototype as Partial<Element>).releasePointerCapture
+      })
+      const captures = () => vi.mocked(Element.prototype.setPointerCapture).mock.contexts as Element[]
+
+      /**
+       * A touch on `el` from (200, 100) through `moves` (dx, dy), as a phone's browser sends it: the pressed element holds
+       * the touch until a handler takes the capture, and loses it (a bubbling lostpointercapture) before the next event. A
+       * touch that stays within the tap slop then gets the browser's mousedown, which focuses the field unless prevented.
+       */
+      function touch(el: HTMLElement, moves: [number, number][] = []) {
+        let holder: Element = el
+        const earlier = captures().length
+        const at = ([dx, dy]: [number, number]) => ({ pointerId: 1, pointerType: 'touch', clientX: 200 + dx, clientY: 100 + dy })
+        const send = (type: 'pointerMove' | 'pointerUp', point: [number, number]) => {
+          const to = captures().slice(earlier).at(-1)
+          if (to && to !== holder) {
+            fireEvent.lostPointerCapture(holder, at(point))
+            holder = to
+          }
+          fireEvent[type](holder, at(point))
+        }
+        fireEvent.pointerDown(el, at([0, 0]))
+        for (const point of moves) send('pointerMove', point)
+        send('pointerUp', moves.at(-1) ?? [0, 0])
+        if (moves.every(([dx, dy]) => Math.hypot(dx, dy) <= TAP_SLOP_PX) && fireEvent.mouseDown(el) && el instanceof HTMLInputElement) el.focus()
+      }
+      const box = () => document.querySelector<HTMLElement>('.real-distance')!
+      const field = () => screen.getByLabelText('Distance')
+
+      it('a sideways swipe that starts on the number moves the distance', () => {
+        mount(<Tools start={{ distanceM: 300 }} ruler />)
+        touch(field(), [[-10, 0], [-30, 0], [-60, 0]])
+        expect(latest.current.distanceM).toBe(400)
+        expect(field()).toHaveValue('400')
+      })
+
+      it('a slanted swipe on the box moves it by 10 steps, not 1', () => {
+        mount(<Tools start={{ distanceM: 300 }} ruler />)
+        touch(box().querySelector('.ruler-scale svg')!, [[-8, 3], [-30, 12], [-60, 25]])
+        expect(latest.current.distanceM).toBe(400)
+      })
+
+      it('a tap on the number focuses it and leaves the value', () => {
+        mount(<Tools start={{ distanceM: 300 }} ruler />)
+        touch(field())
+        expect(field()).toHaveFocus()
+        expect(latest.current.distanceM).toBe(300)
+      })
+
+      it('a short swipe that starts on the number moves it and does not focus it', () => {
+        mount(<Tools start={{ distanceM: 300 }} ruler />)
+        touch(field(), [[-7, 0], [-12, 0]])
+        expect(latest.current.distanceM).toBe(320)
+        expect(field()).not.toHaveFocus()
+      })
+
+      it('a swipe that starts on the number while it has the focus leaves it unfocused', () => {
+        mount(<Tools start={{ distanceM: 300 }} ruler />)
+        field().focus()
+        touch(field(), [[-10, 0], [-60, 0]])
+        expect(latest.current.distanceM).toBe(400)
+        expect(field()).not.toHaveFocus()
+      })
+
+      it('a mostly vertical move on the box changes nothing', () => {
+        mount(<Tools start={{ distanceM: 300 }} ruler />)
+        touch(box().querySelector('.ruler-scale svg')!, [[-3, 8], [-20, 40], [-30, 60]])
+        touch(field(), [[2, -10], [10, -50]])
+        expect(latest.current.distanceM).toBe(300)
+        expect(field()).toHaveValue('300')
+      })
+
+      it('in yards a swipe on the number steps 10 yd, and the setup keeps metres', () => {
+        mount(<Tools start={{ distanceM: 457.2 }} system="imperial" ruler />)
+        touch(field(), [[-10, 0], [-60, 0]])
+        expect(field()).toHaveValue('600')
+        expect(latest.current.distanceM).toBeCloseTo(548.64, 3)
+      })
     })
   })
 })
@@ -319,14 +409,14 @@ describe('ForecastLine', () => {
 
   it('with zones active ends in (all zones), and Use clears both zones', () => {
     seed()
-    mount(<Tools start={{ zonesOn: true, distanceM: 700, windMid: { ms: 5, clock: 2 }, windFar: { ms: 7, clock: 3 } }} />)
+    mount(<Tools start={{ zonesOn: true, distanceM: 1600, windMid: { ms: 5, clock: 2 }, windFar: { ms: 7, clock: 3 } }} />)
     expect(screen.getByText('Forecast near the ground: ≈ 2 m/s from S (9 o’clock) (all zones)')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Use' }))
     expect(latest.current).toMatchObject({ windMid: null, windFar: null, windClock: 9 })
   })
 
   it('adds the suffix to the line without an hour and to a calm too', () => {
-    const start = { zonesOn: true, distanceM: 700 }
+    const start = { zonesOn: true, distanceM: 1600 }
     seed({ azimuth: null })
     mount(<Tools start={start} />)
     expect(screen.getByText('Forecast near the ground: ≈ 2 m/s from S (all zones)')).toBeTruthy()
@@ -336,10 +426,10 @@ describe('ForecastLine', () => {
     expect(screen.getByText('Forecast near the ground: calm (all zones)')).toBeTruthy()
   })
 
-  // No zone value is lost without the user's action (spec anti-goal): under 300 m the zones aren't on screen.
-  it('under 300 m has no suffix, and Use sets the near wind and keeps both zones', () => {
+  // No zone value is lost without the user's action (spec anti-goal): under 1000 m the zones aren't on screen.
+  it('under 1000 m has no suffix, and Use sets the near wind and keeps both zones', () => {
     seed()
-    mount(<Tools start={{ zonesOn: true, distanceM: 200, windMid: { ms: 5, clock: 2 }, windFar: { ms: 7, clock: 3 } }} />)
+    mount(<Tools start={{ zonesOn: true, distanceM: 950, windMid: { ms: 5, clock: 2 }, windFar: { ms: 7, clock: 3 } }} />)
     expect(screen.getByText('Forecast near the ground: ≈ 2 m/s from S (9 o’clock)')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Use' }))
     expect(latest.current).toMatchObject({ windMs: 2, windClock: 9, windMid: { ms: 5, clock: 2 }, windFar: { ms: 7, clock: 3 } })

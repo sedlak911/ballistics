@@ -15,6 +15,23 @@ export interface Entry {
 /** Newest first. */
 export const ENTRIES: Entry[] = [
   {
+    version: '0.1.9',
+    date: '2026-11-04',
+    title: { cs: 'Stupnice drží, kamera je v čočce', en: 'The scale holds, the camera sits in the lens' },
+    items: {
+      cs: [
+        'Vzdálenost táhneš po celém boxu, za číslo i za stupnici, a tah se už nezastaví po prvních 10 m. Ťuknutím na číslo ji pořád napíšeš přesně.',
+        'Kamera je jen v kruhu zaměřovače, kolem je přes matné sklo vidět stránka.',
+        'Zóny větru se nabízejí od 1 km (dvě) a od 1,5 km (tři); na kratší střelbu stačí jeden vítr.',
+      ],
+      en: [
+        'Drag the distance anywhere on its box, the number or the scale, and the drag no longer stops after the first 10 m. A tap on the number still lets you type it exactly.',
+        'The camera shows only inside the scope’s circle; around it the page shows through frosted glass.',
+        'Wind zones are offered from 1 km (two) and 1.5 km (three); a shorter shot needs one wind.',
+      ],
+    },
+  },
+  {
     version: '0.1.8',
     date: '2026-11-04',
     title: { cs: 'Zóny větru a míření kamerou', en: 'Wind zones and the camera aim' },

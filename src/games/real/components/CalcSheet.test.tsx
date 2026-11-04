@@ -409,7 +409,7 @@ describe('CalcSheet: says what is off', () => {
 
 describe('CalcSheet: wind zones', () => {
   it('with zones active drops the lag line and gives one line per shown zone', () => {
-    const sheet = openSheet('#/real/workbench?p=p7&d=1000&ws=3&wc=9&zn=1&zf=5,9')
+    const sheet = openSheet('#/real/workbench?p=p7&d=1500&ws=3&wc=9&zn=1&zf=5,9')
     const wind = step(sheet, 'Wind')
     expect(within(wind).queryByText(/lag rule/)).toBeNull()
     expect(wind).toHaveTextContent(/Near: 3 m\/s from 9 o’clock/)
@@ -420,7 +420,7 @@ describe('CalcSheet: wind zones', () => {
   })
 
   it('opposing zones show their side and signed drift, adding up to the drift shown', () => {
-    const sheet = openSheet('#/real/workbench?p=p7&d=600&ws=3&wc=9&zn=1&zm=0,12&zf=3,3')
+    const sheet = openSheet('#/real/workbench?p=p7&d=1500&ws=3&wc=9&zn=1&zm=0,12&zf=3,3')
     const wind = step(sheet, 'Wind')
     expect(wind).toHaveTextContent(/Near: crosswind 3\.0\sm\/s from the left, makes →\d/)
     expect(wind).toHaveTextContent(/Middle: no crosswind, makes 0 of the drift/)

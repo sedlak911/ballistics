@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useRef, type RefObject } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import type { UnitSystem } from '../../../engine/units'
 import { useSettings } from '../../../settings/SettingsContext'
 import { cardinalIndex } from '../forecastWind'
@@ -54,33 +54,11 @@ function CompassTape({ heading, letters }: { heading: number | null; letters: st
   )
 }
 
-/** Cuts the glass round the lens: the lens's centre and radius, measured, go to the glass's mask as CSS variables. */
-function useLensHole(view: RefObject<HTMLDivElement | null>, lens: RefObject<HTMLDivElement | null>) {
-  useLayoutEffect(() => {
-    const v = view.current
-    const l = lens.current
-    if (!v || !l) return
-    const place = () => {
-      const a = v.getBoundingClientRect()
-      const b = l.getBoundingClientRect()
-      v.style.setProperty('--hole-x', `${b.left - a.left + b.width / 2}px`)
-      v.style.setProperty('--hole-y', `${b.top - a.top + b.height / 2}px`)
-      v.style.setProperty('--hole-r', `${b.width / 2}px`)
-    }
-    place()
-    if (typeof ResizeObserver === 'undefined') return
-    // The lens sits in the middle of the room it is given: that room changes size whenever the lens moves.
-    const observer = new ResizeObserver(place)
-    observer.observe(l.parentElement ?? l)
-    return () => observer.disconnect()
-  }, [view, lens])
-}
-
 /**
- * The camera view, the home-screen app's shot screen: the rear camera behind frosted glass, a clear lens with a duplex
- * reticle, the compass tape, the steadiness ring, the direction and slope, the distance and Use. The picture is only shown.
- * It is never drawn to a canvas, saved or sent. The tracks stop when this unmounts, whichever way it goes; the dock decides
- * what Use writes. The distance applies at once; the direction and the slope only with Use.
+ * The camera view, the home-screen app's shot screen: the app's frosted glass over the page, with the rear camera only in
+ * the lens, under a duplex reticle; the compass tape, the steadiness ring, the direction and slope, the distance and Use.
+ * The picture is only shown. It is never drawn to a canvas, saved or sent. The tracks stop when this unmounts, whichever
+ * way it goes; the dock decides what Use writes. The distance applies at once; the direction and the slope only with Use.
  */
 export function CameraAim({ aiming, stream, setup, update, system, onUse, onClose, onSimple, onType }: {
   aiming: ReturnType<typeof useAiming>
@@ -98,7 +76,6 @@ export function CameraAim({ aiming, stream, setup, update, system, onUse, onClos
   const { t } = useSettings()
   const titleId = useId()
   const view = useRef<HTMLDivElement>(null)
-  const lens = useRef<HTMLDivElement>(null)
   const video = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -107,7 +84,6 @@ export function CameraAim({ aiming, stream, setup, update, system, onUse, onClos
   }, [stream])
   // A dialog over the panel: the keyboard and a screen reader start in it.
   useEffect(() => { view.current?.focus({ preventScroll: true }) }, [])
-  useLensHole(view, lens)
 
   const state = aiming.state
   const locked = state.status === 'live' ? state.locked : null
@@ -122,8 +98,6 @@ export function CameraAim({ aiming, stream, setup, update, system, onUse, onClos
 
   return (
     <div ref={view} className="real-cam" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} data-testid="real-camera">
-      <video ref={video} className="real-cam-video" autoPlay playsInline muted />
-      <div className="real-cam-glass" aria-hidden="true" />
       <div className="real-cam-top">
         <h2 id={titleId} className="label">{t('aim.title')}</h2>
         <button type="button" className="icon-btn" aria-label={t('aim.toSimple')} title={t('aim.toSimple')} onClick={onSimple}>
@@ -135,7 +109,8 @@ export function CameraAim({ aiming, stream, setup, update, system, onUse, onClos
       </div>
       <CompassTape heading={tape} letters={letters} />
       <div className="real-cam-room">
-        <div ref={lens} className="real-cam-lens" aria-hidden="true">
+        <div className="real-cam-lens" aria-hidden="true">
+          <video ref={video} className="real-cam-video" autoPlay playsInline muted />
           <svg className="real-cam-reticle" viewBox={`${-VIEW_R} ${-VIEW_R} ${2 * VIEW_R} ${2 * VIEW_R}`}>
             <path className="real-cam-post-halo" d={arms(LENS_R, POST_IN)} />
             <path className="real-cam-post" d={arms(LENS_R, POST_IN)} />

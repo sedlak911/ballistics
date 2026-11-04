@@ -3,18 +3,18 @@ import type { RealSetup, ZoneWind } from './setup'
 
 export type ZoneName = 'near' | 'mid' | 'far'
 /** From this distance the wind can change along the way: two zones. */
-export const ZONES_FROM_M = 300
+export const ZONES_FROM_M = 1000
 /** From this distance there are three. */
-export const THREE_FROM_M = 600
+export const THREE_FROM_M = 1500
 
-/** The zones the distance has, near to far; none under 300 m. */
+/** The zones the distance has, near to far; none under 1000 m. */
 export function shownZones(distanceM: number): ZoneName[] {
   if (distanceM >= THREE_FROM_M) return ['near', 'mid', 'far']
   if (distanceM >= ZONES_FROM_M) return ['near', 'far']
   return []
 }
 
-/** Zones are on and the distance has some; the mid and far winds stay stored under 300 m but count for nothing. */
+/** Zones are on and the distance has some; the mid and far winds stay stored under 1000 m but count for nothing. */
 export const zonesActive = (s: RealSetup): boolean => s.zonesOn && shownZones(s.distanceM).length > 0
 
 /** Halves or thirds of the distance along the slant range, each end rounded to 10 m. */

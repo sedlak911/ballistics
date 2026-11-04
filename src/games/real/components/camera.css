@@ -1,5 +1,6 @@
-/* The camera view, the shot screen of the camera style: the rear camera full screen behind frosted glass, with a clear lens
-   cut in it; the title, the compass tape, the lens, then the status, the figures, the distance and Use.
+/* The camera view, the shot screen of the camera style: an open box of the app's glass over the page, with the rear camera
+   only in the lens; the title, the compass tape, the lens, then the status, the figures, the distance and Use. The page
+   shows through blurred and dimmed, as under the dock's panels; plain --panel under reduced transparency (tokens.css).
    It lives in the dock (z-index 20), over the panel and the page; the ⓘ and ⚙ sheets (30 and up) still go over it. */
 .real-cam {
   position: fixed;
@@ -8,37 +9,11 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--bg);
-  color: var(--fg);
-  outline: none;
-}
-
-.real-cam-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* The surround: the app's glass over the camera, so the picture shows through blurred and dimmed. The lens is a hole in it,
-   where CameraAim measures the lens (--hole-x, --hole-y, --hole-r). Plain --panel under reduced transparency (tokens.css). */
-.real-cam-glass {
-  position: absolute;
-  inset: 0;
+  touch-action: none;
   background: var(--glass);
   backdrop-filter: var(--glass-blur);
-  mask-image: radial-gradient(circle var(--hole-r, 0px) at var(--hole-x, 50%) var(--hole-y, 50%),
-      transparent calc(var(--hole-r, 0px) - 0.5px), black var(--hole-r, 0px));
-}
-
-/* The rows sit over the glass. */
-.real-cam-top,
-.real-cam-tape,
-.real-cam-room,
-.real-cam-foot {
-  position: relative;
-  z-index: 1;
+  color: var(--fg);
+  outline: none;
 }
 
 .real-cam-top {
@@ -105,12 +80,28 @@
   container-type: size;
 }
 
-/* The lens: clear, a soft dark vignette inside its edge and a hairline rim. */
+/* The lens: the camera's picture, cut round and filling it, a soft dark vignette over its edge and a hairline rim. */
 .real-cam-lens {
   position: relative;
   width: min(92vw, 360px, 100cqh - 40px);
   aspect-ratio: 1;
   border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent);
+  border-radius: 50%;
+}
+
+.real-cam-video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* The vignette: positioned, so it lies over the picture (in the flow) and under the reticle (positioned, after it). */
+.real-cam-lens::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   border-radius: 50%;
   background: radial-gradient(closest-side, transparent 80%, rgb(0 0 0 / 0.5));
 }

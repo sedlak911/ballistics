@@ -637,11 +637,11 @@ describe('solveReal: an optional input that is missing switches its effect off',
 })
 
 describe('zones', () => {
-  const at600 = { distanceM: 600, windMs: 3, windClock: 9 }
+  const at1500 = { distanceM: 1500, windMs: 3, windClock: 9 }
 
   it('zones off is 0.1.7', () => {
-    const plain = solve({ setup: at600 })
-    const off = solve({ setup: { ...at600, zonesOn: false, windMid: { ms: 6, clock: 3 }, windFar: { ms: 1, clock: 12 } } })
+    const plain = solve({ setup: at1500 })
+    const off = solve({ setup: { ...at1500, zonesOn: false, windMid: { ms: 6, clock: 3 }, windFar: { ms: 1, clock: 12 } } })
     expect(off.windage).toBe(plain.windage)
     expect(off.windColumns).toEqual(plain.windColumns)
     expect(off.explain).toEqual(plain.explain)
@@ -651,23 +651,24 @@ describe('zones', () => {
   })
 
   it('equal zones equal one wind', () => {
-    const one = solve({ setup: at600 })
-    const three = solve({ setup: { ...at600, zonesOn: true } })
+    const one = solve({ setup: at1500 })
+    const three = solve({ setup: { ...at1500, zonesOn: true } })
     expect(three.windage).toBeCloseTo(one.windage, 6)
   })
 
-  it('weights at 600 m', () => {
+  it('weights at 1500 m', () => {
     // The .308 175 gr, closest to the research load (G7 ~0.24, ~790 m/s).
-    const w = solve({ id: 'p5', setup: { ...at600, zonesOn: true } }).zoneWeights!
+    const w = solve({ id: 'p5', setup: { ...at1500, zonesOn: true } }).zoneWeights!
     expect(w).toHaveLength(3)
-    expect(w[0]).toBeGreaterThanOrEqual(46)
-    expect(w[0]).toBeLessThanOrEqual(50)
+    // Measured on p5 at 1500 m: [45, 47, 8] %.
+    expect(w[0]).toBeGreaterThanOrEqual(43)
+    expect(w[0]).toBeLessThanOrEqual(47)
   })
 
   it('a calm near wind with a far wind of its own', () => {
-    const calm = solve({ setup: { distanceM: 600, windMs: 0, windClock: 9, zonesOn: true, windFar: { ms: 4, clock: 9 } } })
-    const full = solve({ setup: { distanceM: 600, windMs: 4, windClock: 9 } })
-    const none = solve({ setup: { distanceM: 600, windMs: 0, windClock: 9 } })
+    const calm = solve({ setup: { distanceM: 1500, windMs: 0, windClock: 9, zonesOn: true, windFar: { ms: 4, clock: 9 } } })
+    const full = solve({ setup: { distanceM: 1500, windMs: 4, windClock: 9 } })
+    const none = solve({ setup: { distanceM: 1500, windMs: 0, windClock: 9 } })
     expect(Math.sign(calm.windage - none.windage)).toBe(Math.sign(full.windage - none.windage))
     expect(Math.abs(calm.windage - none.windage)).toBeLessThan(Math.abs(full.windage - none.windage))
     expect(calm.windSpeeds[1]).toBe(0)
@@ -676,7 +677,7 @@ describe('zones', () => {
 
   it('columns with zones', () => {
     const sigma = DEFAULT_REAL_PROFILE.windSigmaMs
-    const s = solve({ setup: { ...at600, zonesOn: true, windMid: { ms: 1, clock: 9 }, windFar: { ms: 5, clock: 9 } } })
+    const s = solve({ setup: { ...at1500, zonesOn: true, windMid: { ms: 1, clock: 9 }, windFar: { ms: 5, clock: 9 } } })
     expect(s.zoneSpeeds![0]).toEqual([3, 1, 5].map((v) => Math.max(0, v - sigma)))
     expect(s.zoneSpeeds![1]).toEqual([3, 1, 5])
     expect(s.zoneSpeeds![2]).toEqual([3, 1, 5].map((v) => v + sigma))
@@ -687,21 +688,21 @@ describe('zones', () => {
   })
 
   it('explain with zones', () => {
-    const s = solve({ setup: { ...at600, zonesOn: true, windMid: { ms: 1, clock: 9 }, windFar: { ms: 5, clock: 9 } } })
+    const s = solve({ setup: { ...at1500, zonesOn: true, windMid: { ms: 1, clock: 9 }, windFar: { ms: 5, clock: 9 } } })
     const x = s.explain!
     expect(x.lag).toBeNull()
     expect(x.zones!.map((z) => z.name)).toEqual(['near', 'mid', 'far'])
     expect(x.zones!.reduce((a, z) => a + z.driftM, 0)).toBeCloseTo(x.wind!.xM, 9)
   })
 
-  // Near 3 m/s from 9, far ~8.4 from 2: the zones' straight-line parts nearly cancel, and a split by part / Σparts
-  // blew the remainder up (the near line read 6.3, 38.6 and 26.6 cm where the near zone alone drifts ~21 cm).
+  // Near 3 m/s from 9, far ~5.7 from 2 at 1000 m: the zones' straight-line parts nearly cancel, and a split by part / Σparts
+  // blew the remainder up (the near line read 6.3, 38.6 and 26.6 cm where the near zone alone drifted ~21 cm).
   it('each zone line stays near its own drift when the zones nearly cancel', () => {
-    const at400 = { distanceM: 400, windMs: 3, windClock: 9, zonesOn: true }
-    for (const ms of [8.3, 8.4, 8.5]) {
-      const lines = solve({ id: 'p5', setup: { ...at400, windFar: { ms, clock: 2 } } }).explain!.zones!
-      const nearAlone = solve({ id: 'p5', setup: { ...at400, windFar: { ms: 0, clock: 2 } } }).explain!.wind!.xM
-      const farAlone = solve({ id: 'p5', setup: { ...at400, windMs: 0, windFar: { ms, clock: 2 } } }).explain!.wind!.xM
+    const at1000 = { distanceM: 1000, windMs: 3, windClock: 9, zonesOn: true }
+    for (const ms of [5.6, 5.7, 5.8]) {
+      const lines = solve({ id: 'p5', setup: { ...at1000, windFar: { ms, clock: 2 } } }).explain!.zones!
+      const nearAlone = solve({ id: 'p5', setup: { ...at1000, windFar: { ms: 0, clock: 2 } } }).explain!.wind!.xM
+      const farAlone = solve({ id: 'p5', setup: { ...at1000, windMs: 0, windFar: { ms, clock: 2 } } }).explain!.wind!.xM
       expect(Math.abs(lines[0].driftM - nearAlone)).toBeLessThan(0.01)
       expect(Math.abs(lines[1].driftM - farAlone)).toBeLessThan(0.01)
     }
@@ -709,14 +710,14 @@ describe('zones', () => {
 
   it('the jump uses the near zone', () => {
     const jump = (s: Partial<RealSetup>) => share(solve({ id: 'p5', setup: s }), 'aeroJump').yM
-    const zoned = jump({ distanceM: 600, windMs: 4, windClock: 9, zonesOn: true, windMid: { ms: 6, clock: 3 }, windFar: { ms: 8, clock: 3 } })
-    expect(zoned).toBe(jump({ distanceM: 600, windMs: 4, windClock: 9 }))
-    expect(zoned).not.toBeCloseTo(jump({ distanceM: 600, windMs: 8, windClock: 3 }), 4)
+    const zoned = jump({ distanceM: 1500, windMs: 4, windClock: 9, zonesOn: true, windMid: { ms: 6, clock: 3 }, windFar: { ms: 8, clock: 3 } })
+    expect(zoned).toBe(jump({ distanceM: 1500, windMs: 4, windClock: 9 }))
+    expect(zoned).not.toBeCloseTo(jump({ distanceM: 1500, windMs: 8, windClock: 3 }), 4)
   })
 
-  it('under 300 m the zones are inactive', () => {
-    const off = solve({ setup: { distanceM: 250, windMs: 3, windClock: 9 } })
-    const on = solve({ setup: { distanceM: 250, windMs: 3, windClock: 9, zonesOn: true, windFar: { ms: 6, clock: 3 } } })
+  it('under 1000 m the zones are inactive', () => {
+    const off = solve({ setup: { distanceM: 950, windMs: 3, windClock: 9 } })
+    const on = solve({ setup: { distanceM: 950, windMs: 3, windClock: 9, zonesOn: true, windFar: { ms: 6, clock: 3 } } })
     expect(on.windage).toBe(off.windage)
     expect(on.zoneSpeeds).toBeNull()
   })
@@ -724,11 +725,11 @@ describe('zones', () => {
   it('the linear outer columns agree with explicit ±σ runs for a turning wind', () => {
     const sigma = DEFAULT_REAL_PROFILE.windSigmaMs
     const zones = { near: { ms: 4, clock: 9 }, mid: { ms: 2, clock: 12 }, far: { ms: 3, clock: 3 } }
-    const s = solve({ setup: { distanceM: 600, windMs: 4, windClock: 9, zonesOn: true, windMid: zones.mid, windFar: zones.far } })
+    const s = solve({ setup: { distanceM: 1500, windMs: 4, windClock: 9, zonesOn: true, windMid: zones.mid, windFar: zones.far } })
     const explicit = (dv: number) =>
       solve({
         setup: {
-          distanceM: 600, zonesOn: true, windClock: 9,
+          distanceM: 1500, zonesOn: true, windClock: 9,
           windMs: Math.max(0, zones.near.ms + dv),
           windMid: { ...zones.mid, ms: Math.max(0, zones.mid.ms + dv) },
           windFar: { ...zones.far, ms: Math.max(0, zones.far.ms + dv) },

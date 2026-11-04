@@ -153,7 +153,7 @@ describe('useRealSetup', () => {
   })
 
   it('counts the edit of a far zone as setting the wind: the near wind then counts at its shown value', () => {
-    window.location.hash = '#/real/workbench?p=p7&d=600&zn=1'
+    window.location.hash = '#/real/workbench?p=p7&d=1500&zn=1'
     const { result } = renderHook(() => useRealSetup(), { wrapper: Wrapper })
     expect(result.current[0].windSet).toBe(false)
     act(() => result.current[1]({ windFar: { ms: 2, clock: 3 }, windSet: true }))

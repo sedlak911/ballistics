@@ -7,7 +7,7 @@ import { saveWindMemory, windMemoryNow } from './windMemory'
 const seedDirection = (deg: number) => localStorage.setItem('gb.real.station', JSON.stringify({
   v: 1, heightAboveGroundM: { value: 1, source: 'manual' }, azimuthDeg: { value: deg, source: 'manual' },
 }))
-const setupOf = (over: Partial<RealSetup>): RealSetup => ({ ...DEFAULT_SETUP, zonesOn: true, distanceM: 700, ...over })
+const setupOf = (over: Partial<RealSetup>): RealSetup => ({ ...DEFAULT_SETUP, zonesOn: true, distanceM: 1600, ...over })
 const turn = (setup: RealSetup, deg: number | null) => {
   const update = vi.fn()
   const { result } = renderHook(() => useSetDirection(setup, update))

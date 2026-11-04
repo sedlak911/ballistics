@@ -91,7 +91,7 @@ describe('RealPage: the answer in dial mode', () => {
   })
 
   it('with wind zones the speed line lists each zone near to far, and a far wind alone shows the columns', () => {
-    open('#/real/workbench?p=p7&d=1000&ws=3&wc=9&zn=1&zm=2,9&zf=1,9')
+    open('#/real/workbench?p=p7&d=1500&ws=3&wc=9&zn=1&zm=2,9&zf=1,9')
     // The columns are the zones' speeds −σ, as set, +σ, floored at 0.
     const items = within(columns()!).getAllByRole('listitem')
     expect(items[1].querySelector('.real-col-speed')!.textContent).toBe('3·2·1')
@@ -104,7 +104,7 @@ describe('RealPage: the answer in dial mode', () => {
 
   it('in km/h the zone speeds are whole from 10 up and a tenth below', () => {
     profile({ windUnit: 'km/h' })
-    open('#/real/workbench?p=p7&d=600&ws=4.5&wc=9&zn=1&zm=3.5,9&zf=2.5,9')
+    open('#/real/workbench?p=p7&d=1500&ws=4.5&wc=9&zn=1&zm=3.5,9&zf=2.5,9')
     const speeds = within(columns()!).getAllByRole('listitem').map((li) => li.querySelector('.real-col-speed')!.textContent)
     expect(speeds[0]).toBe('13·9·5.4')
     expect(speeds[1]).toBe('16·13·9')

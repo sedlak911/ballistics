@@ -1,6 +1,6 @@
-import { memo, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { memo, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 
-/** The drag has to be this far sideways, and more sideways than up or down, before it moves the value. */
+/** The drag has to be this far sideways before it moves the value; a swipe more than twice as far up or down as sideways is no drag. */
 const LOCK_PX = 6
 /** A coasting flick loses this much speed per 60 Hz frame and stops under `STOP_SPEED` (px/ms). */
 const DECAY = 0.95
@@ -58,12 +58,14 @@ type Drag = {
 }
 
 /**
- * A scale to drag sideways, a tape measure under a number. Drag left to go up, as when pulling a tape. The drag starts
- * only once it is more sideways than up or down, so a swipe along the page still scrolls it (`touch-action: pan-y`).
+ * A tape measure under a number (`children`, drawn above the scale): the whole surface drags sideways, wherever the press
+ * lands. Drag left to go up, as when pulling a tape. It takes the whole touch (`touch-action: none`), so the browser never
+ * turns a slanted swipe into a scroll; the drag starts once it is 6 px sideways, unless it runs more than twice as far up or down, and a press that
+ * doesn't get that far is left to what it pressed (a tap on a field types). A drag takes the focus from a field inside.
  * It calls `onChange` for every new step, coasts on after a flick unless the user prefers less motion, and always ends
- * on a multiple of `step` within `min`–`max`. The scale is `aria-hidden`: the number beside it is the accessible control.
+ * on a multiple of `step` within `min`–`max`. The scale is `aria-hidden`: the number is the accessible control.
  */
-export function Ruler({ value, min, max, step, pxPerStep, labelEvery, onChange }: {
+export function Ruler({ value, min, max, step, pxPerStep, labelEvery, onChange, children }: {
   value: number
   min: number
   max: number
@@ -71,6 +73,7 @@ export function Ruler({ value, min, max, step, pxPerStep, labelEvery, onChange }
   pxPerStep: number
   labelEvery: number
   onChange: (v: number) => void
+  children?: ReactNode
 }) {
   // While dragging or coasting, where the scale is, between steps; null at rest, when it sits on `value`.
   const [at, setAt] = useState<number | null>(null)
@@ -79,6 +82,16 @@ export function Ruler({ value, min, max, step, pxPerStep, labelEvery, onChange }
     callback.current = onChange
   })
   const drag = useRef<Drag | null>(null)
+  // Whether the last press dragged: a browser still makes a tap of a swipe within its slop, and its mousedown or click
+  // would focus a field inside, or the field of a label pressed (the keyboard after a swipe).
+  const dragged = useRef(false)
+  const afterDrag = (e: ReactMouseEvent) => {
+    if (dragged.current) e.preventDefault()
+  }
+  // The click ends the press: once it is swallowed, a click that comes without a pointerdown (assistive technology) isn't.
+  const afterDragClick = (e: ReactMouseEvent) => {
+    if (dragged.current) { e.preventDefault(); dragged.current = false }
+  }
   const frame = useRef(0)
   // The scale's position while dragging or coasting (like `at`, but current before a render), else null.
   const where = useRef<number | null>(null)
@@ -104,6 +117,8 @@ export function Ruler({ value, min, max, step, pxPerStep, labelEvery, onChange }
   }
 
   const down = (e: ReactPointerEvent<HTMLDivElement>) => {
+    // A press that stops a coast belongs to the flick: its click must not focus a field (the keyboard).
+    dragged.current = frame.current !== 0
     if (e.pointerType === 'mouse' && e.button !== 0) return
     stopCoast()
     const from = where.current ?? value
@@ -115,10 +130,14 @@ export function Ruler({ value, min, max, step, pxPerStep, labelEvery, onChange }
     const dx = e.clientX - d.x
     if (d.state === 'wait') {
       const dy = e.clientY - d.y
-      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) >= LOCK_PX) { d.state = 'vertical'; return }
-      if (Math.abs(dx) <= Math.abs(dy) || Math.abs(dx) < LOCK_PX) return
+      if (Math.abs(dy) > 2 * Math.abs(dx) && Math.abs(dy) >= LOCK_PX) { d.state = 'vertical'; return }
+      if (Math.abs(dx) < LOCK_PX) return
       d.state = 'sideways'
+      dragged.current = true
       e.currentTarget.setPointerCapture?.(e.pointerId)
+      // The drag owns the value now: a field inside gives up the focus it had, or that a mouse press gave it.
+      const focused = document.activeElement
+      if (focused instanceof HTMLElement && e.currentTarget.contains(focused)) focused.blur()
     }
     const now = performance.now()
     d.samples.push({ t: now, x: e.clientX })
@@ -126,6 +145,9 @@ export function Ruler({ value, min, max, step, pxPerStep, labelEvery, onChange }
     moveTo(d, d.from - (dx / pxPerStep) * step)
   }
   const up = (e: ReactPointerEvent<HTMLDivElement>) => {
+    // A touch is captured by what it pressed: when the surface takes the capture at the lock, that element loses it, and
+    // its lostpointercapture bubbles up here. The drag goes on.
+    if (e.type === 'lostpointercapture' && e.target !== e.currentTarget) return
     const d = drag.current
     if (!d || d.id !== e.pointerId) return
     drag.current = null
@@ -162,15 +184,19 @@ export function Ruler({ value, min, max, step, pxPerStep, labelEvery, onChange }
   const base = Math.floor(shown / labelEvery) * labelEvery
   const x = ((shown - base) / step) * pxPerStep
   return (
-    <div className={at === null ? 'ruler' : 'ruler is-moving'} aria-hidden="true" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onLostPointerCapture={up}>
-      <svg width="100%" height={HEIGHT} focusable="false">
-        <svg x="50%" overflow="visible">
-          <g transform={`translate(${-x} 0)`}>
-            <Scale base={base} min={min} max={max} step={step} pxPerStep={pxPerStep} labelEvery={labelEvery} />
-          </g>
+    <div className={at === null ? 'ruler' : 'ruler is-moving'} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
+      onLostPointerCapture={up} onMouseDown={afterDrag} onClick={afterDragClick}>
+      {children}
+      <div className="ruler-scale" aria-hidden="true">
+        <svg width="100%" height={HEIGHT} focusable="false">
+          <svg x="50%" overflow="visible">
+            <g transform={`translate(${-x} 0)`}>
+              <Scale base={base} min={min} max={max} step={step} pxPerStep={pxPerStep} labelEvery={labelEvery} />
+            </g>
+          </svg>
         </svg>
-      </svg>
-      <span className="ruler-mark" />
+        <span className="ruler-mark" />
+      </div>
     </div>
   )
 }

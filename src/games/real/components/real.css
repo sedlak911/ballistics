@@ -816,12 +816,17 @@
   clip-path: inset(50%);
 }
 
-/* The distance with a ruler (frame A): the figure centred, the scale a thin strip under it, in the field's own box. */
+/* The distance with a ruler (frame A): the figure centred, the scale a thin strip under it, in the field's own box. The
+   ruler fills the box: all of it is the drag surface. */
 .real-panel .real-distance.has-ruler {
   flex-direction: column;
   align-items: stretch;
   height: 60px;
   min-height: 60px;
+}
+
+.real-distance.has-ruler > .ruler {
+  flex: 1 1 auto;
 }
 
 .real-distance.has-ruler .number-field-row {

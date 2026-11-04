@@ -64,7 +64,7 @@ describe('the wind follows the direction', () => {
 })
 
 describe('the zones follow the direction', () => {
-  const zoned = (over: Partial<RealSetup>): RealSetup => ({ ...wind(10), zonesOn: true, distanceM: 700, ...over })
+  const zoned = (over: Partial<RealSetup>): RealSetup => ({ ...wind(10), zonesOn: true, distanceM: 1600, ...over })
   it('turns a far wind at 10 h from 180° to 274° as 7 h', () => {
     const r = turnZones(zoned({ windFar: { ms: 6, clock: 10 } }), null, 180, 274)
     expect(r.patch).toEqual({ windFar: { ms: 6, clock: 7 } })
