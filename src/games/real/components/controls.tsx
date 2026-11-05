@@ -81,10 +81,16 @@ export function DistanceTool({ setup, update, system, wheel = false, ruler = fal
  * the segment's tooltip and description, where there is no room for a line. With `live`, the field shows that reading in the
  * accent and can't be changed until the aiming ends.
  */
-export function SlopeTool({ setup, update, hint, live, inputRef }: {
-  setup: RealSetup; update: Update; hint: 'line' | 'title'; live?: number; inputRef?: RefObject<HTMLInputElement | null>
+export function SlopeTool({ setup, update, hint, live, aiming = false, inputRef }: {
+  setup: RealSetup; update: Update; hint: 'line' | 'title'
+  /** The phone's reading, shown in the accent instead of the stored slope. */
+  live?: number
+  /** The phone is measuring: the field takes no typing, even while it has no reading to show. */
+  aiming?: boolean
+  inputRef?: RefObject<HTMLInputElement | null>
 }) {
   const { t } = useSettings()
+  const off = aiming || live !== undefined
   const hintId = `real-slope-hint-${useId()}`
   const word = t('real.slope')
   const hintText = t('real.slopeHint')
@@ -95,11 +101,11 @@ export function SlopeTool({ setup, update, hint, live, inputRef }: {
     <>
       <div className={live === undefined ? 'real-tool real-slope' : 'real-tool real-slope real-live'} title={hint === 'title' ? hintText : undefined} aria-describedby={hint === 'title' ? hintId : undefined}
         role={hint === 'title' ? 'group' : undefined} aria-label={hint === 'title' ? word : undefined}>
-        <button type="button" className="real-step" aria-label={t('step.dec', { what: word })} disabled={live !== undefined || shown <= min}
+        <button type="button" className="real-step" aria-label={t('step.dec', { what: word })} disabled={off || shown <= min}
           onClick={() => go(-1)}>−</button>
-        <NumberField label={word} value={shown} unit="°" min={min} max={max} step={SLOPE_STEP} disabled={live !== undefined}
+        <NumberField label={word} value={shown} unit="°" min={min} max={max} step={SLOPE_STEP} disabled={off}
           inputRef={inputRef} onChange={(v) => update({ slopeDeg: v })} invalidText={t('real.slopeInvalid')} />
-        <button type="button" className="real-step" aria-label={t('step.inc', { what: word })} disabled={live !== undefined || shown >= max}
+        <button type="button" className="real-step" aria-label={t('step.inc', { what: word })} disabled={off || shown >= max}
           onClick={() => go(1)}>+</button>
         {hint === 'title' && <span id={hintId} className="real-hint-vh">{hintText}</span>}
       </div>

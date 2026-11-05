@@ -92,7 +92,9 @@ export function CameraAim({ aiming, stream, setup, update, system, onUse, onClos
   const steady = state.status === 'live' ? state.steady : 0
   const tape = locked ? locked.headingDeg : live ? live.headingDeg : null
   const heading = locked ? locked.headingDeg : live ? Math.round(live.headingDeg) % 360 : null
-  const slope = locked ? locked.slopeDeg : live ? Math.max(BOUNDS.slopeDeg.min, Math.min(BOUNDS.slopeDeg.max, Math.round(live.pitchDeg))) + 0 : null
+  // A phone tilted past the slope range (flat, the camera on the ground) reads no slope.
+  const tilted = state.status === 'live' && state.tilted
+  const slope = locked ? locked.slopeDeg : live && !tilted ? Math.max(BOUNDS.slopeDeg.min, Math.min(BOUNDS.slopeDeg.max, Math.round(live.pitchDeg))) + 0 : null
   const letters = t('real.cardinals').split(' ')
   const none = <span className="real-cam-none">—</span>
 
@@ -124,7 +126,7 @@ export function CameraAim({ aiming, stream, setup, update, system, onUse, onClos
         </div>
       </div>
       <div className="real-cam-foot">
-        <p className={locked ? 'real-cam-status is-locked' : 'real-cam-status'} role="status">{locked ? t('aim.measured') : t('aim.hold')}</p>
+        <p className={locked ? 'real-cam-status is-locked' : 'real-cam-status'} role="status">{locked ? t('aim.measured') : tilted ? t('aim.upright') : t('aim.hold')}</p>
         <div className="real-cam-duo">
           <button type="button" className="real-cam-read" onClick={() => onType('direction')}>
             <span className="label">{t('real.direction')}</span>

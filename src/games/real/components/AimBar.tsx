@@ -1,12 +1,14 @@
 import { useSettings } from '../../../settings/SettingsContext'
-import type { AimState } from './useAiming'
+import type { AimMode, AimState } from './useAiming'
 
 /**
  * What goes under the Direction field in the shot panel: the Aim button and its note; while the phone reads, the steadiness
  * bar with Use and Cancel. It writes nothing: the panel decides what Use does, and Use works once the phone has locked.
  */
-export function AimBar({ state, notice, onAim, onUse, onCancel }: {
+export function AimBar({ state, mode, notice, onAim, onUse, onCancel }: {
   state: AimState
+  /** How the phone is read: a tilted phone is told to be held flat, or upright for the camera. */
+  mode: AimMode
   /** Said above the bar: the camera wasn't available, so the phone is read the simple way. */
   notice?: string
   onAim: () => void
@@ -19,7 +21,7 @@ export function AimBar({ state, notice, onAim, onUse, onCancel }: {
       <div className="real-aimbar">
         {notice && <span className="rm-note" role="status">{notice}</span>}
         <div className="real-aim-hold">
-          <span>{state.locked ? t('aim.measured') : t('aim.hold')}</span>
+          <span>{state.locked ? t('aim.measured') : state.tilted ? t(mode === 'camera' ? 'aim.upright' : 'aim.flat') : t('aim.hold')}</span>
           <span className="real-aim-track" aria-hidden="true"><i style={{ width: `${Math.round(state.steady * 100)}%` }} /></span>
         </div>
         <div className="real-aim-actions">

@@ -68,7 +68,8 @@ export function Dock({ setup, update, system, windUnit, now, weights = null, onH
   // to the simple way, which stays in the panel.
   const openedBy = useRef<Opener | null>(null)
   const cameraStyle = effectiveAimMode(profile, isStandalone()) === 'camera'
-  const aiming = useAiming(cameraStyle && !noCamera ? 'camera' : 'simple')
+  const aimMode = cameraStyle && !noCamera ? 'camera' : 'simple'
+  const aiming = useAiming(aimMode)
   const aimStop = aiming.stop
   // Ends the aiming and the camera, and drops a stream that is still being asked for.
   const stopAiming = useCallback(() => {
@@ -102,10 +103,12 @@ export function Dock({ setup, update, system, windUnit, now, weights = null, onH
     return () => document.removeEventListener('visibilitychange', onHide)
   }, [open, stopAiming])
 
-  // Locked, the figures show the lock, not the latest reading.
+  // Locked, the figures show the lock, not the latest reading. A phone tilted past the slope range reads no slope: the
+  // field shows its own value, still disabled.
   const locked = aiming.state.status === 'live' ? aiming.state.locked : null
   const liveReading = aiming.state.status === 'live' ? aiming.state.reading : null
-  const slopeLive = locked ? locked.slopeDeg : liveReading ? Math.max(BOUNDS.slopeDeg.min, Math.min(BOUNDS.slopeDeg.max, Math.round(liveReading.pitchDeg))) + 0 : undefined
+  const tilted = aiming.state.status === 'live' && aiming.state.tilted
+  const slopeLive = locked ? locked.slopeDeg : liveReading && !tilted ? Math.max(BOUNDS.slopeDeg.min, Math.min(BOUNDS.slopeDeg.max, Math.round(liveReading.pitchDeg))) + 0 : undefined
   const headingLive = locked ? locked.headingDeg : liveReading ? Math.round(liveReading.headingDeg) % 360 : undefined
   // Starts the aiming, through the camera or by the top edge; a camera already up, or still being asked for, goes.
   const aim = (camera = cameraStyle, by: Opener = 'aim') => {
@@ -280,10 +283,10 @@ export function Dock({ setup, update, system, windUnit, now, weights = null, onH
           {open === 'shot' ? (
             <div className="real-panel-body">
               <DistanceTool setup={setup} update={update} system={system} ruler />
-              <SlopeTool setup={setup} update={update} hint="line" live={slopeLive} inputRef={slopeRef} />
+              <SlopeTool setup={setup} update={update} hint="line" live={slopeLive} aiming={aiming.state.status === 'live'} inputRef={slopeRef} />
               <div className={aiming.state.status === 'live' ? 'real-dir-aim is-live' : 'real-dir-aim'}>
                 <DirectionField setup={setup} update={update} inputRef={directionRef} live={headingLive} />
-                {hasCompass() && !stream && <AimBar state={aiming.state} notice={noCamera && aiming.state.status === 'live' ? t('aim.noCamera') : undefined}
+                {hasCompass() && !stream && <AimBar state={aiming.state} mode={aimMode} notice={noCamera && aiming.state.status === 'live' ? t('aim.noCamera') : undefined}
                   onAim={() => aim()} onUse={useAim} onCancel={leaveAim} />}
               </div>
             </div>

@@ -17,7 +17,8 @@ export type AimState =
   | { status: 'idle' }
   | { status: 'asking' }
   | { status: 'failed' }
-  | { status: 'live'; reading: Reading | null; steady: number; locked: AimLock | null }
+  /** `tilted`: before the lock, the newest reading is past the slope range, so the phone isn't held the way the mode reads. */
+  | { status: 'live'; reading: Reading | null; steady: number; locked: AimLock | null; tilted: boolean }
 /** What the phone settled on: the mean of the steady second, rounded and clamped like the fields take it. */
 export type AimLock = { headingDeg: number; slopeDeg: number }
 
@@ -30,12 +31,22 @@ const EVENTS = ['deviceorientationabsolute', 'deviceorientation'] as const
 
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length
 
-/** Both spreads of the readings are within their thresholds. */
+/**
+ * The pitch rounds, as the Slope field takes it, past the field's range: no shot is that steep, so the phone is held another
+ * way (up to read the screen, or flat in front of the camera). Such a reading never locks.
+ */
+const tiltedPast = (r: Reading) => {
+  const p = Math.round(r.pitchDeg)
+  return p < BOUNDS.slopeDeg.min || p > BOUNDS.slopeDeg.max
+}
+
+/** Both spreads of the readings are within their thresholds, and none is tilted past the slope range. */
 function isSteady(rs: Reading[]): boolean {
   const pitches = rs.map((r) => r.pitchDeg)
   const p = mean(pitches)
   const headings = rs.map((r) => r.headingDeg)
   return (
+    !rs.some(tiltedPast) &&
     Math.max(...pitches.map((x) => Math.abs(x - p))) <= STEADY_PITCH_DEG &&
     angularSpread(headings, circularMean(headings)) <= STEADY_HEADING_DEG
   )
@@ -78,11 +89,11 @@ export function useAiming(mode: AimMode): { state: AimState; start: () => void; 
   useEffect(() => {
     if (modeRef.current === mode) return
     modeRef.current = mode
-    // The lock and the samples kept so far (taken while the camera prompt was up) belong to the other mode: the new hold
-    // needs a fresh steady second.
+    // The lock, the samples kept so far (taken while the camera prompt was up) and the reading belong to the other mode: the
+    // new hold needs a fresh steady second.
     lock.current = null
     samples.current = []
-    setState((s) => (s.status === 'live' ? { ...s, locked: null, steady: 0 } : s))
+    setState((s) => (s.status === 'live' ? { ...s, reading: null, locked: null, steady: 0, tilted: false } : s))
     if (!onEventRef.current || gotReading.current) return
     const mine = session.current
     clearTimeout(timer.current)
@@ -180,17 +191,19 @@ export function useAiming(mode: AimMode): { state: AimState; start: () => void; 
         } else steady = Math.min(share, 0.99)
       }
       if (lock.current) steady = 1
+      const reading = latest ?? win[win.length - 1]?.r ?? null
       setStatus({
         status: 'live',
-        reading: latest ?? win[win.length - 1]?.r ?? null,
+        reading,
         steady,
         locked: lock.current ? lock.current.lock : null,
+        tilted: !lock.current && reading !== null && tiltedPast(reading),
       })
     }
     onEventRef.current = onEvent
     for (const n of EVENTS) window.addEventListener(n, onEvent)
     timer.current = setTimeout(() => { if (session.current === mine && !gotReading.current) fail() }, AIM_TIMEOUT_MS)
-    setStatus({ status: 'live', reading: null, steady: 0, locked: null })
+    setStatus({ status: 'live', reading: null, steady: 0, locked: null, tilted: false })
   }
 
   const start = () => {

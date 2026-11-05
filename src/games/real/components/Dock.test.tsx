@@ -307,7 +307,7 @@ describe('Aim in the shot panel', () => {
     mount()
     fireEvent.click(shotButton())
     const region = screen.getByRole('region', { name: 'The shot' })
-    expect(within(region).getByText("Point the phone's top edge at the target, a step away from the rifle.")).toBeInTheDocument()
+    expect(within(region).getByText('Hold the phone flat, screen up, and point its top edge at the target, a step away from the rifle.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Compass' })).toBeNull()
     const direction = within(region).getByLabelText('Direction')
     expect(direction.compareDocumentPosition(aimButton()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -332,6 +332,27 @@ describe('Aim in the shot panel', () => {
     expect(screen.getByLabelText('Slope')).toHaveValue('-4')
     expect(screen.getByLabelText('Slope')).toBeEnabled()
     expect(screen.getByLabelText('Direction')).toHaveValue('274')
+  })
+
+  it('a phone tilted past the slope range keeps the slope, does not lock and says to hold it flat', () => {
+    stubOrientation()
+    mount({ slopeDeg: 12 })
+    fireEvent.click(shotButton())
+    fireEvent.click(aimButton())
+    // Held up to read the screen: the top edge points 70 degrees up.
+    steady(30, 274, 70)
+    const panel = screen.getByRole('region', { name: 'The shot' })
+    expect(within(panel).getByText('Hold the phone flat, screen up')).toBeInTheDocument()
+    expect(within(panel).queryByText('Hold still')).toBeNull()
+    // The stored slope, not a reading: disabled, but not in the live accent.
+    expect(screen.getByLabelText('Slope')).toHaveValue('12')
+    expect(screen.getByLabelText('Slope')).toBeDisabled()
+    expect(screen.getByLabelText('Slope').closest('.real-tool')).not.toHaveClass('real-live')
+    expect(screen.getByRole('button', { name: 'Use' })).toHaveAttribute('aria-disabled', 'true')
+    // Flat again, it reads and locks as usual.
+    steady()
+    expect(screen.getByLabelText('Slope')).toHaveValue('-4')
+    expect(within(panel).getByText('Measured')).toBeInTheDocument()
   })
 
   it('Use before the lock writes nothing and stays live; after the lock it writes the lock', () => {

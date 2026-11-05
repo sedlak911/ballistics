@@ -15,6 +15,21 @@ export interface Entry {
 /** Newest first. */
 export const ENTRIES: Entry[] = [
   {
+    version: '0.1.10',
+    date: '2026-11-05',
+    title: { cs: 'Sklon se měří naplocho', en: 'The slope is measured flat' },
+    items: {
+      cs: [
+        'Zaměřit bez kamery měří sklon z telefonu drženého naplocho, obrazovkou nahoru. Když ho držíš jinak, třeba obrazovkou k sobě, sklon už neskočí na 45° a aplikace řekne, jak telefon držet.',
+        'Kamerou je to stejné: telefon naplocho míří kamerou do země, takže se nic nezamkne, dokud ho nepostavíš svisle.',
+      ],
+      en: [
+        'Aim without the camera measures the slope from the phone held flat, screen up. Held another way, say with the screen facing you, the slope no longer jumps to 45°, and the app says how to hold the phone.',
+        'The camera works the same way: held flat, the camera looks at the ground, so nothing locks until you hold the phone upright.',
+      ],
+    },
+  },
+  {
     version: '0.1.9',
     date: '2026-11-04',
     title: { cs: 'Stupnice drží, kamera je v čočce', en: 'The scale holds, the camera sits in the lens' },

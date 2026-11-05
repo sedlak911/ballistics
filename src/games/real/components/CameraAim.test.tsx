@@ -172,6 +172,9 @@ describe('camera aiming', () => {
     await openOverlay()
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(screen.getByText("The camera isn't available, so the simple way is used.")).toBeInTheDocument()
+    // Still held upright for the camera, the top edge points 86 degrees up: the simple way asks for the phone flat.
+    steady(30)
+    expect(screen.getByText('Hold the phone flat, screen up')).toBeInTheDocument()
     // The top edge: an iOS-style heading of 100 and a pitch of -4 from beta -4.
     for (let i = 0; i < 22; i++) {
       const e = new Event('deviceorientation')
@@ -182,6 +185,14 @@ describe('camera aiming', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Use' }))
     expect(latest.current.slopeDeg).toBe(-4)
     expect(azimuth().value).toBe(100)
+  })
+
+  it('while the camera is still being asked for, a phone held flat is told to stand upright', async () => {
+    getUserMedia.mockReturnValue(new Promise(() => {}))
+    await openOverlay()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    steady(30, 0)
+    expect(within(screen.getByTestId('real-panel')).getByText('Hold it upright, camera at the target')).toBeInTheDocument()
   })
 
   it('after a fallback, a phone that never gives a reading still ends in the failure', async () => {
@@ -334,6 +345,20 @@ describe('the camera view is the shot screen', () => {
     expect(getUserMedia).toHaveBeenCalledTimes(1)
     expect(view()).toBeInTheDocument()
     expect(storedProfile()).toMatchObject({ aimMode: 'camera', aimChosen: true })
+  })
+
+  it('a phone held flat shows no slope, does not lock and says to hold it upright', async () => {
+    await openOverlay()
+    // Flat, the camera looks at the ground: 90 degrees down.
+    steady(30, 0)
+    expect(within(view()).getByText('Hold it upright, camera at the target')).toBeInTheDocument()
+    expect(within(view()).queryByText('Hold still')).toBeNull()
+    expect(within(view()).getByRole('button', { name: /^Slope/ })).toHaveTextContent('—')
+    expect(within(view()).getByRole('button', { name: 'Use' })).toHaveAttribute('aria-disabled', 'true')
+    // Upright again, it reads and locks as usual.
+    steady()
+    expect(within(view()).getByRole('button', { name: /^Slope/ })).toHaveTextContent('−4')
+    expect(within(view()).getByText('Measured')).toBeInTheDocument()
   })
 
   it('Use does nothing before the lock; after it, the figures hold the lock and Use writes it and closes', async () => {

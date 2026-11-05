@@ -106,31 +106,92 @@ describe('useAiming', () => {
     expect(result.current.take()).toEqual({ headingDeg: 0, slopeDeg: 0 })
   })
 
-  it('clamps the slope to the bounds in simple mode', () => {
+  it('does not lock a phone tilted past the slope range, and says it is tilted', () => {
+    // Held up to read the screen, the top edge points 70 degrees up: no slope a shot has.
     const { result } = live('simple')
-    stream(Array.from({ length: 22 }, () => 90), [70])
+    stream(Array.from({ length: 30 }, () => 90), [70])
+    expect(result.current.take()).toBeNull()
+    const s = result.current.state
+    if (s.status !== 'live') throw new Error('not live')
+    expect(s.tilted).toBe(true)
+    expect(s.steady).toBe(0)
+  })
+
+  it('locks once the phone is back within the range, at a pitch that rounds to its bound', () => {
+    const { result } = live('simple')
+    stream(Array.from({ length: 10 }, () => 90), [70])
+    stream(Array.from({ length: 22 }, () => 90), [45.4])
     expect(result.current.take()).toEqual({ headingDeg: 90, slopeDeg: 45 })
+    const s = result.current.state
+    if (s.status !== 'live') throw new Error('not live')
+    expect(s.tilted).toBe(false)
+  })
+
+  it('counts a pitch that rounds past the bound as tilted', () => {
+    for (const beta of [-45.6, 45.5]) {
+      const { result, unmount } = live('simple')
+      stream(Array.from({ length: 30 }, () => 90), [beta])
+      expect(result.current.take()).toBeNull()
+      const s = result.current.state
+      if (s.status !== 'live') throw new Error('not live')
+      expect(s.tilted).toBe(true)
+      unmount()
+    }
+  })
+
+  it('takes -45.5 as the field does: it rounds to -45, the bound', () => {
+    const { result } = live('simple')
+    stream(Array.from({ length: 22 }, () => 90), [-45.5])
+    expect(result.current.take()).toEqual({ headingDeg: 90, slopeDeg: -45 })
+  })
+
+  it('a mode change clears a tilted state and its reading, and the new mode locks', () => {
+    const { result, rerender } = live('camera')
+    for (let i = 0; i < 30; i++) {
+      fire({ webkitCompassHeading: 274, alpha: 0, beta: 0, gamma: 0 })
+      act(() => { vi.advanceTimersByTime(50) })
+    }
+    rerender({ m: 'simple' })
+    const s = result.current.state
+    if (s.status !== 'live') throw new Error('not live')
+    expect(s.tilted).toBe(false)
+    expect(s.reading).toBeNull()
+    stream(Array.from({ length: 22 }, () => 274), [-4])
+    expect(result.current.take()).toEqual({ headingDeg: 274, slopeDeg: -4 })
+  })
+
+  it('a phone held flat in camera mode is tilted: the camera looks at the ground', () => {
+    const { result } = live('camera')
+    for (let i = 0; i < 30; i++) {
+      fire({ webkitCompassHeading: 274, alpha: 0, beta: 0, gamma: 0 })
+      act(() => { vi.advanceTimersByTime(50) })
+    }
+    expect(result.current.take()).toBeNull()
+    const s = result.current.state
+    if (s.status !== 'live') throw new Error('not live')
+    expect(s.tilted).toBe(true)
   })
 
   it('computes the reading with the mode current at read time', () => {
     const { result, rerender } = live('camera')
-    // upright phone, iOS heading 274: the camera looks at 274, level
+    // Beta 45 is within the range both ways: the camera looks 45 degrees down, the top edge 45 up, both at 274.
+    const tilt45 = () => fire({ webkitCompassHeading: 274, alpha: 0, beta: 45, gamma: 0 })
     for (let i = 0; i < 22; i++) {
-      fire({ webkitCompassHeading: 274, alpha: 0, beta: 90, gamma: 0 })
+      tilt45()
       act(() => { vi.advanceTimersByTime(50) })
     }
-    expect(result.current.take()).toEqual({ headingDeg: 274, slopeDeg: 0 })
+    expect(result.current.take()).toEqual({ headingDeg: 274, slopeDeg: -45 })
     // A lock made in the other mode is dropped, and the next steady second locks in the new one.
     rerender({ m: 'simple' })
     expect(result.current.take()).toBeNull()
     // The old samples are gone too: one event gives no lock, a full steady second does.
-    fire({ webkitCompassHeading: 274, alpha: 0, beta: 90, gamma: 0 })
+    tilt45()
     act(() => { vi.advanceTimersByTime(50) })
     const one = result.current.state
     if (one.status !== 'live') throw new Error('not live')
     expect(one.locked).toBeNull()
     for (let i = 0; i < 22; i++) {
-      fire({ webkitCompassHeading: 274, alpha: 0, beta: 90, gamma: 0 })
+      tilt45()
       act(() => { vi.advanceTimersByTime(50) })
     }
     expect(result.current.take()).toEqual({ headingDeg: 274, slopeDeg: 45 })
