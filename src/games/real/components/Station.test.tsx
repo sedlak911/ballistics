@@ -25,6 +25,13 @@ afterEach(() => {
 })
 
 describe('the station line', () => {
+  it('glows until the weather is set', () => {
+    open()
+    expect(lineButton()).toHaveClass('glow-want')
+    type(within(openSheet()).getByLabelText('Temperature'), '20')
+    expect(lineButton()).not.toHaveClass('glow-want')
+  })
+
   it('shows the standard atmosphere on a first visit as QNH, ending with the source', () => {
     open()
     expect(lineButton()).toHaveTextContent(/^15\s°C · QNH 1013\shPa · 0\s% · 0\sm · standard$/)

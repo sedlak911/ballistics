@@ -21,7 +21,7 @@ import { itemFields, presetFields, type Fields } from './fields'
 import { CartridgeIcon, CloseIcon, ReticleIcon, RifleIcon } from './icons'
 import { AddNote, LibraryForm, type Saved } from './LibraryForm'
 import { RifleFields, RoundFields, ScopeFields, type KeptScope } from './SectionFields'
-import { sectionSummary } from './realText'
+import { MISSING, sectionSummary } from './realText'
 import './menus.css'
 import './settings.css'
 
@@ -137,7 +137,8 @@ export function RealSettings({ initial, onClose, returnFocus, setup, update, sel
   // A rifle selects its first round, on the generic scope; the rifle already chosen keeps its round. A custom rifle
   // without a round (only storage can hold one) has nothing to compute, so it can't be picked.
   const pickRifle = (id: string) => {
-    if (id === sel.rifleId) return
+    // With nothing chosen the selection still resolves to the default rifle, and picking that one counts.
+    if (setup.rifleSet && id === sel.rifleId) return
     if (!library.rifles.some((r) => r.id === id)) {
       update({ presetId: presetsOfRifle(id)[0].id, roundId: null, customRifleId: null, scopeId: null })
       return
@@ -179,13 +180,15 @@ export function RealSettings({ initial, onClose, returnFocus, setup, update, sel
 
   // The pickers sit outside the keyed fields, so a pick keeps its focus.
   const fields = (s: Section) => {
+    if (!setup.rifleSet && s !== 'rifle') return <p className="rs-first">{t('rs.rifleFirst')}</p>
     const f = fieldsOf(s)
     if (s === 'rifle') {
       const items = [...library.rifles.map((r) => custom(r.id, r.name)), ...rifleIds().map((id) => ({ id, label: presetsOfRifle(id)[0].rifle }))]
       return (
         <>
-          <Pick label={t('rm.rifle')} value={sel.rifleId} text={preset.rifle} t={t} items={items} onPick={pickRifle} add={add('rifle')} />
-          {adding.has('rifle') ? form('rifle') : <RifleFields key={sel.rifle?.id ?? 'preset'} f={f} />}
+          <Pick label={t('rm.rifle')} value={setup.rifleSet ? sel.rifleId : null} text={setup.rifleSet ? preset.rifle : MISSING} t={t} items={items}
+            onPick={pickRifle} add={add('rifle')} />
+          {adding.has('rifle') ? form('rifle') : setup.rifleSet && <RifleFields key={sel.rifle?.id ?? 'preset'} f={f} />}
         </>
       )
     }
@@ -230,11 +233,13 @@ export function RealSettings({ initial, onClose, returnFocus, setup, update, sel
         <div className="rs-body">
           {SECTIONS.map((s) => (
             <SectionBlock key={s} s={s} title={t(TITLES[s])} open={expanded.has(s)} onToggle={() => toggle(s)}
-              headRef={s === initial ? first : undefined} count={itemOf(s) === null ? changedCount(preset, sel.own, s, unit) : 0}
-              summary={sectionSummary(s, preset, unit, sys, t, display.lang, sel.incomplete)} chip={(n) => t('rs.yours', { n })}>
+              headRef={s === initial ? first : undefined} glow={!setup.rifleSet && s === 'rifle'}
+              count={!setup.rifleSet || itemOf(s) !== null ? 0 : changedCount(preset, sel.own, s, unit)}
+              summary={!setup.rifleSet && s !== 'scope' ? MISSING : sectionSummary(s, preset, unit, sys, t, display.lang, sel.incomplete)}
+              chip={(n) => t('rs.yours', { n })}>
               {fields(s)}
-              {!adding.has(s) && sectionFoot?.(s)}
-              {!adding.has(s) && deletable(s) && <SectionReset label={t(DELETE[s])} onReset={() => onDelete(s)} />}
+              {setup.rifleSet && !adding.has(s) && sectionFoot?.(s)}
+              {setup.rifleSet && !adding.has(s) && deletable(s) && <SectionReset label={t(DELETE[s])} onReset={() => onDelete(s)} />}
             </SectionBlock>
           ))}
         </div>
@@ -250,12 +255,14 @@ export function RealSettings({ initial, onClose, returnFocus, setup, update, sel
  * One section: the whole header row is the button (icon, title, the `{n} yours` chip, the summary and a chevron),
  * inside a heading; the body under it while expanded. The section is a region named by its title.
  */
-function SectionBlock({ s, title, open, onToggle, headRef, count, summary, chip, children }: {
+function SectionBlock({ s, title, open, onToggle, headRef, glow, count, summary, chip, children }: {
   s: Section
   title: string
   open: boolean
   onToggle: () => void
   headRef?: RefObject<HTMLButtonElement | null>
+  /** Nothing is chosen and this is where to start: the icon and title glow. */
+  glow?: boolean
   count: number
   summary: string
   chip: (n: number) => string
@@ -268,10 +275,10 @@ function SectionBlock({ s, title, open, onToggle, headRef, count, summary, chip,
       <h3 className="rs-sec-hh">
         <button ref={headRef} type="button" className="rs-sec-h" aria-expanded={open} aria-controls={`${id}-b`}
           aria-labelledby={`${id}-n`} aria-describedby={`${id}-s`} onClick={onToggle}>
-          <span className="rs-icon"><Icon /></span>
+          <span className={glow ? 'rs-icon glow-need' : 'rs-icon'}><Icon /></span>
           <span className="rs-sec-t">
             <span id={`${id}-n`} className="rs-sec-name">
-              <span id={`${id}-t`}>{title}</span>
+              <span id={`${id}-t`} className={glow ? 'glow-need' : undefined}>{title}</span>
               {count > 0 && <> <span className="rs-chip">{chip(count)}</span></>}
             </span>
             <Summary id={`${id}-s`} text={summary} />
@@ -330,7 +337,7 @@ function Summary({ id, text }: { id: string; text: string }) {
  */
 function Pick({ label, value, text, items, onPick, t, add }: {
   label: string
-  value: string
+  value: string | null
   text: string
   items: PickerItem[]
   onPick: (id: string) => void

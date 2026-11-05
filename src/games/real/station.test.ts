@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { stationFromQnh } from '../../engine/atmosphere'
-import { applyWeather, HEIGHT_ABOVE_GROUND, readStation, resetWeather, STANDARD_STATION, stationAir, withAltitude, withPressureKind, type Station } from './station'
+import { applyWeather, HEIGHT_ABOVE_GROUND, readStation, resetWeather, STANDARD_STATION, stationAir, weatherUnset, withAltitude, withPressureKind, type Station } from './station'
 
 describe('stationAir', () => {
   it('converts QNH 1013.25 at 500 m to station pressure', () => {
@@ -271,5 +271,18 @@ describe('model weather belongs to an altitude (C1)', () => {
     expect(p.pressureHPa!.value).toBeCloseTo(980.76, 2)
     expect(p.tempC!.value).toBeCloseTo(8.752, 6)
     expect(p.humidityPct).toEqual(model(76))
+  })
+})
+
+describe('weatherUnset', () => {
+  it('is true while all four are standard, even with a direction', () => {
+    expect(weatherUnset(STANDARD_STATION)).toBe(true)
+    expect(weatherUnset({ ...STANDARD_STATION, azimuthDeg: { value: 90, source: 'manual' } })).toBe(true)
+  })
+  it('is false once any of them is set', () => {
+    expect(weatherUnset({ ...STANDARD_STATION, tempC: { value: 20, source: 'manual' } })).toBe(false)
+    expect(weatherUnset({ ...STANDARD_STATION, pressureHPa: { value: 1000, source: 'model' } })).toBe(false)
+    expect(weatherUnset({ ...STANDARD_STATION, humidityPct: { value: 50, source: 'location' } })).toBe(false)
+    expect(weatherUnset({ ...STANDARD_STATION, altitudeM: { value: 300, source: 'manual' } })).toBe(false)
   })
 })

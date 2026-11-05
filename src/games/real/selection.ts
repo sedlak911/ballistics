@@ -111,7 +111,7 @@ type RoundParts = Pick<
   ResolvedPreset,
   'round' | 'short' | 'calibre' | 'muzzleVelocityMs' | 'truedAtM' | 'mvRefTempC' | 'powderSensMsPerC' | 'mvSdMs' | 'drag' | 'bullet'
 >
-type ScopeParts = Pick<ResolvedPreset, 'sightHeightMm' | 'zeroM' | 'clickValue' | 'travelUp' | 'scopeUnit'>
+type ScopeParts = Pick<ResolvedPreset, 'sightHeightMm' | 'zeroM' | 'zeroSet' | 'clickValue' | 'travelUp' | 'scopeUnit'>
 
 function customRifle(r: CustomRifle, gaps: Gaps): RifleParts {
   const name = itemName(r.name, 'rifle', gaps) ?? NO_TEXT
@@ -176,6 +176,7 @@ function withScope(s: ScopeParts, o: Overrides): ScopeParts {
   return {
     sightHeightMm: o.sightHeightMm === undefined ? s.sightHeightMm : yours(o.sightHeightMm),
     zeroM: o.zeroM ?? s.zeroM,
+    zeroSet: o.zeroM !== undefined || s.zeroSet,
     clickValue: o.clickValue ?? s.clickValue,
     travelUp: o.travelUp === undefined ? s.travelUp : o.travelUp,
     scopeUnit: o.scopeUnit ?? s.scopeUnit,
@@ -205,6 +206,7 @@ function customScope(p: ResolvedPreset, s: CustomScope, gaps: Gaps): ResolvedPre
     scopeUnit: unit ?? p.scopeUnit,
     clickValue,
     zeroM,
+    zeroSet: usable('zeroM', s.zeroM),
     sightHeightMm: sight,
     travelUp,
     magnification: usable('magnification', s.magnification) ? s.magnification : null,
@@ -270,7 +272,7 @@ export function resolveSelection(
     preset = roundMissing ? resolvePreset(p, shown) : resolvePreset(p, own, linkKeys)
   } else if (rifle !== null) {
     const rifleParts = customRifle(rifle, gaps)
-    const generic: ScopeParts = { sightHeightMm: GENERIC_SIGHT, zeroM: DEFAULT_ZERO_M, clickValue: defaultClick('mil'), travelUp: null, scopeUnit: null }
+    const generic: ScopeParts = { sightHeightMm: GENERIC_SIGHT, zeroM: DEFAULT_ZERO_M, zeroSet: false, clickValue: defaultClick('mil'), travelUp: null, scopeUnit: null }
     shown = only(roundOverrides(round), SECTION_KEYS.scope)
     preset = {
       id: round.id, rifleId: rifle.id, ...rifleParts, ...customRound(round, DEFAULT_PRESET, gaps),

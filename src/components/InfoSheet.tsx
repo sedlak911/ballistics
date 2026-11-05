@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { T, TKey } from '../i18n'
 import { isStandalone, useInstallPrompt } from '../install'
 import { APP_VERSION } from '../version'
@@ -17,6 +18,12 @@ export interface DataInfo {
   help?: { term: TKey; text: TKey }[]
 }
 
+export interface InfoAction {
+  label: string
+  icon?: ReactNode
+  onClick: () => void
+}
+
 const GAME_NOTES = { before: 'info.fan', after: 'info.estimates' } as const
 
 /** The whole site's, so every page shows all of it: what stays in the browser and what leaves it. */
@@ -27,17 +34,25 @@ const PRIVACY: TKey[] = ['info.privacy.storage', 'info.privacy.location', 'info.
  * the credits, how to install, then privacy and the app's version with a link to what's new. Help and privacy start
  * closed, so the sheet stays short.
  */
-export function InfoSheet({ info, t, game }: {
+export function InfoSheet({ info, t, game, action }: {
   info: DataInfo | null
   t: T
   /** The game the sheet is open on. The what's-new page takes its palette from it and leads back to it. */
   game?: string
+  /** A ghost button that leads the sheet (REAL's guide). */
+  action?: InfoAction
 }) {
   const notes = info?.notes ?? GAME_NOTES
   const prompt = useInstallPrompt()
   const standalone = isStandalone()
   return (
     <div className="info-body">
+      {action && (
+        <button type="button" className="btn ghost info-action" onClick={action.onClick}>
+          {action.icon}
+          {action.label}
+        </button>
+      )}
       {notes.before && <p>{t(notes.before)}</p>}
       {info?.help && (
         <details className="info-more">

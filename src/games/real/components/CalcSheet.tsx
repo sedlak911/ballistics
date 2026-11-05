@@ -2,6 +2,7 @@ import { useId, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import { Switch } from '../../../components/Switch'
 import { useModalSheet } from '../../../components/useModalSheet'
+import type { BudgetSource } from '../../../engine/budget'
 import { angleFromRad, cToF, MASS_TO_G, PRESSURE_TO_HPA, radFromAngle, SPEED_TO_MS, toDisplay, type UnitSystem } from '../../../engine/units'
 import { fmtDistance } from '../../../format'
 import type { T, TKey } from '../../../i18n'
@@ -10,7 +11,11 @@ import type { Lang } from '../../../settings/url'
 import { useRealProfile, type Effect } from '../profile'
 import { LINK_SOURCE } from '../profiles'
 import type { MissingInput, RealInput, RealShare, RealSolution } from '../solve'
-import { angleLabel, fix, inputValue, len, num, shareLines, term } from './calcText'
+import {
+  angleLabel, calibresText, degreesText, elevationAngleText, fix, hitHeightText, holdText, inputValue, isYours, lagFigures, latitudeText, len,
+  litzFigures, MM_PER_IN, muzzleCrossMs, num, sgText, shareLines, SIGMA_X, SIGMA_Y, sigmaPart, term, windageParts,
+} from './calcText'
+import { working, type StepId, type WorkEnv, type WorkLine } from './calcWorking'
 import { CloseIcon } from './icons'
 import {
   arrowed, chanceText, clickDigits, clicksText, LEFT_RIGHT, lengthText, NBSP, rounded, sensitivityWind, SENSITIVITY_STEP, sourceMaker, UP_DOWN, windText,
@@ -18,7 +23,6 @@ import {
 import './calc.css'
 
 const FT_M = 0.3048
-const MM_PER_IN = 25.4
 
 /** The side sheets' backdrop (this one and how to read the wind): the dock's guards tell a press or an Escape on a sheet by it. */
 export const SHEET_BACKDROP = 'calc-backdrop'
@@ -27,9 +31,9 @@ export const SHEET_BACKDROP = 'calc-backdrop'
 function Src({ i, t, trued, sys }: { i: RealInput | null; t: T; trued?: number | null; sys: UnitSystem }) {
   if (!i) return null
   if (i.trust !== null) {
-    if (trued != null) return <span className="tag acc">{t('rm.src.trued', { d: fmtDistance(trued, sys) })}</span>
-    if (i.source === 'yours') return <span className="tag acc">{t('rm.src.yours')}</span>
-    if (i.source === LINK_SOURCE) return <span className="tag acc">{t('rm.src.link')}</span>
+    if (trued != null) return <span className="tag yours">{t('rm.src.trued', { d: fmtDistance(trued, sys) })}</span>
+    if (i.source === 'yours') return <span className="tag yours">{t('rm.src.yours')}</span>
+    if (i.source === LINK_SOURCE) return <span className="tag yours">{t('rm.src.link')}</span>
     if (i.trust === 'N') return <span className="tag muted calc-est" title={i.source}>{t('rm.src.estimate')}</span>
     return <span className="tag muted" title={i.source}>{t('rm.src.preset', { src: sourceMaker(i.source) })}</span>
   }
@@ -39,15 +43,15 @@ function Src({ i, t, trued, sys }: { i: RealInput | null; t: T; trued?: number |
   }
   const key = word[i.source]
   if (!key) return null
-  return <span className={i.source === 'manual' ? 'tag acc' : 'tag muted'}>{t(key)}</span>
+  return <span className={i.source === 'manual' ? 'tag yours' : 'tag muted'}>{t(key)}</span>
 }
 
-/** One input or figure of a step: its word, the value, the value in the other unit and where it comes from. */
-function Item({ k, v, c, src }: { k?: string; v: ReactNode; c?: string; src?: ReactNode }) {
+/** One input or figure of a step: its word, the value, the value in the other unit and where it comes from; `yours` marks a value you set. */
+function Item({ k, v, c, src, yours }: { k?: string; v: ReactNode; c?: string; src?: ReactNode; yours?: boolean }) {
   return (
     <span className="calc-i">
       {k && <span className="calc-k">{k} </span>}
-      <b>{v}</b>
+      <b className={yours ? 'calc-yours' : undefined}>{v}</b>
       {c && <span className="calc-c"> ({c})</span>}
       {src && <> {src}</>}
     </span>
@@ -80,11 +84,24 @@ function InfoMark() {
   )
 }
 
-/** A step: number, title, ⓘ and the result on one row; the learner's explanation under ⓘ; then the working. */
-function Step({ n, title, why, result, off, sw, children, t, numbered = true }: {
+/** One line of a step's working; a value you set in it green, as in the body. */
+function WorkRow({ line }: { line: WorkLine }) {
+  return (
+    <p className={`calc-w calc-w-${line.kind}`}>
+      {line.pieces.map((p, i) => (typeof p === 'string' ? p : <b key={i} className="calc-yours">{p.yours}</b>))}
+    </p>
+  )
+}
+
+/**
+ * A step: number, title, ⓘ and the result on one row; under ⓘ the learner's explanation and, after a blank line, the
+ * step's working (its formula, then with this shot's numbers); then the body with the inputs.
+ */
+function Step({ n, title, why, work, result, off, sw, children, t, numbered = true }: {
   n?: number
   title: string
   why: string
+  work?: WorkLine[]
   result: ReactNode
   off?: boolean
   sw?: ReactNode
@@ -108,7 +125,16 @@ function Step({ n, title, why, result, off, sw, children, t, numbered = true }: 
           {sw}
         </div>
       </div>
-      {open && <p id={`${id}-why`} className="calc-why">{why}</p>}
+      {open && (
+        <div id={`${id}-why`} className="calc-why">
+          <p className="calc-why-text">{why}</p>
+          {work && work.length > 0 && (
+            <div className="calc-work">
+              {work.map((line, i) => <WorkRow key={i} line={line} />)}
+            </div>
+          )}
+        </div>
+      )}
       {children}
     </>
   )
@@ -127,10 +153,12 @@ const Lines = ({ lines }: { lines: string[] }) => <>{lines.map((l) => <span key=
  * A modal sheet: it keeps the focus inside, closes on Escape, its ✕ or a press beside it, and gives the focus back to
  * the button that opened it.
  */
-export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
+export function CalcSheet({ solution: s, customScope, windByHand = false, onClose, returnFocus }: {
   solution: RealSolution
   /** A scope of your own: its magnification has no model yet, and the sheet says so. */
   customScope: boolean
+  /** The wind was set by hand (not followed from the forecast): its figures are yours. */
+  windByHand?: boolean
   onClose: () => void
   returnFocus: RefObject<HTMLElement | null>
 }) {
@@ -153,11 +181,16 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
   const opt = (key: string): number | null => input(key)?.value ?? null
   const DASH = '—'
   const src = (key: string, trued?: number | null) => <Src i={input(key)} t={t} sys={sys} trued={trued} />
+  // Whether you set an input (a trued muzzle velocity counts), for the green mark on its value.
+  const yo = (key: string, trued?: number | null) => trued != null || isYours(input(key), windByHand)
   const d = val('distanceM')
   const x = s.explain
   const shares = s.shares
   const fx = profile.effects
   const toggle = (e: Effect) => (on: boolean) => setProfile({ effects: { [e]: on } })
+  // The working under each ⓘ marks your values as the body does (a trued muzzle velocity counts).
+  const env: WorkEnv = { t, lang, sys, effects: fx, yours: (key) => yo(key, key === 'muzzleVelocityMs' ? opt('truedAtM') : undefined) }
+  const work = (step: StepId) => working(step, s, env)
 
   const shareOf = (e: Effect): RealShare | null => shares?.[e] ?? null
   const isMissing = (sh: RealShare | null): sh is { missing: MissingInput } => sh !== null && 'missing' in sh
@@ -201,14 +234,14 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
   const tempC = val('tempC')
   const qnh = input('qnhHPa')
   const air = (
-    <Step n={1} t={t} title={t('calc.s.air')} why={t('calc.why.air')}
+    <Step n={1} t={t} title={t('calc.s.air')} why={t('calc.why.air')} work={work('air')}
       result={`ρ ${fix(val('densityKgM3'), 3, 'en')}${NBSP}kg/m³`}>
       <Line>{[
-        <Item key="t" k={t('calc.in.temp')} {...temp(tempC)} src={src('tempC')} />,
-        qnh && <Item key="q" k={t('calc.in.qnh')} {...hPa(qnh.value)} src={src('qnhHPa')} />,
-        <Item key="p" k={t('calc.in.station')} {...hPa(val('stationPressureHPa'))} src={src('stationPressureHPa')} />,
-        <Item key="h" k={t('calc.in.humidity')} v={`${num(val('humidityPct'), 0, lang)}${NBSP}%`} src={src('humidityPct')} />,
-        <Item key="a" k={t('calc.in.altitude')} {...metres(val('altitudeM'))} src={src('altitudeM')} />,
+        <Item key="t" k={t('calc.in.temp')} {...temp(tempC)} src={src('tempC')} yours={yo('tempC')} />,
+        qnh && <Item key="q" k={t('calc.in.qnh')} {...hPa(qnh.value)} src={src('qnhHPa')} yours={yo('qnhHPa')} />,
+        <Item key="p" k={t('calc.in.station')} {...hPa(val('stationPressureHPa'))} src={src('stationPressureHPa')} yours={yo('stationPressureHPa')} />,
+        <Item key="h" k={t('calc.in.humidity')} v={`${num(val('humidityPct'), 0, lang)}${NBSP}%`} src={src('humidityPct')} yours={yo('humidityPct')} />,
+        <Item key="a" k={t('calc.in.altitude')} {...metres(val('altitudeM'))} src={src('altitudeM')} yours={yo('altitudeM')} />,
       ]}</Line>
       <Line>{[
         <Item key="c" k={t('calc.in.sound')} v={`${fix(val('speedOfSoundMs'), 1, lang)}${NBSP}m/s`} />,
@@ -227,12 +260,12 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
   const truedAt = input('truedAtM')?.value ?? null
   const shifted = x?.shiftedMvMs ?? val('mvUsedMs')
   const mvStep = (
-    <Step n={2} t={t} title={t('calc.s.mv')} why={t('calc.why.mv')} result={`${num(val('mvUsedMs'), 1, 'en')}${NBSP}m/s`}>
+    <Step n={2} t={t} title={t('calc.s.mv')} why={t('calc.why.mv')} work={work('mv')} result={`${num(val('mvUsedMs'), 1, 'en')}${NBSP}m/s`}>
       <Line>{[
-        <Item key="r" k={t('calc.in.mvRef')} v={ms(refMv)} c={`${num(refMv / FT_M, 0, lang)}${NBSP}ft/s`} src={src('muzzleVelocityMs', truedAt)} />,
-        <Item key="rt" k={t('calc.in.mvRefTemp')} {...(mvRefTempC === null ? { v: DASH } : temp(mvRefTempC))} src={src('mvRefTempC')} />,
-        <Item key="p" k={t('calc.in.powder')} {...temp(val('powderTempC'))} src={src('powderTempC')} />,
-        <Item key="k" k={t('calc.in.sens')} v={powderSens === null ? DASH : `${num(powderSens, 2, lang)}${NBSP}${t('rm.sensUnit')}`} src={src('powderSensMsPerC')} />,
+        <Item key="r" k={t('calc.in.mvRef')} v={ms(refMv)} c={`${num(refMv / FT_M, 0, lang)}${NBSP}ft/s`} src={src('muzzleVelocityMs', truedAt)} yours={yo('muzzleVelocityMs', truedAt)} />,
+        <Item key="rt" k={t('calc.in.mvRefTemp')} {...(mvRefTempC === null ? { v: DASH } : temp(mvRefTempC))} src={src('mvRefTempC')} yours={yo('mvRefTempC')} />,
+        <Item key="p" k={t('calc.in.powder')} {...temp(val('powderTempC'))} src={src('powderTempC')} yours={yo('powderTempC')} />,
+        <Item key="k" k={t('calc.in.sens')} v={powderSens === null ? DASH : `${num(powderSens, 2, lang)}${NBSP}${t('rm.sensUnit')}`} src={src('powderSensMsPerC')} yours={yo('powderSensMsPerC')} />,
       ]}</Line>
       <Line>{[
         <Item key="f" v={powderSens === null || mvRefTempC === null
@@ -254,12 +287,15 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
 
   // 3 Flight
   const flight = (
-    <Step n={3} t={t} title={t('calc.s.flight')} why={t('calc.why.flight')}
+    <Step n={3} t={t} title={t('calc.s.flight')} why={t('calc.why.flight')} work={work('flight')}
       result={`${fix(s.timeS, 3, 'en')}${NBSP}s · ${num(s.velocityMs, 0, 'en')}${NBSP}m/s`}>
       <Line>{[
+        // In your distance unit, as the title and the bar give it; under imperial the metres the working uses in brackets.
+        <Item key="dist" k={t('calc.in.distance')} {...(sys === 'metric' ? { v: `${num(d, 1, lang)}${NBSP}m` } : { v: fmtDistance(d, sys), c: `${num(d, 1, lang)}${NBSP}m` })}
+          yours src={<span className="tag yours">{t('rm.src.yours')}</span>} />,
         x.dragModel === 'table'
-          ? <Item key="d" v={t('rm.curve')} src={src('sectionalDensity')} />
-          : <Item key="d" k={t('calc.in.bc', { model: x.dragModel })} v={num(val('bc'), 3, lang)} src={src('bc')} />,
+          ? <Item key="d" v={t('rm.curve')} src={src('sectionalDensity')} yours={yo('sectionalDensity')} />
+          : <Item key="d" k={t('calc.in.bc', { model: x.dragModel })} v={num(val('bc'), 3, lang)} src={src('bc')} yours={yo('bc')} />,
         x.dragModel === 'table' && <Item key="sd" k={t('calc.in.sd')} v={`${num(val('sectionalDensity'), 3, lang)}${NBSP}lb/in²`} />,
         <Item key="m" v={t('calc.in.machAt', { m: fix(s.mach, 2, lang) })} />,
         s.warnings.includes('transonic') && <Item key="w" v={t('calc.in.transonic')} />,
@@ -276,31 +312,29 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
   const click = val('clickValue')
   const digits = clickDigits(click)
   const capped = rounded(hold, digits) > 0
-  const yM = Math.abs(x.hitYM)
-  const yText = `${fix(yM, yM < 1 ? 3 : 2, lang)}${NBSP}m`
   const travel = input('travelUp')
   const elevationStep = (
-    <Step n={4} t={t} title={t('calc.s.elevation')} why={t('calc.why.elevation')}
+    <Step n={4} t={t} title={t('calc.s.elevation')} why={t('calc.why.elevation')} work={work('elevation')}
       result={`${arrowed(s.elevation, UP_DOWN)}${NBSP}${U} · ${clicksText(Math.abs(clicks), t, lang)}`}>
       <Line>{[
         <Item key="y" v={t(x.hitYM > 0 ? 'calc.in.above' : 'calc.in.below', {
-          y: yText, d: `${num(d, 1, lang)}${NBSP}m`, e: `${fix(yM / d * 1000, 2, lang)}${NBSP}MRAD${unit === 'moa' ? ` = ${fix(Math.abs(s.elevation), 2, lang)}${NBSP}MOA` : ''}`,
+          y: hitHeightText(x.hitYM, lang), d: `${num(d, 1, lang)}${NBSP}m`, e: elevationAngleText(x.hitYM, d, s.elevation, unit, lang),
         })} />,
         <Item key="v" v={t('calc.in.allVertical')} />,
       ]}</Line>
       <Line>{[
         capped
           ? <Item key="c" v={t('real.dialHold', { d: fix(dialed, digits, lang), clicks: clicksText(Math.abs(clicks), t, lang), h: `↑${fix(hold, digits, lang)}` })} />
-          : <Item key="c" v={t('calc.in.clicksOf', { clicks: clicksText(Math.abs(clicks), t, lang), c: `${num(click, 3, lang)}${NBSP}${U}` })} src={src('clickValue')} />,
+          : <Item key="c" v={t('calc.in.clicksOf', { clicks: clicksText(Math.abs(clicks), t, lang), c: `${num(click, 3, lang)}${NBSP}${U}` })} src={src('clickValue')} yours={yo('clickValue')} />,
         // Whole cm, the same figure as the answer's dial line.
         !capped && <Item key="l" v={t('real.leftOver', { l: lengthText(radFromAngle(remainder, unit) * d, sys) })} />,
         travel
-          ? <Item key="tr" k={t('calc.in.travel')} v={`${num(travel.value, 2, lang)}${NBSP}${U}`} src={src('travelUp')} />
+          ? <Item key="tr" k={t('calc.in.travel')} v={`${num(travel.value, 2, lang)}${NBSP}${U}`} src={src('travelUp')} yours={yo('travelUp')} />
           : <span key="tr" className="calc-off">{t('calc.off.travel')}</span>,
       ]}</Line>
       <Line>{[
-        <Item key="z" k={t('calc.in.zero')} v={fmtDistance(val('zeroM'), sys)} src={src('zeroM')} />,
-        <Item key="h" k={t('calc.in.sight')} {...mmIn(val('sightHeightMm'))} src={src('sightHeightMm')} />,
+        <Item key="z" k={t('calc.in.zero')} v={fmtDistance(val('zeroM'), sys)} src={src('zeroM')} yours={yo('zeroM')} />,
+        <Item key="h" k={t('calc.in.sight')} {...mmIn(val('sightHeightMm'))} src={src('sightHeightMm')} yours={yo('sightHeightMm')} />,
       ]}</Line>
       <Line>{[
         <Item key="b" v={t('calc.in.bore', { b: angle(val('boreAngleMrad') / 1000), mv: ms(x.zeroMvMs) })} />,
@@ -310,7 +344,7 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
 
   // 5 Wind
   const windMs = val('windMs')
-  const cross = x.lag?.crossMs ?? x.zones?.[0].crossMs ?? 0
+  const cross = muzzleCrossMs(x)
   const crossText = (v: number) => `${fix(Math.abs(v), 1, lang)}${NBSP}m/s`
   const windUnit = profile.windUnit
   const unitLen = toDisplay(1, 'length', sys).unit
@@ -321,15 +355,19 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
     const tm = term(m, sys, LEFT_RIGHT, lang)
     return tm === '0' ? tm : `${tm}${NBSP}${unitLen}`
   }
+  // A zone is yours when it has a wind of its own, or follows a near wind you set by hand (the near one has none of its own).
+  const zoneByHand = (zn: { own: boolean }) => zn.own || windByHand
   const windStep = (
-    <Step n={5} t={t} title={t('calc.s.wind')} why={t('calc.why.wind')}
+    <Step n={5} t={t} title={t('calc.s.wind')} why={t('calc.why.wind')} work={work('wind')}
       result={x.wind ? <Lines lines={shareLines(x.wind.yM, x.wind.xM, d, unit, sys)} /> : '—'}>
       {windy ? (
         <>
           <Line>{[
             <Item key="w" v={`${x.zones ? `${t('zones.near')}: ` : ''}${t('calc.in.windFrom', { s: windText(windMs, windUnit), h: val('windClock') })}`}
-              c={windUnit === 'm/s' ? undefined : windText(windMs, 'm/s')} />,
-            x.zones === null && rounded(cross, 1) !== 0 && <Item key="x" v={t(cross > 0 ? 'calc.in.crossLeft' : 'calc.in.crossRight', { s: crossText(cross) })} />,
+              c={windUnit === 'm/s' ? undefined : windText(windMs, 'm/s')} yours={windByHand}
+              src={windByHand ? <span className="tag yours">{t('rm.src.yours')}</span> : undefined} />,
+            // Yours as the working's lag line marks its crosswind.
+            x.zones === null && rounded(cross, 1) !== 0 && <Item key="x" v={t(cross > 0 ? 'calc.in.crossLeft' : 'calc.in.crossRight', { s: crossText(cross) })} yours={yo('windMs')} />,
             rounded(x.tailMs, 1) !== 0 && <Item key="h" v={t(x.tailMs > 0 ? 'calc.in.tail' : 'calc.in.head', { s: crossText(x.tailMs) })} />,
           ]}</Line>
           {x.zones !== null && x.zones.map((zn) => (
@@ -337,15 +375,13 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
               <Item key="zone" v={t(
                 rounded(zn.crossMs, 1) === 0 ? 'calc.in.zone' : zn.crossMs > 0 ? 'calc.in.zoneLeft' : 'calc.in.zoneRight',
                 { zone: t(`zones.${zn.name}`), s: crossText(zn.crossMs), d: zoneDrift(zn.driftM) },
-              )} />,
+              )} yours={zoneByHand(zn)}
+                src={zoneByHand(zn) ? <span className="tag yours">{t('rm.src.yours')}</span> : undefined} />,
             ]}</Line>
           ))}
           {x.lag !== null && (
             <Line>{[
-              <Item key="lag" v={t('calc.in.lag', {
-                w: fix(Math.abs(cross), 1, lang), t: fix(x.lag.timeS, 3, lang), d: num(d, 1, lang), v: num(d / x.lag.vacuumTimeS, 1, lang),
-                lag: fix(x.lag.timeS - x.lag.vacuumTimeS, 3, lang), drift: fix(Math.abs(x.lag.driftM), 2, lang),
-              })} />,
+              <Item key="lag" v={t('calc.in.lag', lagFigures(x.lag, d, lang))} />,
             ]}</Line>
           )}
         </>
@@ -364,21 +400,22 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
   const diameterIn = opt('diameterIn')
   const twistDir = t(x.twist === 'right' ? 'rm.twistRight' : 'rm.twistLeft')
   const spin = shareOf('spinDrift')
+  const litzLine = (f: ReturnType<typeof litzFigures>) => t('calc.in.litzDrift', { ...f, in: `${f.in}${NBSP}in` })
   const spinStep = (
-    <Step n={6} t={t} title={t('calc.s.spinDrift')} why={t('calc.why.spinDrift')} result={shareResult(spin, 'spinDrift')} off={effectOff('spinDrift')}
+    <Step n={6} t={t} title={t('calc.s.spinDrift')} why={t('calc.why.spinDrift')} work={work('spinDrift')} result={shareResult(spin, 'spinDrift')} off={effectOff('spinDrift')}
       sw={fxSwitch('spinDrift', t('calc.s.spinDrift'))}>
       <Line>{[
-        sg && <Item key="sg" v={t('calc.in.sg', { sg: fix(sg.value, 2, lang) })} />,
-        <Item key="tw" v={twistIn === null ? DASH : t('calc.in.twist', { t: num(twistIn, 2, lang), mm: `${num(twistIn * MM_PER_IN, 0, lang)}${NBSP}mm`, dir: twistDir })} src={src('twistIn')} />,
+        sg && <Item key="sg" v={t('calc.in.sg', { sg: sgText(sg.value, lang) })} />,
+        <Item key="tw" v={twistIn === null ? DASH : t('calc.in.twist', { t: num(twistIn, 2, lang), mm: `${num(twistIn * MM_PER_IN, 0, lang)}${NBSP}mm`, dir: twistDir })} src={src('twistIn')} yours={yo('twistIn')} />,
       ]}</Line>
       <Line>{[
-        lengthMm && <Item key="l" k={t('calc.in.bullet')} {...mmIn(lengthMm.value)} src={src('lengthMm')} />,
-        <Item key="m" v={`${num(val('massGr'), 1, lang)}${NBSP}gr`} c={`${num(val('massGr') * MASS_TO_G.gr, 1, lang)}${NBSP}g`} src={src('massGr')} />,
-        <Item key="dm" v={diameterIn === null ? DASH : `${num(diameterIn, 3, lang)}${NBSP}in`} c={diameterIn === null ? undefined : `${num(diameterIn * MM_PER_IN, 2, lang)}${NBSP}mm`} src={src('diameterIn')} />,
+        lengthMm && <Item key="l" k={t('calc.in.bullet')} {...mmIn(lengthMm.value)} src={src('lengthMm')} yours={yo('lengthMm')} />,
+        <Item key="m" v={`${num(val('massGr'), 1, lang)}${NBSP}gr`} c={`${num(val('massGr') * MASS_TO_G.gr, 1, lang)}${NBSP}g`} src={src('massGr')} yours={yo('massGr')} />,
+        <Item key="dm" v={diameterIn === null ? DASH : `${num(diameterIn, 3, lang)}${NBSP}in`} c={diameterIn === null ? undefined : `${num(diameterIn * MM_PER_IN, 2, lang)}${NBSP}mm`} src={src('diameterIn')} yours={yo('diameterIn')} />,
       ]}</Line>
       {sg && spin && !isMissing(spin) && (
         <Line>{[
-          <Item key="f" v={t('calc.in.litzDrift', { sg: fix(sg.value, 2, lang), t: fix(s.timeS, 3, lang), in: `${fix(Math.abs(spin.xM) / 0.0254, 1, lang)}${NBSP}in` })} />,
+          <Item key="f" v={litzLine(litzFigures(sg.value, s.timeS, spin.xM, lang))} />,
         ]}</Line>
       )}
     </Step>
@@ -388,12 +425,12 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
   const lat = val('latitudeDeg')
   const azimuth = input('azimuthDeg')
   const coriolisStep = (
-    <Step n={7} t={t} title={t('calc.s.coriolis')} why={t('calc.why.coriolis')} result={shareResult(shareOf('coriolis'), 'coriolis')} off={effectOff('coriolis')}
+    <Step n={7} t={t} title={t('calc.s.coriolis')} why={t('calc.why.coriolis')} work={work('coriolis')} result={shareResult(shareOf('coriolis'), 'coriolis')} off={effectOff('coriolis')}
       sw={fxSwitch('coriolis', t('calc.s.coriolis'))}>
       <Line>{[
-        <Item key="lat" k={t('calc.in.latitude')} v={t(lat < 0 ? 'calc.in.south' : 'calc.in.north', { v: num(Math.abs(lat), 2, lang) })} src={src('latitudeDeg')} />,
+        <Item key="lat" k={t('calc.in.latitude')} v={latitudeText(lat, t, lang)} src={src('latitudeDeg')} yours={yo('latitudeDeg')} />,
         azimuth
-          ? <Item key="az" k={t('calc.in.azimuth')} v={`${num(azimuth.value, 1, lang)}°`} src={src('azimuthDeg')} />
+          ? <Item key="az" k={t('calc.in.azimuth')} v={degreesText(azimuth.value, lang)} src={src('azimuthDeg')} yours={yo('azimuthDeg')} />
           : <span key="az" className="calc-off">{t('calc.off.azimuth')}</span>,
       ]}</Line>
     </Step>
@@ -401,17 +438,18 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
 
   // 8 Aerodynamic jump
   const jump = shareOf('aeroJump')
-  const calibres = lengthMm && diameterIn !== null ? lengthMm.value / MM_PER_IN / diameterIn : null
+  const calibres = lengthMm && diameterIn !== null ? calibresText(lengthMm.value, diameterIn, lang) : null
   const jumpStep = (
-    <Step n={8} t={t} title={t('calc.s.aeroJump')} why={t('calc.why.aeroJump')} result={shareResult(jump, 'aeroJump')} off={effectOff('aeroJump')}
+    <Step n={8} t={t} title={t('calc.s.aeroJump')} why={t('calc.why.aeroJump')} work={work('aeroJump')} result={shareResult(jump, 'aeroJump')} off={effectOff('aeroJump')}
       sw={fxSwitch('aeroJump', t('calc.s.aeroJump'))}>
       <Line>{[
+        // The crosswind and the length are yours as the working's W and L are.
         rounded(cross, 1) !== 0
-          ? <Item key="x" v={t(cross > 0 ? 'calc.in.crossLeft' : 'calc.in.crossRight', { s: crossText(cross) })} />
-          : <Item key="x" v={t('calc.in.noCross')} />,
+          ? <Item key="x" v={t(cross > 0 ? 'calc.in.crossLeft' : 'calc.in.crossRight', { s: crossText(cross) })} yours={yo('windMs')} />
+          : <Item key="x" v={t('calc.in.noCross')} yours={yo('windMs')} />,
         <Item key="tw" v={twistDir} />,
-        sg && <Item key="sg" v={t('calc.in.sg', { sg: fix(sg.value, 2, lang) })} />,
-        calibres !== null && <Item key="l" v={t('calc.in.calibres', { l: fix(calibres, 1, lang) })} />,
+        sg && <Item key="sg" v={t('calc.in.sg', { sg: sgText(sg.value, lang) })} />,
+        calibres !== null && <Item key="l" v={t('calc.in.calibres', { l: calibres })} yours={yo('lengthMm')} />,
       ]}</Line>
       <Line>{[<Item key="f" v={t('calc.in.litzJump')} />]}</Line>
     </Step>
@@ -419,20 +457,17 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
 
   // 9 The earth's curvature
   const curvatureStep = (
-    <Step n={9} t={t} title={t('calc.s.curvature')} why={t('calc.why.curvature')} result={shareResult(shareOf('curvature'), 'curvature')}
+    <Step n={9} t={t} title={t('calc.s.curvature')} why={t('calc.why.curvature')} work={work('curvature')} result={shareResult(shareOf('curvature'), 'curvature')}
       off={effectOff('curvature')} sw={fxSwitch('curvature', t('calc.s.curvature'))}>
       <Line>{[<Item key="g" v={t('calc.in.gravity')} />]}</Line>
     </Step>
   )
 
   // The windage: the wind, plus the spin drift and Coriolis when they are on.
-  const parts = [x.wind?.xM ?? 0]
-  if (spin && !isMissing(spin) && spin.on) parts.push(spin.xM)
-  const cor = shareOf('coriolis')
-  if (cor && !isMissing(cor) && cor.on) parts.push(cor.xM)
+  const parts = windageParts(s)
   const windageStep = (
-    <Step numbered={false} t={t} title={t('calc.s.windage')} why={t('calc.why.windage')}
-      result={t('calc.in.hold', { v: `${arrowed(s.windage, LEFT_RIGHT)}${NBSP}${U}` })}>
+    <Step numbered={false} t={t} title={t('calc.s.windage')} why={t('calc.why.windage')} work={work('windage')}
+      result={t('calc.in.hold', { v: holdText(s.windage, unit) })}>
       <Line>{[
         <Item key="sum" v={`${parts.map((m) => term(m, sys, LEFT_RIGHT, lang)).join(' + ')} = ${term(x.hitXM, sys, LEFT_RIGHT, lang)}${NBSP}${unitLen}`} />,
       ]}</Line>
@@ -441,22 +476,20 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
 
   // 10 Hit chance
   const hit = s.hit
-  const sigmaPart = (m: number) => len(m, sys, lang).split(NBSP)[0]
-  const xParts = hit && [
-    hit.x.wind !== undefined && `${t('calc.src.wind', { s: windText(val('windSigmaMs'), windUnit) })} ${sigmaPart(hit.x.wind)}`,
-    hit.x.rifle !== undefined && `${t('calc.src.rifle')} ${sigmaPart(hit.x.rifle)}`,
-    hit.x.hold !== undefined && `${t('calc.src.hold')} ${sigmaPart(hit.x.hold)}`,
-  ].filter(Boolean).join(' · ')
-  const yParts = hit && [
-    hit.y.rifle !== undefined && `${t('calc.src.rifle')} ${sigmaPart(hit.y.rifle)}`,
-    hit.y.mv !== undefined && `${t('calc.src.mv')} ${sigmaPart(hit.y.mv)}`,
-    hit.y.bc !== undefined && `${t('calc.src.bc', { p: `${num(val('bcSdPct'), 1, lang)}${NBSP}%` })} ${sigmaPart(hit.y.bc)}`,
-    hit.y.hold !== undefined && `${t('calc.src.hold')} ${sigmaPart(hit.y.hold)}`,
-  ].filter(Boolean).join(' · ')
+  const sourceWord = (source: BudgetSource) =>
+    source === 'wind' ? t('calc.src.wind', { s: windText(val('windSigmaMs'), windUnit) })
+      : source === 'bc' ? t('calc.src.bc', { p: `${num(val('bcSdPct'), 1, lang)}${NBSP}%` })
+      : t(`calc.src.${source}`)
+  // Each source the budget has, in the order the working squares them.
+  const budgetParts = (parts: Partial<Record<BudgetSource, number>>, order: BudgetSource[]) => order
+    .flatMap((source) => (parts[source] === undefined ? [] : [`${sourceWord(source)} ${sigmaPart(parts[source], sys, lang)}`]))
+    .join(' · ')
+  const xParts = hit && budgetParts(hit.x, SIGMA_X)
+  const yParts = hit && budgetParts(hit.y, SIGMA_Y)
   const accuracyMoa = opt('accuracyMoa')
   const mvSd = input('mvSdMs')
   const hitStep = (
-    <Step n={10} t={t} title={t('calc.s.hit')} why={t('calc.why.hit')} result={hit ? chanceText(hit.chance) : '—'}>
+    <Step n={10} t={t} title={t('calc.s.hit')} why={t('calc.why.hit')} work={work('hit')} result={hit ? chanceText(hit.chance) : '—'}>
       <Line>{[<Item key="tg" v={t('calc.in.target', { cm: `${num(val('targetCm'), 1, lang)}${NBSP}cm` })} />]}</Line>
       {hit && (
         <>
@@ -467,9 +500,9 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
       <Line>{[
         accuracyMoa === null
           ? <span key="r" className="calc-off">{t('calc.off.accuracy')}</span>
-          : <Item key="r" v={t('calc.in.rifle', { moa: num(accuracyMoa, 2, lang), n: val('groupShots') })} src={src('accuracyMoa')} />,
+          : <Item key="r" v={t('calc.in.rifle', { moa: num(accuracyMoa, 2, lang), n: val('groupShots') })} src={src('accuracyMoa')} yours={yo('accuracyMoa')} />,
         mvSd
-          ? <Item key="mv" k={t('calc.in.mvSd')} v={ms(mvSd.value)} src={src('mvSdMs')} />
+          ? <Item key="mv" k={t('calc.in.mvSd')} v={ms(mvSd.value)} src={src('mvSdMs')} yours={yo('mvSdMs')} />
           : <span key="mv" className="calc-off">{t('calc.off.mvSd')}</span>,
       ]}</Line>
       {customScope && <Line>{[<span key="mg" className="calc-off">{t('calc.off.magnification')}</span>]}</Line>}
@@ -481,10 +514,11 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
   // The slope, against the rifleman's rule
   const slopeDeg = val('slopeDeg')
   const slopeStep = x.slope && (
-    <Step numbered={false} t={t} title={t('calc.s.slope')} why={t('calc.why.slope')}
+    <Step numbered={false} t={t} title={t('calc.s.slope')} why={t('calc.why.slope')} work={work('slope')}
       result={<Lines lines={shareLines(x.slope.differenceM, 0, d, unit, sys).map((l) => t('calc.rule', { v: l }))} />}>
       <Line>{[
-        <Item key="e" v={t('calc.in.slopeExact', { deg: `${num(slopeDeg, 1, lang)}°`, e: `${arrowed(x.slope.elevation, UP_DOWN, 2)}${NBSP}${U}` })} />,
+        <Item key="sl" k={t('calc.in.slope')} v={degreesText(slopeDeg, lang)} yours src={<span className="tag yours">{t('rm.src.yours')}</span>} />,
+        <Item key="e" v={t('calc.in.slopeExact', { deg: degreesText(slopeDeg, lang), e: `${arrowed(x.slope.elevation, UP_DOWN, 2)}${NBSP}${U}` })} />,
         <Item key="r" v={t('calc.in.rifleman', { d: fmtDistance(x.slope.horizontalM, sys), e: `${arrowed(x.slope.riflemanElevation, UP_DOWN, 2)}${NBSP}${U}` })} />,
         term(x.slope.differenceM, sys, UP_DOWN) !== '0' &&
           <Item key="dd" v={t(x.slope.differenceM < 0 ? 'calc.in.ruleLow' : 'calc.in.ruleHigh', { l: len(x.slope.differenceM, sys, lang) })} />,
@@ -494,7 +528,7 @@ export function CalcSheet({ solution: s, customScope, onClose, returnFocus }: {
 
   // Cant, as a sensitivity
   const cantStep = (
-    <Step numbered={false} t={t} title={t('calc.s.cant')} why={t('calc.why.cant')} result={t('calc.cantPer', { l: len(x.cantPerDegM, sys) })}>
+    <Step numbered={false} t={t} title={t('calc.s.cant')} why={t('calc.why.cant')} work={work('cant')} result={t('calc.cantPer', { l: len(x.cantPerDegM, sys) })}>
       <Line>{[
         <Item key="c" v={t('calc.in.cant', { l: len(x.cantPerDegM, sys, lang), a: `${fix(x.cantAlphaRad * 1000, 2, lang)}${NBSP}MRAD` })} />,
       ]}</Line>

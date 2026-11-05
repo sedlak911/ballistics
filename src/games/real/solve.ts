@@ -16,7 +16,7 @@ import { boreAngle, flightAt, solveFlight, trueMuzzleVelocity, windFromClock, ty
 import { aeroJumpRad, millerSg, muzzleVelocityAt, spinDriftM, type Bullet } from '../../engine/spin'
 import { angleFromRad, radFromAngle, type AngleUnit } from '../../engine/units'
 import { EFFECTS, type Effect, type RealProfile } from './profile'
-import { scopeValues, type ResolvedPreset } from './profiles'
+import { LINK_SOURCE, scopeValues, type Overrides, type ResolvedPreset } from './profiles'
 import type { RealSetup } from './setup'
 import { shownZones, windAtBy, windAtFor, zoneWind, zonesActive, type ZoneName } from './zones'
 import { stationAir, type Field, type Station } from './station'
@@ -120,9 +120,10 @@ export interface RealExplain {
   /**
    * With zones active: per shown zone, its crosswind (+ blowing right) and its part of the wind's own horizontal share
    * (`wind.xM`): crosswind × the zone's 1 m/s drift, plus a share of the rest by that part's size, so the parts sum to it.
-   * Null otherwise.
+   * `perMsM` is that 1 m/s drift: 1 m/s of full crosswind in that zone alone, m, + right (the weights' own runs). `own`:
+   * the zone has a wind of its own; false for the near one, whose wind is the setup's. Null otherwise.
    */
-  zones: { name: ZoneName; crossMs: number; driftM: number }[] | null
+  zones: { name: ZoneName; crossMs: number; driftM: number; perMsM: number; own: boolean }[] | null
   /** The wind along the line of fire, m/s: + a tailwind, − a headwind. */
   tailMs: number
   /** The drag the flight used: a G model with the BC, or the preset's measured Cd table. */
@@ -451,7 +452,9 @@ export function solveReal(
       if (size === 0) return windXM / parts.length
       return parts[i] + (rest * Math.abs(parts[i])) / size
     }
-    return shown.map((name, i) => ({ name, crossMs: cross[i] + 0, driftM: drift(i) + 0 }))
+    return shown.map((name, i) => ({
+      name, crossMs: cross[i] + 0, driftM: drift(i) + 0, perMsM: zoneRaw![i] + 0, own: name !== 'near' && zoneWind(setup, name).own,
+    }))
   }
 
   // A run effect's share is the hit with it minus the hit without it, from one run with its switch flipped.
@@ -577,6 +580,10 @@ function listInputs(
     out.push({ key, value, unit: unitLabel, source, trust })
   const sourced = (key: string, s: Sourced<number>, unitLabel: string) => add(key, s.value, unitLabel, s.source, s.trust)
   const field = (key: string, f: Field<number>, unitLabel: string) => add(key, f.value, unitLabel, f.source)
+  // The scope's values are yours once set (an override, or your own scope's), a link's from the link, as the settings
+  // sheet tags them: the zero once stored, the click and travel when they count in this unit (scopeValues).
+  const mine = (key: string, value: number, unitLabel: string, k: keyof Overrides) =>
+    add(key, value, unitLabel, preset.linkKeys.has(k) ? LINK_SOURCE : 'yours', 'V')
 
   add('distanceM', setup.distanceM, 'm', 'setup')
   add('slopeDeg', setup.slopeDeg, '°', 'setup')
@@ -605,15 +612,17 @@ function listInputs(
   if ('table' in drag) add('sectionalDensity', drag.sectionalDensity, 'lb/in²', preset.drag.source, preset.drag.trust)
   else add('bc', drag.bc, 'lb/in²', preset.drag.source, preset.drag.trust)
   sourced('sightHeightMm', preset.sightHeightMm, 'mm')
-  add('zeroM', preset.zeroM, 'm', 'scope')
+  if (preset.zeroSet) mine('zeroM', preset.zeroM, 'm', 'zeroM')
+  else add('zeroM', preset.zeroM, 'm', 'scope')
   if (preset.twistIn !== null) sourced('twistIn', preset.twistIn, 'in')
   sourced('massGr', preset.bullet.massGr, 'gr')
   if (preset.bullet.diameterIn !== null) sourced('diameterIn', preset.bullet.diameterIn, 'in')
   if (preset.bullet.lengthMm !== null) sourced('lengthMm', preset.bullet.lengthMm, 'mm')
   if (preset.accuracyMoa !== null) sourced('accuracyMoa', preset.accuracyMoa, 'MOA')
   add('groupShots', preset.groupShots, 'shots', 'preset')
-  add('clickValue', x.clickValue, angle, x.clickKnown ? 'scope' : 'default')
-  if (x.travelUp !== null) add('travelUp', x.travelUp, angle, 'scope')
+  if (x.clickKnown) mine('clickValue', x.clickValue, angle, 'clickValue')
+  else add('clickValue', x.clickValue, angle, 'default')
+  if (x.travelUp !== null) mine('travelUp', x.travelUp, angle, 'travelUp')
 
   add('windSigmaMs', profile.windSigmaMs, 'm/s', 'profile')
   add('holdSigmaMrad', profile.holdSigmaMrad, 'MRAD', 'profile')

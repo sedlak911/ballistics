@@ -15,6 +15,29 @@ export interface Entry {
 /** Newest first. */
 export const ENTRIES: Entry[] = [
   {
+    version: '0.1.11',
+    date: '2026-11-05',
+    title: { cs: 'Průvodce, co chybí svítí, a reset', en: "The guide, what's missing glows, and a reset" },
+    items: {
+      cs: [
+        'Při první návštěvě se otevře krátký průvodce: plocha, zbraň, počasí, vítr, směr a vzdálenost. Kdykoli ho otevřeš v ⓘ.',
+        'Nic není předvybrané: začneš tím, že vybereš svou zbraň.',
+        'Co chybí, svítí: červeně, bez čeho není odpověď, oranžově, co ji zpřesní. Kde se dá měřit, svítí měření.',
+        'V nastavení vrátíš vše do výchozího stavu: tvoje vlastní zbraně, munice a puškohledy zůstanou, úpravy vestavěných se smažou.',
+        'Jak se to počítá: tvoje hodnoty svítí zeleně a ⓘ u každého kroku ukáže výpočet s tvými čísly.',
+        'Vítr v km/h se v doku už nezkracuje.',
+      ],
+      en: [
+        'A short guide opens on your first visit: the home screen, the rifle, the weather, the wind, the direction and the distance. Open it any time from ⓘ.',
+        'Nothing is preselected: you start by picking your rifle.',
+        "What's missing glows: red where there is no answer without it, orange where it makes the answer more accurate. Where a value can be measured, the measuring button glows.",
+        'Settings can reset everything to defaults: your own rifles, rounds and scopes stay, changes to the built-in ones go.',
+        "How it's calculated: your own values glow green, and each step's ⓘ shows the working with your numbers.",
+        "The dock's wind in km/h no longer gets cut short.",
+      ],
+    },
+  },
+  {
     version: '0.1.10',
     date: '2026-11-05',
     title: { cs: 'Sklon se měří naplocho', en: 'The slope is measured flat' },

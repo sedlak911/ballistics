@@ -5,6 +5,7 @@ import { SPEED_TO_MS, type UnitSystem } from '../../../engine/units'
 import { useSettings } from '../../../settings/SettingsContext'
 import type { WindUnit } from '../profile'
 import type { RealSetup } from '../setup'
+import { forecastUseOffered } from '../forecastWind'
 import { useStation } from '../station'
 import { useWindFlash } from '../windFlash'
 import { zoneWind, zonesActive } from '../zones'
@@ -70,6 +71,8 @@ export function BottomBar({ setup, update, system, windUnit, phone, now, weights
   const from = t('real.windFrom', { h: zw.clock })
   const shotId = `${useId()}-shot`
   const windId = `${useId()}-wind`
+  const windGlow = !setup.windSet
+  const offered = forecastUseOffered(station, now, windUnit)
   const needDirection = () => directionRef.current?.focus()
 
   if (phone) {
@@ -88,7 +91,7 @@ export function BottomBar({ setup, update, system, windUnit, phone, now, weights
         <div className="real-group-items">
           <DistanceTool setup={setup} update={update} system={system} wheel />
           <SlopeTool setup={setup} update={update} hint="title" />
-          <div className="real-tool real-dir"><DirectionField setup={setup} update={update} inputRef={directionRef} /></div>
+          <div className="real-tool real-dir"><DirectionField setup={setup} update={update} inputRef={directionRef} glow={station.azimuthDeg === null} /></div>
         </div>
       </div>
       <div className="real-bar-rule" aria-hidden="true" />
@@ -97,12 +100,12 @@ export function BottomBar({ setup, update, system, windUnit, phone, now, weights
           <span id={windId} className="label">{zones ? t('zones.title') : t('real.wind')}</span>
           <ZoneButtons setup={setup} update={update} onHelp={onHelp} />
           {!zones && <ReadingHint />}
-          <ForecastLine setup={setup} update={update} now={now} onNeedDirection={needDirection} />
+          <ForecastLine glow={windGlow} setup={setup} update={update} now={now} onNeedDirection={needDirection} />
         </div>
         {zones && <WindZones setup={setup} system={system} windUnit={windUnit} weights={weights} selected={zone} onSelect={setZone} />}
         <div className="real-group-items">
           <div className="real-tool real-wind">
-            <WindSpeedTool setup={setup} update={update} windUnit={windUnit} zone={zones ? zone : undefined} />
+            <WindSpeedTool setup={setup} update={update} windUnit={windUnit} zone={zones ? zone : undefined} glow={windGlow && !offered} />
             <button ref={clockRef} type="button" className="real-clock-btn" aria-haspopup="dialog" aria-expanded={clockOpen}
               aria-label={`${t('real.windDir')}: ${from}`} onClick={() => setClockOpen((o) => !o)}>
               <MiniClock hour={zw.clock} />

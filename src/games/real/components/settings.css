@@ -424,3 +424,11 @@
     flex: 1;
   }
 }
+
+/* A section waiting for the rifle. */
+.rs-first {
+  margin: 0;
+  padding: 12px 0;
+  font-size: 13px;
+  color: var(--muted);
+}

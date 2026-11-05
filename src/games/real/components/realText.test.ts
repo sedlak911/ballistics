@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { translate } from '../../../i18n'
 import type { Lang } from '../../../settings/url'
-import { arrowed, chanceText, clickDigits, clickLabel, clicksText, dec, LEFT_RIGHT, lengthText, rifleTagText, rounded, sourceMaker, UP_DOWN, windText } from './realText'
+import { arrowed, chanceText, clickDigits, clickLabel, clicksText, dec, LEFT_RIGHT, lengthText, rifleTagText, rounded, sourceMaker, speedShort, UP_DOWN, windText } from './realText'
 
 const t = (lang: Lang) => (key: Parameters<typeof translate>[1], vars?: Record<string, string | number>) => translate(lang, key, vars)
 
@@ -72,5 +72,15 @@ describe('setup tag text', () => {
     expect(sourceMaker('Accuracy International, 1:9.35″')).toBe('Accuracy International')
     expect(sourceMaker('McCoy BRL-MR-3810 (1990), Table 2; NATO reference round')).toBe('McCoy BRL-MR-3810')
     expect(sourceMaker('estimate: nobody publishes the sight height')).toBe('estimate')
+  })
+})
+
+describe('speedShort', () => {
+  it('is a tenth below 10 and whole from 10, in the wind unit', () => {
+    expect(speedShort(15 / 3.6, 'km/h')).toBe(15)
+    expect(speedShort(9.44 / 3.6, 'km/h')).toBe(9.4)
+    expect(speedShort(4.5, 'm/s')).toBe(4.5)
+    expect(speedShort(10.26, 'm/s')).toBe(10)
+    expect(speedShort(12.3 * 0.44704, 'mph')).toBe(12)
   })
 })

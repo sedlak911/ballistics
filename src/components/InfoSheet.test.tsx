@@ -71,3 +71,23 @@ describe('InfoSheet what’s-new link', () => {
     expect(screen.getByRole('link', { name: t('info.whatsNew') })).toHaveAttribute('href', 'changelog/#gzw')
   })
 })
+
+describe('InfoSheet action', () => {
+  it('the action leads the sheet', () => {
+    const onClick = vi.fn()
+    const { container } = render(
+      <InfoSheet info={null} t={t} action={{ label: 'Guide', icon: <svg data-testid="ico" />, onClick }} />,
+    )
+    const first = container.querySelector('.info-body')!.firstElementChild!
+    const btn = screen.getByRole('button', { name: 'Guide' })
+    expect(first).toBe(btn)
+    expect(btn.querySelector('svg')).not.toBeNull()
+    fireEvent.click(btn)
+    expect(onClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('without an action there is no such button', () => {
+    render(<InfoSheet info={null} t={t} />)
+    expect(screen.queryByRole('button', { name: 'Guide' })).toBeNull()
+  })
+})

@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { useEffect, useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { useRoute } from '../../../router'
@@ -55,5 +55,26 @@ describe('the desktop wind group', () => {
     expect(latest.current.windMs).toBe(4)
     fireEvent.click(within(g).getByRole('button', { name: 'Same as near' }))
     expect(latest.current.windFar).toBeNull()
+  })
+})
+
+describe('what glows until it is set', () => {
+  const labelOf = (name: string) => screen.getByLabelText(name).closest('.number-field')!.querySelector('label')!
+
+  it('lights the Direction and Wind speed labels with no direction and no wind', () => {
+    render(<Page start={{ windSet: false, windMs: 0 }} />)
+    expect(labelOf('Direction')).toHaveClass('glow-want')
+    expect(screen.getByLabelText('Wind speed')).toHaveClass('glow-want')
+  })
+
+  it('lights Use instead of the speed with a forecast and a direction', () => {
+    localStorage.setItem('gb.real.station', JSON.stringify({
+      v: 1, heightAboveGroundM: { value: 1, source: 'manual' }, azimuthDeg: { value: 90, source: 'manual' },
+      model: { time: '2026-11-03T12:00', fetchedAt: 0, windMs10: 3.1, windFromDeg: 180 },
+    }))
+    render(<Page start={{ windSet: false, windMs: 0 }} />)
+    expect(screen.getByRole('button', { name: 'Use' })).toHaveClass('glow-want')
+    expect(screen.getByLabelText('Wind speed')).not.toHaveClass('glow-want')
+    expect(labelOf('Direction')).not.toHaveClass('glow-want')
   })
 })

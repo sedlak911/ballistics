@@ -32,6 +32,11 @@ export const STANDARD_STATION: Station = {
   altitudeM: std(0), latitudeDeg: std(50), azimuthDeg: null, heightAboveGroundM: std(1), powderTempC: null, model: null,
 }
 
+/** The weather is still missing: temperature, pressure, humidity and altitude are all the standard atmosphere. */
+export function weatherUnset(s: Station): boolean {
+  return [s.tempC, s.pressureHPa, s.humidityPct, s.altitudeM].every((f) => f.source === 'standard')
+}
+
 export const HEIGHT_ABOVE_GROUND = { min: 0, max: 200 }
 
 /** The air at the shooter: QNH is reduced to the station altitude; a 'standard' pressure is the ISA one for it. */

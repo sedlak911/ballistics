@@ -83,3 +83,12 @@ describe('readRealProfile: the big figure', () => {
     expect(effectiveAimMode(readRealProfile({ aimMode: 'camera', aimChosen: true }), false)).toBe('camera')
   })
 })
+
+describe('guideSeen', () => {
+  it('reads false from a 0.1.10 profile, true only for a stored true', () => {
+    expect(readRealProfile({ mode: 'hold', windUnit: 'kn' }).guideSeen).toBe(false)
+    expect(readRealProfile({ guideSeen: true }).guideSeen).toBe(true)
+    expect(readRealProfile({ guideSeen: 'yes' }).guideSeen).toBe(false)
+    expect(DEFAULT_REAL_PROFILE.guideSeen).toBe(false)
+  })
+})

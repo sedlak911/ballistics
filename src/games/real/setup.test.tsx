@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useRoute } from '../../router'
 import { SettingsProvider } from '../../settings/SettingsContext'
 import type { Display } from '../../settings/url'
@@ -13,7 +13,7 @@ describe('readRealSetup', () => {
   it('gives the defaults for an empty link', () => {
     expect(readRealSetup(q(''))).toEqual(DEFAULT_SETUP)
     expect(DEFAULT_SETUP).toEqual({
-      presetId: 'p7', roundId: null, scopeId: null, customRifleId: null, distanceM: 300, slopeDeg: 0, windMs: 0, windSet: false, windClock: 9,
+      presetId: 'p7', roundId: null, scopeId: null, customRifleId: null, rifleSet: false, distanceM: 300, slopeDeg: 0, windMs: 0, windSet: false, windClock: 9,
       zonesOn: false, windMid: null, windFar: null, targetCm: 50,
     })
   })
@@ -26,6 +26,14 @@ describe('readRealSetup', () => {
     const s = readRealSetup(q('p=zzz&d=abc'))
     expect(s.presetId).toBe('p7')
     expect(s.distanceM).toBe(300)
+  })
+
+  it('names a rifle by p, cr or cf', () => {
+    expect(readRealSetup(q('d=600')).rifleSet).toBe(false)
+    expect(readRealSetup(q('p=p3')).rifleSet).toBe(true)
+    expect(readRealSetup(q('cr=u-r1')).rifleSet).toBe(true)
+    expect(readRealSetup(q('cf=u-f1')).rifleSet).toBe(true)
+    expect(readRealSetup(q('p=zzz'))).toMatchObject({ rifleSet: true, presetId: 'p7' })
   })
 
   it('clamps out-of-range numbers', () => {
@@ -42,7 +50,7 @@ describe('readRealSetup', () => {
   })
 
   it('round-trips through the link with the display keys', () => {
-    const s = { ...DEFAULT_SETUP, presetId: 'p3', distanceM: 800, slopeDeg: -10, windMs: 4.5, windSet: true, windClock: 3 }
+    const s = { ...DEFAULT_SETUP, rifleSet: true, presetId: 'p3', distanceM: 800, slopeDeg: -10, windMs: 4.5, windSet: true, windClock: 3 }
     const p = writeRealSetup(s, { lang: 'cs', system: 'metric', angle: 'moa' })
     expect(readRealSetup(p)).toEqual(s)
     expect(p.get('a')).toBe('moa')
@@ -82,25 +90,26 @@ describe('wind zones in the link', () => {
 
 describe('custom ids in the link', () => {
   it('writes cr, cs and cf and never o= with a custom round', () => {
-    const s = { ...DEFAULT_SETUP, roundId: 'u-r1', scopeId: 'u-s1', customRifleId: 'u-f1' }
+    const s = { ...DEFAULT_SETUP, rifleSet: true, roundId: 'u-r1', scopeId: 'u-s1', customRifleId: 'u-f1' }
     const p = writeRealSetup(s, DISPLAY, { twistIn: 11 })
     expect([p.get('cr'), p.get('cs'), p.get('cf')]).toEqual(['u-r1', 'u-s1', 'u-f1'])
     expect(p.has('o')).toBe(false)
     expect(readRealSetup(p)).toEqual(s)
     // A built-in round keeps p= and o=, and writes no ids; a custom scope on it goes along.
-    const b = writeRealSetup({ ...DEFAULT_SETUP, scopeId: 'u-s1' }, DISPLAY, { twistIn: 11 })
+    const b = writeRealSetup({ ...DEFAULT_SETUP, rifleSet: true, scopeId: 'u-s1' }, DISPLAY, { twistIn: 11 })
     expect(b.get('p')).toBe('p7')
     expect(b.has('o')).toBe(true)
     expect([b.has('cr'), b.get('cs'), b.has('cf')]).toEqual([false, 'u-s1', false])
-    expect(writeRealSetup({ ...DEFAULT_SETUP, windSet: true }, DISPLAY).toString()).toBe('p=p7&d=300&sl=0&ws=0&wc=9&u=metric&a=mil')
+    expect(writeRealSetup({ ...DEFAULT_SETUP, rifleSet: true, windSet: true }, DISPLAY).toString()).toBe('p=p7&d=300&sl=0&ws=0&wc=9&u=metric&a=mil')
+    expect(writeRealSetup({ ...DEFAULT_SETUP, windSet: true }, DISPLAY).toString()).toBe('d=300&sl=0&ws=0&wc=9&u=metric&a=mil')
     expect(writeRealSetup(DEFAULT_SETUP, DISPLAY).has('tg')).toBe(false)
   })
 
   it('never writes where the wind blows from or its source, with a wind memory in storage', () => {
     localStorage.setItem('gb.real.wind', JSON.stringify({ fromDeg: 180, hour: 9, speedMs: 2, source: 'forecast' }))
-    const p = writeRealSetup({ ...DEFAULT_SETUP, windSet: true, windMs: 2, windClock: 9 }, DISPLAY)
+    const p = writeRealSetup({ ...DEFAULT_SETUP, rifleSet: true, windSet: true, windMs: 2, windClock: 9 }, DISPLAY)
     expect([...p.keys()].sort()).toEqual(['a', 'd', 'p', 'sl', 'u', 'wc', 'ws'])
-    const z = writeRealSetup({ ...DEFAULT_SETUP, windSet: true, zonesOn: true, windMid: { ms: 3, clock: 6 }, windFar: { ms: 2, clock: 3 } }, DISPLAY)
+    const z = writeRealSetup({ ...DEFAULT_SETUP, rifleSet: true, windSet: true, zonesOn: true, windMid: { ms: 3, clock: 6 }, windFar: { ms: 2, clock: 3 } }, DISPLAY)
     expect([...z.keys()].sort()).toEqual(['a', 'd', 'p', 'sl', 'u', 'wc', 'ws', 'zf', 'zm', 'zn'])
     expect(p.toString()).not.toMatch(/180|forecast|fromDeg|source/)
     localStorage.clear()
@@ -141,6 +150,7 @@ describe('the wind not set', () => {
 
 describe('useRealSetup', () => {
   beforeEach(() => localStorage.clear())
+  afterEach(() => vi.restoreAllMocks())
 
   it('sets the wind with the steppers, the field or the clock', () => {
     window.location.hash = '#/real/workbench?p=p7&d=300'
@@ -167,6 +177,70 @@ describe('useRealSetup', () => {
     localStorage.setItem('gb.real.setup', 'p=p7&d=300&ws=2&wc=9')
     const { result } = renderHook(() => useRealSetup(), { wrapper: Wrapper })
     expect(result.current[0]).toMatchObject({ windSet: true, windMs: 2 })
+  })
+
+  const hashParams = () => new URLSearchParams(window.location.hash.split('?')[1])
+
+  it('a first visit names no rifle', () => {
+    window.location.hash = '#/real/workbench'
+    const { result } = renderHook(() => useRealSetup(), { wrapper: Wrapper })
+    expect(result.current[0].rifleSet).toBe(false)
+    expect(hashParams().has('p')).toBe(false)
+    expect(new URLSearchParams(localStorage.getItem('gb.real.setup') ?? '').has('p')).toBe(false)
+  })
+
+  it('an edit before a pick keeps nothing chosen', () => {
+    window.location.hash = '#/real/workbench'
+    const { result } = renderHook(() => useRealSetup(), { wrapper: Wrapper })
+    act(() => result.current[1]({ distanceM: 500 }))
+    expect(result.current[0].rifleSet).toBe(false)
+    expect(hashParams().get('d')).toBe('500')
+    expect(hashParams().has('p')).toBe(false)
+  })
+
+  it('a pick names the rifle', () => {
+    window.location.hash = '#/real/workbench'
+    const { result } = renderHook(() => useRealSetup(), { wrapper: Wrapper })
+    act(() => result.current[1]({ presetId: 'p3', roundId: null, customRifleId: null, scopeId: null }))
+    expect(result.current[0].rifleSet).toBe(true)
+    expect(hashParams().get('p')).toBe('p3')
+    expect(new URLSearchParams(localStorage.getItem('gb.real.setup') ?? '').get('p')).toBe('p3')
+  })
+
+  it('a link without a rifle opens as today on a device with one stored', () => {
+    localStorage.setItem('gb.real.setup', 'p=p3&d=300')
+    window.location.hash = '#/real/workbench?d=600'
+    const { result } = renderHook(() => useRealSetup(), { wrapper: Wrapper })
+    expect(result.current[0]).toMatchObject({ rifleSet: true, presetId: 'p7' })
+    expect(hashParams().get('p')).toBe('p7')
+  })
+
+  it('a link without a rifle on a fresh device names none', () => {
+    window.location.hash = '#/real/workbench?d=600'
+    const { result } = renderHook(() => useRealSetup(), { wrapper: Wrapper })
+    expect(result.current[0].rifleSet).toBe(false)
+  })
+
+  it('survives blocked storage: nothing chosen, and a pick still reaches the URL', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('blocked')
+    })
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('blocked')
+    })
+    window.location.hash = '#/real/workbench'
+    const { result } = renderHook(() => useRealSetup(), { wrapper: Wrapper })
+    expect(result.current[0].rifleSet).toBe(false)
+    act(() => result.current[1]({ presetId: 'p3' }))
+    expect(hashParams().get('p')).toBe('p3')
+    vi.restoreAllMocks()
+  })
+
+  it('a corrupt stored setup names none', () => {
+    localStorage.setItem('gb.real.setup', '%%%&&&')
+    window.location.hash = '#/real/workbench'
+    const { result } = renderHook(() => useRealSetup(), { wrapper: Wrapper })
+    expect(result.current[0].rifleSet).toBe(false)
   })
 
   it('ignores o= while a custom round is selected', () => {

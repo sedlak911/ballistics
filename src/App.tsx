@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { BookIcon } from './games/real/components/icons'
+import { openGuide } from './games/real/guide'
 import { AppHeader } from './components/AppHeader'
 import { Backdrop } from './components/Backdrop'
 import { HeaderSlotContext } from './components/HeaderSlot'
@@ -11,6 +13,7 @@ import { GAMES, type GameId } from './games/registry'
 import { ComingSoon } from './pages/ComingSoon'
 import { useRoute } from './router'
 import { InstallNote } from './components/InstallNote'
+import { resetEverything } from './reset'
 import { SettingsProvider, useSettings } from './settings/SettingsContext'
 import { APP_VERSION } from './version'
 import './games/gzw/theme.css'
@@ -36,7 +39,8 @@ function Shell() {
     <div className="app">
       <Backdrop />
       <AppHeader route={route} games={GAMES} display={display} setDisplay={setDisplay} t={t} slotRef={setSlot}
-        info={INFO[game.id]} extraSettings={game.id === 'real' ? <RealDisplaySettings /> : undefined} />
+        info={INFO[game.id]} infoAction={game.id === 'real' ? { label: t('guide.open'), icon: <BookIcon />, run: openGuide } : undefined}
+        extraSettings={game.id === 'real' ? <RealDisplaySettings /> : undefined} onReset={resetEverything} />
       <main className="app-main">
         <HeaderSlotContext.Provider value={slot}>
           <ToastSlotContext.Provider value={toastSlotValue}>
@@ -44,7 +48,7 @@ function Shell() {
           </ToastSlotContext.Provider>
         </HeaderSlotContext.Provider>
       </main>
-      <InstallNote t={t} />
+      {game.id !== 'real' && <InstallNote t={t} />}
       <div className="version-mark" aria-hidden="true">v{APP_VERSION}</div>
     </div>
   )

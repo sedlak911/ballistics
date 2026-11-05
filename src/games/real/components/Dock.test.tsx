@@ -20,7 +20,7 @@ function Page({ start, system, windUnit = 'm/s' }: { start?: Partial<RealSetup>;
     <SettingsProvider route={route} navigate={navigate}>
       <button type="button">elsewhere</button>
       {[250, 450, 650, 950, 1250, 1600].map((d) => <button key={d} type="button" onClick={() => setSetup((s) => ({ ...s, distanceM: d }))}>to {d}</button>)}
-      <Dock setup={setup} update={(patch) => setSetup((s) => ({ ...s, ...patch }))} system={system} windUnit={windUnit} now={NOW} weights={[48, 37, 15]} />
+      <Dock setup={setup} update={(patch) => setSetup((s) => ({ ...s, ...patch, windSet: s.windSet || 'windMs' in patch || 'windClock' in patch }))} system={system} windUnit={windUnit} now={NOW} weights={[48, 37, 15]} />
     </SettingsProvider>
   )
 }
@@ -626,5 +626,69 @@ describe('The wind zones', () => {
     fireEvent.click(zonesIcon(panel)!)
     fireEvent.click(zonesIcon(panel)!)
     expect(cells(panel)[0]).toHaveAttribute('aria-pressed', 'true')
+  })
+})
+
+describe('what glows until it is set', () => {
+  const labelOf = (name: string) => screen.getByLabelText(name).closest('.number-field')!.querySelector('label')!
+
+  it('lights the whole Wind button while the wind is unset, and not once it is', () => {
+    seedStation(90)
+    mount({ windSet: false, windMs: 0 })
+    expect(windButton()).toHaveClass('glow-want')
+    fireEvent.click(windButton())
+    fireEvent.click(screen.getByRole('button', { name: "Wind speed: more" }))
+    expect(windButton()).not.toHaveClass('glow-want')
+    expect(screen.getByRole('button', { name: /^Wind \d/ })).toBe(windButton())
+  })
+
+  it('does not light the Wind button when the wind is set', () => {
+    mount()
+    expect(windButton()).not.toHaveClass('glow-want')
+  })
+
+  it('lights only the Distance chevron until there is a direction', () => {
+    mount()
+    expect(shotButton()).not.toHaveClass('glow-want')
+    expect(shotButton().querySelector('.real-dock-chevron')).toHaveClass('glow-want')
+    cleanup()
+    seedStation(90)
+    mount()
+    expect(shotButton().querySelector('.real-dock-chevron')).not.toHaveClass('glow-want')
+  })
+
+  it('lights Aim where the phone has a compass, else the Direction label', () => {
+    vi.stubGlobal('DeviceOrientationEvent', class extends Event {})
+    const { unmount } = mount()
+    fireEvent.click(shotButton())
+    expect(screen.getByRole('button', { name: 'Aim' })).toHaveClass('glow-want')
+    expect(labelOf('Direction')).not.toHaveClass('glow-want')
+    unmount()
+    vi.stubGlobal('DeviceOrientationEvent', undefined)
+    mount()
+    fireEvent.click(shotButton())
+    expect(labelOf('Direction')).toHaveClass('glow-want')
+  })
+
+  it('lights Use when the forecast can be used, else the Wind speed label', () => {
+    seedStation(90, true)
+    const { unmount } = mount({ windSet: false, windMs: 0 })
+    fireEvent.click(windButton())
+    expect(screen.getByRole('button', { name: 'Use' })).toHaveClass('glow-want')
+    expect(screen.getByLabelText('Wind speed')).not.toHaveClass('glow-want')
+    unmount()
+    localStorage.clear()
+    seedStation(null)
+    mount({ windSet: false, windMs: 0 })
+    fireEvent.click(windButton())
+    expect(screen.getByLabelText('Wind speed')).toHaveClass('glow-want')
+  })
+
+  it('shows the wind whole from 10 in km/h', () => {
+    mount({ windMs: 15 / 3.6 }, 'metric', 'km/h')
+    expect(windButton()).toHaveTextContent('15 km/h · 9 h')
+    cleanup()
+    mount({ windMs: 2.6 }, 'metric', 'km/h')
+    expect(windButton()).toHaveTextContent('9.4 km/h')
   })
 })

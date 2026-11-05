@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { cToF, PRESSURE_TO_HPA } from '../../../engine/units'
 import { useSettings } from '../../../settings/SettingsContext'
-import { useStation } from '../station'
+import { useStation, weatherUnset } from '../station'
 import { dec, NBSP, rounded } from './realText'
 import { StationSheet } from './StationSheet'
 import { ageOf, clockOf, FT_M, LINE_DIGITS, modelFreshness, shownHPa, weakestSource, type PressureUnit } from './stationText'
@@ -44,7 +44,7 @@ export function StationLine({ now }: { now: number }) {
 
   return (
     <div className="real-station">
-      <button ref={btn} type="button" className="real-station-btn num" aria-haspopup="dialog" aria-expanded={open}
+      <button ref={btn} type="button" className={weatherUnset(station) ? 'real-station-btn num glow-want' : 'real-station-btn num'} aria-haspopup="dialog" aria-expanded={open}
         aria-label={t('st.line', { line })} onClick={() => setOpen((o) => !o)}>
         {line}
       </button>

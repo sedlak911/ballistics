@@ -60,6 +60,12 @@ export function windsText(ms: number[], unit: WindUnit): string {
   return `${ms.map((v) => rounded(v / SPEED_TO_MS[unit], 1)).join(' · ')}${NBSP}${unit}`
 }
 
+/** A speed in the wind unit, a tenth below 10 and whole from 10 (the dock's figure). */
+export function speedShort(ms: number, unit: WindUnit): number {
+  const v = ms / SPEED_TO_MS[unit]
+  return rounded(v, v < 10 ? 1 : 0)
+}
+
 /** The same without the unit, to fit a column: `4.5·3.5·2.5`, a tenth below 10 and whole from 10 up. */
 export function windsShort(ms: number[], unit: WindUnit): string {
   return ms.map((v) => rounded(v / SPEED_TO_MS[unit], v / SPEED_TO_MS[unit] < 10 ? 1 : 0)).join('·')

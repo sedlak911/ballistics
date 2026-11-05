@@ -8,6 +8,7 @@ import { DEFAULT_REAL_PROFILE } from '../profile'
 import { resolvePreset, type Overrides } from '../profiles'
 import { DEFAULT_SETUP } from '../setup'
 import { STANDARD_STATION } from '../station'
+import { translate } from '../../../i18n'
 import { SettingsProvider } from '../../../settings/SettingsContext'
 import { CalcSheet } from './CalcSheet'
 
@@ -160,7 +161,8 @@ describe('CalcSheet: the steps', () => {
     const o = btoa(JSON.stringify({ muzzleVelocityMs: 905 })).replace(/=+$/, '')
     const sheet = openSheet(`${P7_1000_WIND}&o=${o}`)
     expect(within(sheet).getAllByText('from link').length).toBeGreaterThan(0)
-    expect(within(sheet).queryByText('yours')).not.toBeInTheDocument()
+    // The distance and the wind by hand are yours; the muzzle velocity is the link's.
+    expect(within(step(sheet, 'Muzzle velocity')).queryByText('yours')).not.toBeInTheDocument()
   })
 
   it('lists the MV spread with its value and source, or says it is unknown', () => {
@@ -237,6 +239,63 @@ describe('CalcSheet: switches and explanations', () => {
     expect(q).toHaveAttribute('aria-expanded', 'true')
     expect(document.getElementById(id)).toHaveTextContent(/lag rule/)
     expect(document.getElementById(id)).toHaveTextContent(/in a vacuum/)
+  })
+
+  it('the ⓘ shows the explanation, then the working: the formula, then with the numbers; the body stays', () => {
+    const mv = step(openSheet(P7_1000_WIND), 'Muzzle velocity')
+    const q = within(mv).getByRole('button', { name: 'About: Muzzle velocity' })
+    fireEvent.click(q)
+    const why = document.getElementById(q.getAttribute('aria-controls')!)!
+    expect(why).toHaveClass('calc-why')
+    expect(why.querySelector('.calc-why-text')).toHaveTextContent(translate('en', 'calc.why.mv'))
+    const work = why.querySelector('.calc-work')!
+    expect(why.querySelector('.calc-why-text')!.nextElementSibling).toBe(work)
+    const lines = [...work.querySelectorAll('p')]
+    expect(lines[0]).toHaveClass('calc-w', 'calc-w-symbols')
+    expect(lines[0]).toHaveTextContent('v = v_ref + sens · (t_powder − t_ref)')
+    expect(lines[1]).toHaveClass('calc-w', 'calc-w-numbers')
+    expect(lines[1]).toHaveTextContent('v = 900 + 0 · (15 − 15) = 900 m/s')
+    // The step's body keeps its own line.
+    expect([...mv.querySelectorAll('.calc-d')].some((p) => /900 \+ 0 · \(15 − 15\) = 900\sm\/s/.test(p.textContent!))).toBe(true)
+  })
+
+  it('the working ends on the body’s own figures: the Litz drift, the hold, the hit chance', () => {
+    const sheet = openSheet(P7_1000_WIND)
+    const workOf = (name: string) => {
+      const st = step(sheet, name)
+      fireEvent.click(within(st).getByRole('button', { name: `About: ${name}` }))
+      return { st, lines: [...st.querySelectorAll('.calc-work p')].map((p) => p.textContent!) }
+    }
+    const spin = workOf('Spin drift')
+    const inches = [...spin.st.querySelectorAll('.calc-d')].map((p) => p.textContent!).find((l) => l.startsWith('Litz'))!.match(/= ([\d.]+)\sin$/)![1]
+    expect(spin.lines.at(-1)).toMatch(new RegExp(`= ${inches.replace('.', '\\.')}\\sin = `))
+    const windage = workOf('Windage total')
+    const hold = windage.st.querySelector('.calc-v')!.textContent!.replace(/^hold /, '')
+    expect(windage.lines.at(-1)!.endsWith(`= ${hold}`)).toBe(true)
+    const hit = workOf('Hit chance')
+    expect(hit.lines.at(-1)).toContain(hit.st.querySelector('.calc-v')!.textContent!)
+  })
+
+  it('one yours rule: step 8’s crosswind and calibres are green in the body as W and L are in its working', () => {
+    // A wind by link (by hand) and a round of your own, whose length you typed.
+    localStorage.setItem('gb.real.library', JSON.stringify({ ...SLOW_LOAD, rounds: [{ ...SLOW_LOAD.rounds[0], muzzleVelocityMs: 800, bc: 0.243, dragModel: 'G7' }] }))
+    const jump = step(openSheet('#/real/workbench?cr=u-round&cf=u-rifle&d=600&ws=3&wc=9'), 'Aerodynamic jump')
+    fireEvent.click(within(jump).getByRole('button', { name: 'About: Aerodynamic jump' }))
+    const body = [...jump.querySelectorAll('.calc-d b.calc-yours')].map((b) => b.textContent)
+    // 31.5 mm on .308: 4.0 calibres.
+    expect(body).toEqual([translate('en', 'calc.in.crossLeft', { s: '3.0 m/s' }), translate('en', 'calc.in.calibres', { l: '4.0' })])
+    const [L, W, ...rest] = [...jump.querySelectorAll('.calc-work b.calc-yours')].map((b) => b.textContent!)
+    // The working's L and W, with any decimals it adds to keep J's arithmetic true.
+    expect([L, W, rest]).toEqual([expect.stringMatching(/^4\.0\d*$/), expect.stringMatching(/^6\.7\d* mph$/), []])
+  })
+
+  it('your values in the working are green', () => {
+    localStorage.setItem('gb.real.station', JSON.stringify({ v: 1, tempC: { value: 12, source: 'manual' } }))
+    const air = step(openSheet(P7_1000_WIND), 'Air')
+    fireEvent.click(within(air).getByRole('button', { name: 'About: Air' }))
+    const yours = [...air.querySelectorAll('.calc-work b.calc-yours')].map((b) => b.textContent)
+    expect(yours).toContain('12')
+    expect(yours).not.toContain('0.00')
   })
 })
 
@@ -419,6 +478,37 @@ describe('CalcSheet: wind zones', () => {
     expect(wind.textContent!.match(/of the drift/g)).toHaveLength(3)
   })
 
+  /** The zone lines of the Wind step's body, and the crosswinds marked yours in its working. */
+  function zonesOf(hash: string) {
+    const wind = step(openSheet(hash), 'Wind')
+    fireEvent.click(within(wind).getByRole('button', { name: 'About: Wind' }))
+    const zone = (name: string) => within(wind).getAllByText(new RegExp(`^${name}:.*of the drift`)).at(-1)!.closest('.calc-i')!
+    const working = [...wind.querySelectorAll('.calc-work .calc-w-numbers b.calc-yours')].map((b) => b.textContent)
+    return { zone, working }
+  }
+
+  it('with the near wind set by hand every zone is yours, one that follows it too', () => {
+    // The link's wind counts as set by hand; the middle zone follows it, the far one has its own.
+    const { zone, working } = zonesOf('#/real/workbench?p=p7&d=1500&ws=3&wc=9&zn=1&zf=5,9')
+    for (const name of ['Near', 'Middle', 'Far']) {
+      expect(zone(name).querySelector('b')).toHaveClass('calc-yours')
+      expect(zone(name).querySelector('.tag')).toHaveClass('yours')
+    }
+    expect(working).toEqual(['3.0', '3.0', '5.0'])
+  })
+
+  it('with a forecast wind only a zone with a wind of its own is yours, in the body and the working', () => {
+    localStorage.setItem('gb.real.wind', JSON.stringify({ fromDeg: 180, hour: 9, speedMs: 3, source: 'forecast' }))
+    const { zone, working } = zonesOf('#/real/workbench?p=p7&d=1500&ws=3&wc=9&zn=1&zm=4,9')
+    expect(zone('Middle').querySelector('b')).toHaveClass('calc-yours')
+    expect(zone('Middle').querySelector('.tag')).toHaveClass('yours')
+    for (const name of ['Near', 'Far']) {
+      expect(zone(name).querySelector('b')).not.toHaveClass('calc-yours')
+      expect(zone(name).querySelector('.tag')).toBeNull()
+    }
+    expect(working).toEqual(['4.0'])
+  })
+
   it('opposing zones show their side and signed drift, adding up to the drift shown', () => {
     const sheet = openSheet('#/real/workbench?p=p7&d=1500&ws=3&wc=9&zn=1&zm=0,12&zf=3,3')
     const wind = step(sheet, 'Wind')
@@ -439,5 +529,85 @@ describe('CalcSheet: wind zones', () => {
     const wind = step(sheet, 'Wind')
     expect(wind).toHaveTextContent(/no wind/)
     expect(wind).not.toHaveTextContent(/of the drift/)
+  })
+})
+
+describe('CalcSheet: your values', () => {
+  it('marks a typed temperature green, with a yours tag, and leaves the standard pressure alone', () => {
+    localStorage.setItem('gb.real.station', JSON.stringify({ v: 1, tempC: { value: 12, source: 'manual' } }))
+    const air = step(openSheet(P7_1000_WIND), 'Air')
+    const temp = within(air).getByText('temperature').closest('.calc-i')!
+    expect(temp.querySelector('b')).toHaveClass('calc-yours')
+    expect(temp.querySelector('.tag')).toHaveClass('yours')
+    expect(temp.querySelector('.tag')).not.toHaveClass('acc')
+    const press = within(air).getByText('station pressure').closest('.calc-i')!
+    expect(press.querySelector('b')).not.toHaveClass('calc-yours')
+  })
+
+  it('shows the distance in Flight as yours', () => {
+    const flight = step(openSheet(P7_1000_WIND), 'Flight')
+    expect(flight).toHaveTextContent('distance 1000 m')
+    const item = within(flight).getByText('distance').closest('.calc-i')!
+    expect(item.querySelector('b')).toHaveClass('calc-yours')
+    expect(item.querySelector('.tag')).toHaveTextContent('yours')
+  })
+
+  it('gives the distance in Flight in yards under imperial, the metres in brackets, still yours', () => {
+    const sheet = openSheet('#/real/workbench?p=p7&d=800&u=imperial')
+    expect(within(sheet).getByRole('heading', { level: 2 })).toHaveTextContent('875 yd')
+    const flight = step(sheet, 'Flight')
+    expect(flight).toHaveTextContent('distance 875 yd (800 m) yours')
+    const item = within(flight).getByText('distance').closest('.calc-i')!
+    expect(item.querySelector('b')).toHaveClass('calc-yours')
+    expect(item.querySelector('.tag')).toHaveTextContent('yours')
+    cleanup()
+    expect(step(openSheet('#/real/workbench?p=p7&d=800'), 'Flight')).toHaveTextContent(/distance 800 m yours/)
+  })
+
+  it('marks the scope’s zero, click and travel green only once you set them, in the body and the working', () => {
+    const scopeItems = (sheet: HTMLElement) => {
+      const elevation = step(sheet, 'Elevation')
+      const item = (word: RegExp) => within(elevation).getByText(word).closest('.calc-i')!
+      return { elevation, zero: item(/^zero/), click: item(/clicks? of/) }
+    }
+    const plain = scopeItems(openSheet(P7_1000_WIND))
+    expect(plain.zero.querySelector('b')).not.toHaveClass('calc-yours')
+    expect(plain.click.querySelector('b')).not.toHaveClass('calc-yours')
+    cleanup()
+    localStorage.setItem('gb.real.profiles', JSON.stringify({ v: 1, presets: { p7: { zeroM: 200, clickValue: 0.05, scopeUnit: 'mil' } } }))
+    const set = scopeItems(openSheet(P7_1000_WIND))
+    expect(set.zero).toHaveTextContent('zero 200 m')
+    expect(set.zero.querySelector('b')).toHaveClass('calc-yours')
+    expect(set.zero.querySelector('.tag')).toHaveTextContent('yours')
+    expect(set.click.querySelector('b')).toHaveClass('calc-yours')
+    expect(set.click.querySelector('.tag')).toHaveTextContent('yours')
+    // The working's click c is green as the body's.
+    fireEvent.click(within(set.elevation).getByRole('button', { name: 'About: Elevation' }))
+    const mine = [...set.elevation.querySelectorAll('.calc-work b.calc-yours')].map((b) => b.textContent!.replace(/\s/g, ' '))
+    expect(mine).toContain('0.05 MRAD')
+    localStorage.clear()
+  })
+
+  it('says tvoje in Czech', () => {
+    open('#/real/workbench?l=cs&p=p7&d=600')
+    fireEvent.click(screen.getByRole('button', { name: 'Jak se to počítá' }))
+    const flight = step(screen.getByRole('dialog', { name: /Jak se to počítá/ }), 'Let')
+    expect(within(flight).getByText('vzdálenost').closest('.calc-i')!.querySelector('.tag')).toHaveTextContent('tvoje')
+  })
+
+  it('marks a wind set by hand, not a forecast wind', () => {
+    const wind = step(openSheet(P7_1000_WIND), 'Wind')
+    expect(wind.querySelector('.calc-i b')).toHaveClass('calc-yours')
+    cleanup()
+    localStorage.setItem('gb.real.wind', JSON.stringify({ fromDeg: 180, hour: 9, speedMs: 3, source: 'forecast' }))
+    const forecast = step(openSheet(P7_1000_WIND), 'Wind')
+    expect(forecast.querySelector('.calc-i b')).not.toHaveClass('calc-yours')
+  })
+
+  it('shows the slope as yours', () => {
+    const slope = within(openSheet('#/real/workbench?p=p7&d=500&sl=10')).getByRole('heading', { name: /Slope|slope/ }).closest<HTMLElement>('.calc-step')!
+    const first = slope.querySelector('.calc-i b')!
+    expect(first).toHaveTextContent('10°')
+    expect(first).toHaveClass('calc-yours')
   })
 })

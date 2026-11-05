@@ -48,7 +48,7 @@ The app is one page, the workbench, with one view: the answer and the inputs tha
 - **Hold over and lead:** a pair of large figures.
 - **Armor line:** armor by class alone, since nobody can tell which piece the enemy wears: `Usually penetrates up to` and the highest class the round usually gets through at this distance, the pen strip for the other classes, and the energy note when the round has lost enough energy to count armor tougher. The charted pen values hold to 150 m; beyond that the round's energy is measured against its energy at 150 m (a quarter lost: one class tougher; half: two).
 - **Toolbar:** the range row with my stance, and the target row (see Layout).
-- **Install note** (`InstallNote`): shown once, on a phone's first browser visit, never from the home screen (`gb.install` remembers it). It is the toast's box (glass, 1px `--border-strong`, 14px body font) at z-index 25, with a `✕` and no timeout, over the dock and below the open sheets. It waits while a page toast shows or a REAL dock panel is open, since above the panel it would sit on the answer the panel keeps in view. It carries the iPhone and Android steps, and a 44px `Install` button (`--accent` text) only when the browser has offered its prompt.
+- **Install note** (`InstallNote`): on GZW only (on REAL the guide's first page replaces it; a guide that opens by itself marks the note shown too). Shown once, on a phone's first browser visit, never from the home screen (`gb.install` remembers it). It is the toast's box (glass, 1px `--border-strong`, 14px body font) at z-index 25, with a `✕` and no timeout, over the dock and below the open sheets. It waits while a page toast shows or a REAL dock panel is open, since above the panel it would sit on the answer the panel keeps in view. It carries the iPhone and Android steps, and a 44px `Install` button (`--accent` text) only when the browser has offered its prompt.
 - **Foot row:** the `Import from clipboard (Ctrl+V)` button and the estimate note.
 
 **Fit:** on desktop the view is one screen: header, scope, answer, toolbar and foot row, without scrolling, from 1366×768 up and at 1080×1920. The scope grows with the window rather than leaving empty space.
@@ -125,6 +125,11 @@ GZW's contrast, computed the same way:
 - **Status colours** in `tokens.css`, from grayzonewarfare.com's state colours:
   - `--ok: #10b981`
   - `--bad: #ef4444`
+- **State colours** in `tokens.css` (see What the colours mean):
+  - `--need: #ff5a52`
+  - `--want: #ffa23e`
+  - `--yours: #4ee6a8`
+  - `--yours-glow: var(--ok)`, the bloom behind a value of yours; a green that is `--ok`'s own.
 - **Scope inks** in `tokens.css`:
   - `--reticle: #0a0a0a`
   - `--target: #141517`
@@ -134,12 +139,30 @@ GZW's contrast, computed the same way:
   - `--pen-0: var(--panel-2)` means pointless.
   - Unprotected is the panel colour with a `--border-strong` outline.
 
+### What the colours mean
+
+Five colours carry a meaning each, and no colour carries two. The owner asked for this to be written down.
+
+- **Cyan (`--accent`)** is the app: what is selected, what to act on, the answer's keys. It stays the only accent.
+- **Green (`--yours`)** is your input: a value you typed, measured with the phone, brought by a link or trued. It is `--ok`'s family, which nothing else uses, so it never reads as "selected" (cyan) or as a problem (red, orange).
+- **Red (`--need`)** is missing, and there is no answer without it: the rifle and the round.
+- **Orange (`--want`)** is missing, and the answer is less accurate without it: the weather, the wind and the direction.
+- **`--bad`** is the error signal (a failed read, a field out of range). Red as missing (`--need`) and red as an error differ in kind: `--need` glows, `--bad` stands still.
+
+Contrast of the new tokens as text (WCAG 2.x, each a hex colour against the opaque ground; the minimum is 4.5):
+
+| Token | REAL `--bg` | REAL `--panel` | GZW `--bg` | GZW `--panel` | WARDOGS `--bg` | WARDOGS `--panel` |
+|---|---|---|---|---|---|---|
+| `--need` `#ff5a52` | 6.3 | 5.8 | 6.3 | 5.7 | 6.8 | 6.0 |
+| `--want` `#ffa23e` | 9.7 | 8.8 | 9.7 | 8.8 | 10.5 | 9.1 |
+| `--yours` `#4ee6a8` | 12.3 | 11.1 | 12.2 | 11.1 | 13.2 | 11.5 |
+
 ### Using colour
 
 - **Accent:** it marks what is selected, what to act on, and the aim mark. Hold over and lead stay `--fg-strong`, and the accent goes on their label or marker.
 - **Verdict:** the one answer that takes its colour whole. "Shoot" is the accent, key and line (the owner asked for a coloured Shoot, orange then). "Risky" and "close in" are a `--fg-strong` line under an accent key. "No good shot" is a `--muted` line under a `--bad` key.
-- **Status:** `--bad` is a signal, at most one mark per object: the "no good shot" key and errors such as a failed OCR read. `--ok` is held in reserve; nothing uses it since the shoot verdict took the accent.
-- **Contrast:** every token that carries words reaches 4.5:1 on `--bg` and `--panel`. `--fg`, `--muted`, `--accent`, `--ok` and `--bad` pass in both palettes. `--faint` is 4.0:1 on GZW and 3.9:1 on REAL, so it carries rules, ticks, separators and inactive marks, never a word.
+- **Status:** `--bad` is a signal, at most one mark per object: the "no good shot" key and errors such as a failed OCR read. `--ok` is no longer unused: `--yours-glow` derives from it, so the green of your own values is its family and never reads as selected (cyan) or as a problem (red, orange).
+- **Contrast:** every token that carries words reaches 4.5:1 on `--bg` and `--panel`. `--fg`, `--muted`, `--accent`, `--ok`, `--bad`, `--need`, `--want` and `--yours` pass in both palettes. `--faint` is 4.0:1 on GZW and 3.9:1 on REAL, so it carries rules, ticks, separators and inactive marks, never a word.
 
 ## REAL
 
@@ -148,6 +171,29 @@ The default page (`#/real/workbench`, and the bare URL): the first-shot scope se
 - **Switcher:** REAL, GZW, then WARDOGS (`soon`), in that order. On a phone the tabs use the short names: `REAL`, `GZW`, `WARDOGS`.
 - **Answer:** two large figures, `Elevation` and `Windage`, each with its mode word after the key (`dial` or `hold`). Dial mode gives the turret figure with its clicks and what is left over in cm; hold mode adds the scope view, a disc target at true size and the hold marks, with the hold figures beside it. Under the windage figure, three columns (wind speed minus and plus its uncertainty). They keep their place when it is calm, hidden (`is-hidden`) in one grid cell with the sensitivity line, so wind never moves the page. Then the hit line (large screens), the estimate warnings and the `How it's calculated` button. Units are `MRAD` and `MOA`, never `MIL`.
 - **Round target in the scope view:** in hold mode the scope draws a round plate on a post (`target: { kind: 'disc' }`) instead of the soldier, with no size bracket; the aim mark sits on its centre and the windage hold is the lead.
+- **What's missing glows:** a control's text and icon take `--need` or `--want` and a soft bloom (a `text-shadow`, a `drop-shadow` on an svg icon) that rises and falls over 3.5 s. The border, the fill and the size never change, so nothing moves. Two classes, `glow-need` and `glow-want` (`glow.css`), do it everywhere; a glowing control keeps its accessible name, and a screen reader gets the state from text that is already there (the placeholder word, the empty state, the dash), never from the colour. Under reduced motion it keeps the colour and the bloom at its middle strength and nothing pulses. A glow ends the moment the value is there: a pick, a typed value, `Use`, a measurement, model weather. Where a value can be measured, the measuring button glows, not the field. Distance and slope never glow: they always have a value.
+
+  | Missing | When | Glows |
+  |---|---|---|
+  | Rifle (red) | no rifle chosen | the rifle and round tags; the empty state's `Pick a rifle`; in the settings sheet, the Rifle section's title and icon |
+  | Weather (orange) | temperature, pressure, humidity and altitude all `standard` | the station line; in the station sheet, `By location` |
+  | Wind (orange) | the wind isn't set | the phone dock's Wind button (its word, value and chevron); in the Wind panel and the desktop Wind group, the forecast line's `Use` when it is offered, else the visible speed figure and unit (the label is visually hidden) |
+  | Direction (orange) | no shooting direction | the dock's Distance button's chevron only (its word and value are the distance, never missing); in the shot panel `Aim`, else the Direction field's word; on desktop, the Direction field's word |
+
+- **The first visit:** nothing is preselected. The setup carries `rifleSet`, true when a link or the stored setup names a rifle (`p`, `cr` or `cf`). While it is false the URL and the stored setup carry no `p`, and the page doesn't solve: no figures, columns, warnings or `How it's calculated`.
+  - **Tags:** `Rifle` and `Round` (cs `Zbraň`, `Munice`) in `--muted`, glowing red; the round tag opens the settings sheet at the Rifle section, since the round comes with the rifle. The scope tag is as usual.
+  - **Empty state:** in the answer's place (on desktop in the scope's place too), centred: the label `Start with your rifle`, the line `Pick your rifle and round. Then this shows what to dial and what to hold.` and a ghost `Pick a rifle` that glows red and opens the settings sheet at the Rifle section.
+  - **The settings sheet with nothing chosen:** no row selected in the rifle list, the Round section's summary `—`, and the Round and Scope sections say `Pick the rifle first.` (cs `Nejdřív vyber zbraň.`) in place of their fields, since an edit would land on the hidden default preset.
+  - **Who sees it:** a device with no stored REAL setup opening a link without `p`, `cr` or `cf`: a first visit, or after the reset. A stored setup without a rifle (a first visit closed without a pick) keeps nothing chosen too. Stored setups that name a rifle and shared links open as before.
+- **The guide** (`Guide`): a short read, not a walk through the controls. It never points at a control, dims the page or traps the focus.
+  - **The card:** glass like the install note, at the install note's layer (z-index 25, under the sheets, over the dock). On a phone it stands at the foot of the screen with a top border, over the dock; from 700px it is centred 16px above the bottom bar the pages talk about (`--guide-lift`, which `Guide` keeps as the bar grows, the window changes and the page scrolls; a bar below the screen's foot takes none, and the card is then 16px above the bottom), at most 560px wide. Head row: the label `Guide · 2 / 6` in `--accent` (a polite live region, so the page change is announced) and `✕`. Then the page's title in the section-heading role, its text in 14px body type (no pictures), then the dots (one per page, 7px diamonds, the current one `--accent` with a soft glow) with `Back` (ghost, absent on the first page) and `Next` (primary; `Done` on the last).
+  - **Fixed height:** all pages share one grid cell, so the card takes its tallest page's height and the buttons stay in place. On a short screen the card stops short of the top: on a phone it leaves the header and the tags strip free (a phone in landscape), from 700px it stays 16px under the header. Each page is then at most that tall (`--guide-room`) and only the shown page's text scrolls inside the card; the head row and the buttons stay put and still don't move between pages. A horizontal swipe turns the page too; the arrow keys do while the focus is in the card.
+  - **The pages** (`First, to the home screen`, `Rifle, round, scope`, `Weather`, `Wind`, `Direction and slope`, `Distance and the answer`) are fixed when the guide opens: rotating the phone doesn't change them. The install page shows only on a phone in the browser, so elsewhere there are five. The rifle page ends with the line on the colours. The direction and distance pages have a phone text and a typed one.
+  - **When it opens:** by itself on a first visit (no stored setup and no stored profile), once (`guideSeen` in `gb.real.profile`); storage that can't be read counts as seen. Then it takes no focus. From ⓘ's `Guide` it takes the focus (its title), and `✕`, `Done` and Escape return it to the ⓘ button. It is on REAL only.
+- **ⓘ's `Guide`:** see Info sheet.
+- **Calculation sheet, your values:** an input of yours (a typed or measured value, a link, a trued one, a `manual` station field, the shot's own inputs, a wind set by hand, and the scope's zero, click and travel once you set them, on a built-in scope or as your own scope's; the default zero and click are not) prints its value in `--yours` with a steady soft bloom (`--yours-glow`) and its tag in `--yours` (text and border) instead of `--accent`. "Yours" is one rule in the body and the working: a zone with its own wind, or any zone while the wind was set by hand; the crosswind and calibres in step 8 and the crosswind in step 5 follow the wind and the length. Model weather, a forecast wind, presets, estimates and standards stay as before.
+- **Calculation sheet, each step's ⓘ:** the explanation in italics, a blank line, then the working: the formula in symbols, then the same with this shot's numbers and the result, from the code's own formulas (`calcWorking.ts`). It prints extra decimals only where needed for the printed arithmetic to give the printed result; in Czech it uses decimal commas. The flight names the simulation and gives its figures; `σ = 0` names the closed form. The step's body stays as before.
+- **The dock's wind figure:** the Wind button's speed is whole from 10 in every unit (as in the wind columns), so it fits at 375px in km/h in both languages.
 - **Tags:** rifle, round and scope, each an icon (14px line, `--muted`, `aria-hidden`) and a text, in the header slot (a strip under the header on a phone), as on GZW. There is no cog tag. Each opens the settings sheet with its own section expanded. The desktop text is the full name: the rifle's, the round's short name (`.338 LM Scenar 250`: calibre, bullet, weight, at most 22 characters), the scope's unit, click and zero (`MRAD · 0.1 · zero 100`, the zero in the distance unit). On a phone the text is short so the strip fits one row in both languages: the preset's `rifleShort` (`AXSR`, `BREN 2 14″`), the calibre (`.338 LM`), the unit and the zero (`MRAD 100`). The full name stays in the tag's `title` and accessible name.
 - **Shared link:** the URL carries the current preset's overrides (`o=`), never the station. A view that shows a link's values says so in one mono 11px `--accent` line under the tags, `Values from the shared link`, until the first edit stores them.
 - **Station line:** under the tags, one mono `--muted` line with the air (`15 °C · QNH 1013 hPa · 0 % · 0 m · standard`; the pressure kind is QNH unless set to station). It is a button that opens the station sheet: `By location`, then temperature, pressure, humidity, altitude, height above ground (whole metres, feet under imperial; where you shoot from, about 1 m lying prone, which converts the forecast wind from 10 m), latitude and powder temperature. The shooting direction and the wind live in the bottom bar, the wind unit in ⚙.
@@ -182,7 +228,7 @@ The default page (`#/real/workbench`, and the bare URL): the first-shot scope se
 - **Big figure:** the ⚙ sheet has, on REAL only, `Big figure: Value | Clicks` (a segmented control with the hint `When dialling the turret.`), stored as `primary` in `gb.real.profile`. In dial mode `Value` leads with the turret figure, and the small dial line under it gives the clicks with their direction and what is left over (`36 clicks up · 2 cm left over`), as in 0.1.0 (0.1.2 to 0.1.4 had a large `--accent` clicks line instead; the owner wanted it back); `Clicks` leads with the click count (`↑36`, `clicks` in `--accent` 18px) and shows the value under it. The arrow always leads; zero clicks has no arrow. Hold mode and the windage block don't change.
 - **Wind input:** the wind speed is a typed field between `−` and `+` (`WindSpeedTool`), in the owner's unit (⚙ `Wind in`), one decimal; a Czech decimal comma is accepted. `−` and `+` go to the next multiple of the unit's step. The `WindClock` takes a press or a drag anywhere on the dial outside its centre hub (the inner 30% of the radius) and picks the hour nearest the angle; each hour owns a 30° wedge. Once the shooting direction is set, the dial carries compass letters (`cardinals` prop: N, E, S, W and the points between, turned to the shot, the letters from `real.cardinals`); without a direction it shows none.
 - **Wind uncertainty** (`WindSigmaTool`): a ±σ stepper of 0.5–3 m/s next to the wind speed, shown in the wind unit (1 m/s reads ±3.6 km/h).
-- **Direction** (`DirectionField`): the bearing to the target in degrees, with the nearest compass point beside the unit. Empty means unknown. On a phone the shot panel puts `Aim` beside the field (see Aim). On the desktop bar the field's note is visually hidden.
+- **Direction** (`DirectionField`): the bearing to the target in degrees, with the nearest compass point beside the unit. Empty means unknown. On a phone the shot panel puts `Aim` beside the field (see Aim). On the desktop bar the field's note is visually hidden, and the empty field is wide enough (84px) to read its placeholder in full, `unknown` (cs `neznámý`).
 - **Slope** (`SlopeTool`): a stepper of −45° to 45°. The hint `+ uphill, − downhill` is a line under it in the phone panel; on the desktop bar it is the control's `title` and accessible description.
 - **Forecast line** (`ForecastLine`, `{ setup, update, now, onNeedDirection }`): after `By location`, an `.est` line offers the forecast wind at the shooter's height: `Forecast near the ground: ≈ 4 m/s from NW (10 o’clock)` (or `Forecast at 10 m: …` from a building). By default it is an offer: `Use` (ghost) sets the speed and the hour and marks the wind set. A calm forecast always has `Use`: it sets 0 m/s, marks the wind set and keeps the hour. Otherwise `Use` appears only when the direction is known; without it the line shows `Set the shooting direction to get the hour.` as a button that takes the focus to the direction field (on a phone, it opens the shot panel there).
   - **Following state:** while the wind follows the forecast (⚙ `Forecast wind: Automatically`, and the wind not set by hand), the line reads `Wind from the forecast near the ground: ≈ 4 m/s from NW (10 o’clock)` (`fc.following`; `fc.followingCalm` when calm) and has no `Use`. Setting the wind by hand ends it and the line is the offer again. In `Automaticky` the forecast applies by itself (`useForecastFollow`) whenever the weather, the direction, the height or the wind unit change and the wind isn't set by hand, but not while a shared link with items this device lacks is on screen; with the direction cleared the line is the normal offer.
@@ -326,15 +372,18 @@ A setup choice sits in a **popover menu** under the tag that names it (see Setup
   - Several weapons the app can show are radios, the fastest muzzle velocity preselected; the round is radios over the rounds found that fit the chosen weapon, the best preselected, `keep the current one` last.
   - The barrel, scope and read accuracy are ticks, shown only for the weapon they belong to.
 - **Info sheet:** the ⓘ `About this site` button opens a glass sheet like the settings one. In order:
+  - on REAL, a ghost `Guide` button (cs `Průvodce`) with a small book icon, leading the sheet: it closes ⓘ and opens the guide at its first page. `InfoSheet` stays game-agnostic: it takes an optional leading action;
   - the fan-project line;
   - `How to read the answer`, on a page that gives one (REAL);
   - the data version with its sources;
   - the estimates note;
-  - `Add Ballistics to your home screen`: why, the iPhone and Android steps, and an `Install` button only when the browser offers one; hidden when the page runs from the home screen;
+  - `Add Ballistics to your home screen`: why, the iPhone and Android steps, and an `Install` button only when the browser offers one; hidden when the page runs from the home screen. On REAL the guide's first page says the same;
   - `Privacy`: what stays in the browser and what leaves it (By location to Open-Meteo, the screenshot read in the browser, the IP address GitHub Pages sees), and "No cookies, no analytics, no tracking.";
   - `Version {v} · What's new`: the app's version and a link to the what's-new page (`changelog/#<game>`, relative, with the game the sheet is open on; same tab; 32px tall, 44px on a phone).
 
   Help, install and privacy are `<details>`, closed until asked for: a label-role summary in `--fg` (`--accent` on hover) with a `›` that turns down when open, so the sheet stays short. Its text is mono 12px `--muted`, a term `--fg`. The sheet scrolls inside itself (at most the screen's height less 88px). While a sheet is open the header sits over a phone's dock, so the sheet's end is never hidden under it.
+- **Settings sheet (⚙), reset row:** it ends on every page, after a 1px rule: a right-aligned 44px `--muted` text button `↺ Reset everything to defaults` (cs `↺ Vrátit vše do výchozího stavu`), like `SectionReset`. A tap turns the row into `Reset everything?` with `Yes` (ghost, `--need` text and a `--need` border at 60%) and `No` (ghost), the focus on `No`, and under it `Your own rifles, rounds and scopes stay; changes to the built-in ones go.` (cs `Tvoje vlastní zbraně, munice a puškohledy zůstanou; úpravy vestavěných se smažou.`): a trued MV or a zero on a built-in rifle, round or scope lives in `gb.real.profiles`, which the reset clears. `No`, closing ⚙ or Escape put the row back. No browser dialog. The sheet is at least 304px wide on desktop and its rows scroll inside `.settings-body`; the sheet itself doesn't scroll, so it keeps its corner marks.
+  - **What `Yes` does:** it removes every `gb.` key from localStorage except `gb.real.library`, sets the one-shot flag `gb.reset` in sessionStorage and reloads at a bare `#/real/workbench` in the current language, so nothing kept in memory survives. The next start clears the storage again before anything reads it (what the page wrote while unloading can't survive) and strips the address back to the bare one. It reloads even when the history write is refused. The language stays, since it is in the path. The result is a first visit, with the guide.
 - **Version mark:** the app's version (`v` and the `package.json` version), mono 10px `--muted` at 60%, fixed 8px from the right and 4px from the bottom of the screen. It moves nothing, takes no clicks and is `aria-hidden` (ⓘ gives it). On a phone the dock fills that corner, so it shows only in ⓘ.
 - **Estimate note:** a 1px dashed `--border-strong` box, mono 11px `--muted`, led by an accent `≈`.
 
@@ -394,6 +443,7 @@ The scope view is the hero. It shows which point of the reticle goes on the targ
 - **Entrance:** when a page first mounts, its blocks fade up 10px over .6s on `cubic-bezier(.2, .7, .1, 1)`, staggered 40–80ms apart. Store the easing as `--ease` in `tokens.css`.
 - **Input:** figures update instantly, so the answer is readable at once.
 - **Hover and press:** colour, background and border transitions of 150ms.
+- **Glow:** what's missing pulses over 3.5 s, ease-in-out, forever (`glow.css`); under reduced motion it is steady at its middle strength. Your values' green bloom in the calculation sheet is steady always.
 - **Reduced motion:** under `prefers-reduced-motion: reduce`, the entrance is off and transitions are instant. `base.css` already does this globally.
 
 ## Layout and the phone

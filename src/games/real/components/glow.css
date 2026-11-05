@@ -1,0 +1,28 @@
+/* The guide's glow: text and icon only, never a frame, a box, a fill or a size change. Put a class on the element whose
+   text and icon glow (a button, a label, a chevron); everything inside takes the colour. */
+.glow-need { --glow-c: var(--need); }
+.glow-want { --glow-c: var(--want); }
+
+/* A state over any control's own colours, so it wins over them. */
+:is(.glow-need, .glow-want), :is(.glow-need, .glow-want) * { color: var(--glow-c) !important; }
+
+/* The static values are the middle strength, which reduced motion keeps (base.css stops the animation). */
+:is(.glow-need, .glow-want) {
+  text-shadow: 0 0 6px color-mix(in srgb, var(--glow-c) 55%, transparent), 0 0 2px color-mix(in srgb, var(--glow-c) 60%, transparent);
+  animation: glow-text 3.5s ease-in-out infinite;
+}
+
+:is(.glow-need, .glow-want) svg {
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--glow-c) 55%, transparent));
+  animation: glow-icon 3.5s ease-in-out infinite;
+}
+
+@keyframes glow-text {
+  0%, 100% { text-shadow: 0 0 2px color-mix(in srgb, var(--glow-c) 30%, transparent); }
+  50% { text-shadow: 0 0 10px var(--glow-c), 0 0 2px var(--glow-c); }
+}
+
+@keyframes glow-icon {
+  0%, 100% { filter: drop-shadow(0 0 1px color-mix(in srgb, var(--glow-c) 30%, transparent)); }
+  50% { filter: drop-shadow(0 0 5px var(--glow-c)); }
+}

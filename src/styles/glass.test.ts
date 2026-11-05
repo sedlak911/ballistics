@@ -22,6 +22,7 @@ const OPEN_SURFACES: [string, string][] = [
   ['src/games/real/components/calc.css', '.calc-sheet.panel'],
   ['src/games/real/components/real.css', '.real-panel'],
   ['src/games/real/components/camera.css', '.real-cam'],
+  ['src/games/real/components/guide.css', '.guide-card'],
   ['src/games/gzw/components/import.css', '.modal.panel'],
 ]
 

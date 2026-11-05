@@ -13,6 +13,12 @@
   --ok: #10b981;
   --bad: #ef4444;
 
+  /* The guide: what is missing glows red (need) or amber (want); what is yours is green. */
+  --need: #ff5a52;
+  --want: #ffa23e;
+  --yours: #4ee6a8;
+  --yours-glow: var(--ok);
+
   /* Scope inks */
   --reticle: #0a0a0a;
   --target: #141517;

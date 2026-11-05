@@ -120,3 +120,9 @@
     height: 46px;
   }
 }
+
+/* A placeholder tag (nothing chosen): quiet until the glow colours it. */
+.setup-tags .tag-btn .tag-empty {
+  font-weight: 400;
+  color: var(--muted);
+}

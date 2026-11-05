@@ -3,10 +3,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import pkg from '../package.json'
 import App from './App'
 import { PHONE } from './components/useMedia'
-import { leave } from './leave'
+import { leave, restart } from './leave'
+import { closeGuide } from './games/real/guide'
+import { LIBRARY_KEY } from './games/real/library'
+import { PROFILE_KEY } from './games/real/profile'
 
-// jsdom can't load another page; the language switch on /cs/ and /en/ leaves through this seam.
-vi.mock('./leave', () => ({ leave: vi.fn() }))
+// jsdom can't load another page; the language switch on /cs/ and /en/ leaves through this seam, the reset restarts
+// through it.
+vi.mock('./leave', () => ({ leave: vi.fn(), restart: vi.fn() }))
 
 function open(hash: string) {
   window.location.hash = hash
@@ -14,6 +18,7 @@ function open(hash: string) {
 }
 
 afterEach(() => {
+  closeGuide()
   cleanup()
   vi.unstubAllGlobals()
 })
@@ -90,9 +95,19 @@ describe('App shell', () => {
     vi.stubGlobal('matchMedia', (query: string) => ({
       matches: query === PHONE, media: query, addEventListener: () => {}, removeEventListener: () => {},
     }))
-    open('#/real/workbench')
+    open('#/gzw/workbench')
     // The dock's own (empty) status region is on the page too.
     expect(screen.getByText(/^Add Ballistics to your home screen/).closest('[role="status"]')).not.toBeNull()
+  })
+
+  it('REAL shows the guide instead of the install note', () => {
+    localStorage.clear()
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query === PHONE, media: query, addEventListener: () => {}, removeEventListener: () => {},
+    }))
+    open('#/real/workbench')
+    expect(screen.queryByText(/^Add Ballistics to your home screen/)).toBeNull()
+    expect(document.querySelector('.guide-card')).not.toBeNull()
   })
 
   it('opens REAL on a bare URL and GZW on its own route', () => {
@@ -298,5 +313,87 @@ describe('The language', () => {
     expect(storedLang()).toBe('en')
     expect(screen.getByRole('button', { name: 'O webu' })).toBeInTheDocument()
     expect(window.location.hash).toBe('#/wardogs/workbench?d=300')
+  })
+})
+
+describe('ⓘ and the guide', () => {
+  it('ⓘ opens the guide on REAL', () => {
+    localStorage.setItem(PROFILE_KEY, '{}')
+    open('#/real/workbench')
+    const info = screen.getByRole('button', { name: 'About this site' })
+    fireEvent.click(info)
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'About this site' })).getByRole('button', { name: 'Guide' }))
+    expect(screen.queryByRole('dialog', { name: 'About this site' })).toBeNull()
+    expect(screen.getByText('Guide · 1 / 5')).toBeInTheDocument()
+    expect(document.activeElement).toHaveClass('guide-title')
+    fireEvent.click(screen.getByRole('button', { name: 'Close the guide' }))
+    expect(document.activeElement).toBe(info)
+    localStorage.clear()
+  })
+
+  it('no Guide on GZW', () => {
+    open('#/gzw/workbench')
+    fireEvent.click(screen.getByRole('button', { name: 'About this site' }))
+    expect(screen.queryByRole('button', { name: 'Guide' })).toBeNull()
+  })
+})
+
+describe('The reset', () => {
+  const settings = () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+    return screen.getByRole('dialog', { name: 'Settings' })
+  }
+  /** The sheet's last element in document order, whatever wraps the rows (the body that scrolls on a short phone). */
+  const lastIn = (sheet: HTMLElement) => [...sheet.querySelectorAll('*')].at(-1)!
+
+  it('ends the ⚙ sheet on GZW', () => {
+    open('#/gzw/workbench')
+    const sheet = settings()
+    const row = sheet.querySelector('.reset-row')!
+    expect(row.contains(lastIn(sheet))).toBe(true)
+    expect(row.nextElementSibling).toBeNull()
+    expect(within(row as HTMLElement).getByRole('button', { name: '↺ Reset everything to defaults' })).toBeInTheDocument()
+  })
+
+  it('Yes clears every gb key but the library and restarts', () => {
+    vi.mocked(restart).mockClear()
+    localStorage.setItem(LIBRARY_KEY, '{"rifles":[]}')
+    localStorage.setItem('gb.install', '{"noteShown":true}')
+    sessionStorage.setItem('gb.real.written', 'p=p7')
+    open('#/gzw/workbench?d=300')
+    const sheet = settings()
+    fireEvent.click(within(sheet).getByRole('button', { name: '↺ Reset everything to defaults' }))
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Yes' }))
+    expect(restart).toHaveBeenCalledExactlyOnceWith(`${location.origin}${location.pathname}#/real/workbench`)
+    const gb = Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i)!).filter((k) => k.startsWith('gb.'))
+    expect(gb).toEqual([LIBRARY_KEY])
+    expect(sessionStorage.getItem('gb.real.written')).toBeNull()
+    expect(sessionStorage.getItem('gb.reset')).toBe('1')
+  })
+
+  it('comes after REAL’s own rows', () => {
+    open('#/real/workbench')
+    const sheet = settings()
+    const row = sheet.querySelector('.reset-row')!
+    expect(row.contains(lastIn(sheet))).toBe(true)
+    const last = within(sheet).getByRole('group', { name: 'Measuring with the phone' })
+    expect(last.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(within(sheet).getByRole('group', { name: 'Big figure' }).compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('closing ⚙ puts the row back at rest', () => {
+    open('#/real/workbench')
+    let sheet = settings()
+    fireEvent.click(within(sheet).getByRole('button', { name: '↺ Reset everything to defaults' }))
+    expect(within(sheet).getByRole('group', { name: 'Reset everything?' })).toBeInTheDocument()
+    // Escape in the asking row only puts it back; ⚙ stays open.
+    fireEvent.keyDown(within(sheet).getByRole('button', { name: 'No' }), { key: 'Escape' })
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument()
+    fireEvent.click(within(sheet).getByRole('button', { name: '↺ Reset everything to defaults' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+    expect(screen.queryByRole('dialog', { name: 'Settings' })).toBeNull()
+    sheet = settings()
+    expect(within(sheet).queryByRole('group', { name: 'Reset everything?' })).toBeNull()
+    expect(within(sheet).getByRole('button', { name: '↺ Reset everything to defaults' })).toBeInTheDocument()
   })
 })

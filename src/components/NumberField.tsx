@@ -45,6 +45,10 @@ export interface NumberFieldProps {
   sideArrows?: boolean
   /** The field's accessible name, where the label shown is a short form of it (`Dist.` for Distance). */
   ariaLabel?: string
+  /** Added to the label's class (a glow, say). */
+  labelClass?: string
+  /** Added to the typed figure and its unit (a glow on what is visible when the label is hidden). */
+  valueClass?: string
 }
 
 const show = (v: number | null) => (v === null ? '' : String(+v.toPrecision(10)))
@@ -64,7 +68,7 @@ function parse(text: string, min: number, max: number): number | null {
  * aria-describedby) until the user corrects it. A new `value` or `unit` from outside replaces the text. A value
  * `outOfRange` is shown as it is and flagged at once.
  */
-export function NumberField({ label, value, unit, units, onUnit, min, max, step = 1, onChange, invalidText, placeholder, onClear, needed = false, onDraft, commitSame = false, snap = false, aside, mark, outOfRange = false, inputRef, disabled = false, sideArrows = false, ariaLabel }: NumberFieldProps) {
+export function NumberField({ label, value, unit, units, onUnit, min, max, step = 1, onChange, invalidText, placeholder, onClear, needed = false, onDraft, commitSame = false, snap = false, aside, mark, outOfRange = false, inputRef, disabled = false, sideArrows = false, ariaLabel, labelClass, valueClass }: NumberFieldProps) {
   const uid = useId()
   const inputId = `nf-${uid}`
   const errorId = `nf-err-${uid}`
@@ -114,7 +118,7 @@ export function NumberField({ label, value, unit, units, onUnit, min, max, step 
     if (v !== value || needed) onChange(v)
   }
 
-  const labelEl = <label htmlFor={inputId} className="label">{label}{mark && <> <span className="label-mark">{mark}</span></>}</label>
+  const labelEl = <label htmlFor={inputId} className={labelClass ? `label ${labelClass}` : 'label'}>{label}{mark && <> <span className="label-mark">{mark}</span></>}</label>
   return (
     <div className="number-field">
       {aside ? <div className="number-field-head">{labelEl}{aside}</div> : labelEl}
@@ -123,6 +127,7 @@ export function NumberField({ label, value, unit, units, onUnit, min, max, step 
           id={inputId}
           ref={inputRef}
           type="text"
+          className={valueClass}
           inputMode="decimal"
           autoComplete="off"
           value={text}
@@ -141,7 +146,7 @@ export function NumberField({ label, value, unit, units, onUnit, min, max, step 
         />
         {units && units.length > 1 && onUnit
           ? <Segmented label={`${label} (${unit})`} value={unit} onChange={onUnit} options={units.map((u) => ({ value: u, label: u }))} />
-          : <span className="unit">{unit}</span>}
+          : <span className={valueClass ? `unit ${valueClass}` : 'unit'}>{unit}</span>}
       </div>
       {invalid && <p id={errorId} className="number-field-error" role="alert">{invalidText}</p>}
     </div>

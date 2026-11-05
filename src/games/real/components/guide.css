@@ -1,0 +1,132 @@
+/* The guide: a glass card at the bottom of the screen, at the install note's layer (under the sheets, over the dock).
+   It doesn't dim the page. All its pages share one grid cell, so the card is as tall as the tallest and the buttons stay
+   where they are. On a short screen (a phone in landscape) a page's text scrolls inside the card, never the head row or
+   the buttons: each page is at most --guide-room tall, the screen less what the card must leave free and its own head
+   row, buttons, gaps and padding, so the card keeps clear of the header and the tags strip. */
+.guide-card {
+  /* On a phone: clear of the header (64px) and the tags strip (65px). The card's own: the 1px top border, 14px and 16px
+     padding, the 44px head row and buttons, two 10px gaps. */
+  --guide-room: calc(100dvh - var(--safe-top) - 129px - 139px - var(--safe-bottom));
+  position: fixed;
+  z-index: 25;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  gap: 10px;
+  padding: 14px 18px calc(16px + var(--safe-bottom));
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  border-top: 1px solid var(--border-strong);
+  color: var(--fg);
+  touch-action: pan-y;
+}
+
+/* From 700px it stands centred above the bottom bar the pages talk about, 16px clear of it (--guide-lift, set by Guide:
+   how much of the screen's foot the bar takes), and 16px clear of the header. */
+@media (min-width: 700px) {
+  .guide-card {
+    /* 16px over the bar, 64px header and 16px under it; the card's own: 14px and 16px padding, 1px borders, the 36px
+       head row, the 44px buttons, two 10px gaps. */
+    --guide-room: calc(100dvh - var(--guide-lift, 0px) - var(--safe-top) - 96px - 132px);
+    left: 50%;
+    right: auto;
+    bottom: calc(var(--guide-lift, 0px) + 16px);
+    transform: translateX(-50%);
+    width: min(560px, calc(100% - 32px));
+    padding-bottom: 16px;
+    border: 1px solid var(--border-strong);
+  }
+}
+
+.guide-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.guide-count {
+  color: var(--accent);
+}
+
+.guide-pages {
+  display: grid;
+}
+
+.guide-page {
+  grid-area: 1 / 1;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  max-height: max(var(--guide-room), 64px);
+  overflow: clip;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--fg);
+}
+
+/* Only the shown page scrolls, and it lies over the hidden ones, so a wheel or a finger scrolls it. */
+.guide-page[data-shown='true'] {
+  position: relative;
+  z-index: 1;
+  overflow: hidden auto;
+  overscroll-behavior-y: contain;
+}
+
+.guide-page[data-shown='false'] {
+  visibility: hidden;
+}
+
+.guide-page p {
+  margin: 0;
+}
+
+.guide-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-strong);
+}
+
+.guide-title:focus {
+  outline: none;
+}
+
+.guide-install {
+  justify-self: start;
+}
+
+.guide-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.guide-dots {
+  display: flex;
+  gap: 10px;
+}
+
+.guide-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--border-strong);
+  transform: rotate(45deg);
+}
+
+.guide-dot[data-current='true'] {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.guide-buttons {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}

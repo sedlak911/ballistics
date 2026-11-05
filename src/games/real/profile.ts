@@ -31,6 +31,8 @@ export interface RealProfile {
   forecastWind: 'tap' | 'auto'
   /** The weather refreshes by itself (the switch lives in the station sheet). */
   weatherAutoRefresh: boolean
+  /** The guide has been shown (it opens by itself once, at a first visit). */
+  guideSeen: boolean
 }
 
 export const DEFAULT_REAL_PROFILE: RealProfile = {
@@ -47,6 +49,7 @@ export const DEFAULT_REAL_PROFILE: RealProfile = {
   aimChosen: false,
   forecastWind: 'tap',
   weatherAutoRefresh: true,
+  guideSeen: false,
 }
 
 /** The chosen style; before a choice the home-screen app aims with the camera and the browser the simple way. */
@@ -83,10 +86,12 @@ export function readRealProfile(raw: unknown): RealProfile {
     aimChosen: raw.aimChosen === true,
     forecastWind: raw.forecastWind === 'auto' ? 'auto' : 'tap',
     weatherAutoRefresh: typeof raw.weatherAutoRefresh === 'boolean' ? raw.weatherAutoRefresh : d.weatherAutoRefresh,
+    guideSeen: raw.guideSeen === true,
   }
 }
 
-const STORAGE_KEY = 'gb.real.profile'
+export const PROFILE_KEY = 'gb.real.profile'
+const STORAGE_KEY = PROFILE_KEY
 const listeners = new Set<() => void>()
 let cached: { raw: string | null; profile: RealProfile } | null = null
 

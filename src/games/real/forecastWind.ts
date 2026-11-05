@@ -60,3 +60,9 @@ export function forecastOffer(s: Station, now: number, unit: WindUnit): Forecast
     calm,
   }
 }
+
+/** The forecast line would show Use: there is an offer and it is a calm or has its hour. */
+export function forecastUseOffered(s: Station, now: number, unit: WindUnit): boolean {
+  const offer = forecastOffer(s, now, unit)
+  return offer !== null && (offer.calm || offer.hour !== null)
+}

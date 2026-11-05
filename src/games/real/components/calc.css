@@ -159,7 +159,7 @@
   color: var(--accent);
 }
 
-/* The learner's explanation under ⓘ. */
+/* Under ⓘ: the learner's explanation in italics, a blank line, then the step's working. */
 .calc-why {
   margin: 8px 0 2px 26px;
   padding-left: 10px;
@@ -167,6 +167,38 @@
   font-size: 13px;
   line-height: 1.45;
   color: var(--fg);
+}
+
+.calc-why-text {
+  margin: 0;
+  font-style: italic;
+}
+
+/* The working: each formula in symbols (muted), then with this shot's numbers. Long ones wrap at their spaces. */
+.calc-work {
+  margin-top: 1.5em;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+}
+
+.calc-w {
+  margin: 0;
+  color: var(--fg);
+}
+
+.calc-w-symbols {
+  color: var(--muted);
+}
+
+/* A little air after a formula's pair, before the next line. */
+.calc-w-numbers + .calc-w {
+  margin-top: 6px;
+}
+
+.calc-w b {
+  font-weight: 400;
 }
 
 /* The working: inputs with their units and sources, figures and formulas. */
@@ -200,6 +232,19 @@
 .calc-sep {
   margin: 0 7px 0 6px;
   color: var(--faint);
+}
+
+.calc-i b.calc-yours,
+.calc-w b.calc-yours {
+  color: var(--yours);
+  text-shadow:
+    0 0 8px color-mix(in srgb, var(--yours-glow) 80%, transparent),
+    0 0 2px color-mix(in srgb, var(--yours-glow) 90%, transparent);
+}
+
+.tag.yours {
+  color: var(--yours);
+  border-color: color-mix(in srgb, var(--yours-glow) 60%, transparent);
 }
 
 .tag.calc-est {

@@ -28,6 +28,7 @@ import {
 } from './realText'
 import { len } from './calcText'
 import './real.css'
+import './glow.css'
 
 const step = (i: number) => ({ '--i': i }) as CSSProperties
 
@@ -68,9 +69,13 @@ export interface RealViewProps {
   windUnset: boolean
   /** Whether the scope is one of your own (its magnification has no model yet). */
   customScope: boolean
+  /** The wind was set by hand (not followed from the forecast): the calculation sheet marks it as yours. */
+  windByHand: boolean
   /** Whether the calculation sheet is open; the page asks the solver for the shares only then (R9). */
   calcOpen: boolean
   onCalc: (open: boolean) => void
+  /** Given while no rifle is chosen: the answer area is the empty state, whose button opens the settings at the rifle. */
+  onStart?: (returnFocus: RefObject<HTMLElement | null>) => void
 }
 
 type AnswerProps = Pick<RealViewProps, 'mode' | 'primary' | 'distanceM' | 'targetCm' | 'windUnit' | 'system' | 'phone' | 'offView'> & {
@@ -244,11 +249,12 @@ function Answer({ solution: s, mode, primary, distanceM, targetCm, windUnit, sys
  * no answer, only the line naming what is missing. The new lines (incomplete, what to add, wind not set) are at most
  * two: the page gives no add line while the incomplete one shows. It only renders the solution it is given.
  */
-export function RealView({ solution: s, mode, primary, distanceM, targetCm, windUnit, system, phone, offView, bar, tags, station, note, staleWeather, incomplete, addMore, windUnset, customScope, calcOpen, onCalc }: RealViewProps) {
+export function RealView({ solution: s, mode, primary, distanceM, targetCm, windUnit, system, phone, offView, bar, tags, station, note, staleWeather, incomplete, addMore, windUnset, customScope, windByHand, calcOpen, onCalc, onStart }: RealViewProps) {
   const { t } = useSettings()
   const calcBtn = useRef<HTMLButtonElement>(null)
   const incompleteBtn = useRef<HTMLButtonElement>(null)
   const addBtn = useRef<HTMLButtonElement>(null)
+  const startBtn = useRef<HTMLButtonElement>(null)
 
   // The add line and the wind note lead today's warnings, in their style; each line's button opens the sheet.
   const warnings = s?.warnings ?? []
@@ -265,7 +271,18 @@ export function RealView({ solution: s, mode, primary, distanceM, targetCm, wind
     </div>
   )
 
-  const body = s === null
+  const body = onStart
+    ? (
+      <div className="real-start">
+        <h2 className="real-start-title">{t('real.start.title')}</h2>
+        <p className="real-start-text">{t('real.start.text')}</p>
+        <button ref={startBtn} type="button" className="btn ghost real-start-pick glow-need" aria-haspopup="dialog"
+          onClick={() => onStart(startBtn)}>
+          {t('real.start.pick')}
+        </button>
+      </div>
+    )
+    : s === null
     ? (
       <div className="real-answer">
         {incomplete && (
@@ -297,7 +314,7 @@ export function RealView({ solution: s, mode, primary, distanceM, targetCm, wind
       {station}
       <div className="real-grid enter" style={step(1)}>{body}</div>
       <div className="real-bar-slot enter" style={step(2)}>{bar}</div>
-      {calcOpen && s && <CalcSheet solution={s} customScope={customScope} onClose={() => onCalc(false)} returnFocus={calcBtn} />}
+      {calcOpen && s && <CalcSheet solution={s} customScope={customScope} windByHand={windByHand} onClose={() => onCalc(false)} returnFocus={calcBtn} />}
     </div>
   )
 }

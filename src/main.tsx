@@ -1,3 +1,5 @@
+// First: a reset asked for before the reload clears the storage again before any other module evaluates or reads it.
+import './resetBoot'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '@fontsource/barlow-condensed/500.css'

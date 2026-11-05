@@ -180,6 +180,83 @@
   gap: 16px;
 }
 
+/* ⚙ is as wide as its reset question needs on one line (the Czech one, 294px with the sheet's padding), so asking
+   doesn't move the sheet's edge where its rows are short (GZW). A phone's sheet spans the screen (below). */
+.settings-sheet {
+  min-width: 304px;
+  padding: 0;
+}
+
+/* Taller than a short phone (REAL's rows on a 375×667 one), ⚙'s body scrolls within the screen, so its last row, the
+   reset, can be reached. The body scrolls, not the sheet: a scroller clips what lies outside its padding box, and the
+   panel's corner marks sit 1px over the border. The sheet's padding moves here, so focus rings aren't clipped, and
+   scroll-padding keeps it under what is scrolled into view. */
+.settings-body {
+  display: grid;
+  gap: 12px;
+  max-height: calc(100dvh - 88px - var(--safe-top) - var(--safe-bottom));
+  overflow-y: auto;
+  padding: 16px;
+  scroll-padding: 16px;
+}
+
+/* ⚙'s last row, reset everything (spec §5): at rest a quiet text button after a hairline, right-aligned, drawn as a
+   section's reset is (.rs-reset). A tap turns the row into the question, `Yes` in --need, with one line under it. 6px
+   under the hairline, so the question's buttons don't sit on it (the mockup's). */
+.reset-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.reset-button {
+  min-height: 44px;
+  padding: 0 0 0 12px;
+  font-size: 13px;
+  text-align: right;
+  color: var(--muted);
+  transition: color 0.15s;
+}
+
+.reset-button:hover {
+  color: var(--fg);
+}
+
+/* On a screen too narrow for one line (a 320px phone) the question goes above its buttons. */
+.reset-row.is-asking {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+
+.reset-ask {
+  margin-right: auto;
+  padding-right: 8px;
+  font-size: 13px;
+  color: var(--fg);
+}
+
+/* Two classes and the ghost's, so it wins over the ghost's own colour and hover border. */
+.btn.ghost.reset-yes {
+  color: var(--need);
+  border-color: color-mix(in srgb, var(--need) 60%, transparent);
+}
+
+.btn.ghost.reset-yes:hover {
+  border-color: var(--need);
+}
+
+/* 4px under the row, not the sheet's 12px gap; it wraps within the sheet rather than widening it. */
+.reset-keeps {
+  width: 0;
+  min-width: 100%;
+  margin-top: -8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
 /* The ⓘ sheet: what the site is, how to read it, its data and credits, privacy and the version. It scrolls inside
    itself once help is open on a short screen. */
 .info-sheet {
@@ -195,6 +272,18 @@
   font-size: 12px;
   line-height: 1.5;
   color: var(--muted);
+}
+
+/* The guide button leads the sheet: left-aligned, the icon in the accent. */
+.info-body .btn.info-action {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.info-action svg {
+  color: var(--accent);
+  flex: none;
 }
 
 .info-body a {
@@ -254,6 +343,11 @@
   .sheet {
     left: max(16px, var(--safe-left));
     right: max(16px, var(--safe-right));
+  }
+
+  /* Spanning the screen, ⚙ is wide enough on a 375px phone; on a narrower one the question wraps rather than overflow. */
+  .settings-sheet {
+    min-width: 0;
   }
 
   .coming-soon h1 {

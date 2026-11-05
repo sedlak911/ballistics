@@ -33,9 +33,12 @@ describe('the what’s-new entries', () => {
     }
   })
 
-  // The deploy fills in the newest date; every released version has a real one, never later than a newer version's.
+  // The deploy fills in the date of the versions built since the last release; every released version has a real one, never later than a newer version's.
   it('date each released version, oldest last', () => {
-    ENTRIES.slice(1).forEach((e) => expect(e.date, e.version).not.toBeNull())
+    // Versions built but not released yet (a prefix) have no date; every release before them does.
+    const firstDated = ENTRIES.findIndex((e) => e.date !== null)
+    expect(firstDated, 'some release is dated').toBeGreaterThan(-1)
+    ENTRIES.slice(firstDated).forEach((e) => expect(e.date, e.version).not.toBeNull())
     const dates = ENTRIES.map((e) => e.date).filter((d): d is string => d !== null)
     for (const d of dates) {
       expect(d).toMatch(/^\d{4}-\d{2}-\d{2}$/)

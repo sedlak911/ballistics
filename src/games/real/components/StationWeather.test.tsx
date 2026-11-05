@@ -61,6 +61,12 @@ afterEach(() => {
 })
 
 describe('By location', () => {
+  it('lights By location on a standard station', () => {
+    open()
+    openSheet()
+    expect(byLocation()).toHaveClass('glow-want')
+  })
+
   it('asks for nothing on page load or when the sheet opens', () => {
     const f = network()
     open()

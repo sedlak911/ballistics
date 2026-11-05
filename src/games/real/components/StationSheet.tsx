@@ -7,7 +7,7 @@ import { cToF, fToC, PRESSURE_TO_HPA } from '../../../engine/units'
 import { useSettings } from '../../../settings/SettingsContext'
 import { useRealProfile } from '../profile'
 import {
-  applyWeather, HEIGHT_ABOVE_GROUND, resetWeather, STANDARD_STATION, updateStation, useStation, withAltitude, withPressureKind, type Field, type Station,
+  applyWeather, HEIGHT_ABOVE_GROUND, resetWeather, STANDARD_STATION, updateStation, useStation, weatherUnset, withAltitude, withPressureKind, type Field, type Station,
   type WeatherField,
 } from '../station'
 import { locationPermission, weatherByLocation, type WeatherError } from '../weather'
@@ -189,7 +189,7 @@ export function StationSheet({ now, open, onClose, anchorRef, pUnit, setPUnit }:
             </div>
           </div>
         ) : (
-          <button type="button" className="btn ghost st-loc" disabled={busy} onClick={() => void tapLocation()}>
+          <button type="button" className={weatherUnset(s) ? 'btn ghost st-loc glow-want' : 'btn ghost st-loc'} disabled={busy} onClick={() => void tapLocation()}>
             {stage === 'locating' ? t('st.loc.locating') : stage === 'loading' ? t('st.loc.loading')
               : s.model || weatherInUse(s) ? t('st.loc.refresh') : t('st.loc.button')}
           </button>

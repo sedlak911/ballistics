@@ -119,7 +119,7 @@ export function SlopeTool({ setup, update, hint, live, aiming = false, inputRef 
  * calm it shows sets it too. With `zone`, it edits that zone's wind (the first edit of a mid or far zone gives it a wind of
  * its own); without, the near wind.
  */
-export function WindSpeedTool({ setup, update, windUnit, zone }: { setup: RealSetup; update: Update; windUnit: WindUnit; zone?: ZoneName }) {
+export function WindSpeedTool({ setup, update, windUnit, zone, glow = false }: { setup: RealSetup; update: Update; windUnit: WindUnit; zone?: ZoneName; glow?: boolean }) {
   const { t, display } = useSettings()
   const perUnit = SPEED_TO_MS[windUnit]
   const windStep = WIND_STEP[windUnit]
@@ -139,7 +139,7 @@ export function WindSpeedTool({ setup, update, windUnit, zone }: { setup: RealSe
     <>
       <button type="button" className="real-step" aria-label={t('step.dec', { what: speedWord })} disabled={windShown <= 0}
         onClick={() => stepWind(-1)}>−</button>
-      <NumberField label={speedWord} value={rounded(windShown, 1)} unit={windUnit} min={0} max={windMax} step={windStep} snap
+      <NumberField label={speedWord} valueClass={glow ? 'glow-want' : undefined} value={rounded(windShown, 1)} unit={windUnit} min={0} max={windMax} step={windStep} snap
         commitSame={!setup.windSet} onChange={(v) => storeWind(v)}
         invalidText={t('real.windInvalid', { max: `${dec(windMax, 1, display.lang).replace(/[.,]0$/, '')}${NBSP}${windUnit}` })} />
       <button type="button" className="real-step" aria-label={t('step.inc', { what: speedWord })} disabled={windShown >= windMax}
@@ -165,11 +165,13 @@ export function WindSigmaTool() {
  * compass point shows beside the unit. With `live`, the field shows that heading in the accent and can't be changed until
  * the aiming ends.
  */
-export function DirectionField({ setup, update, inputRef, live }: {
+export function DirectionField({ setup, update, inputRef, live, glow = false }: {
   setup: RealSetup
   update: Update
   inputRef?: RefObject<HTMLInputElement | null>
   live?: number
+  /** The label glows: the direction is still missing. */
+  glow?: boolean
 }) {
   const { t } = useSettings()
   const [station] = useStation()
@@ -180,7 +182,7 @@ export function DirectionField({ setup, update, inputRef, live }: {
   return (
     <div className="real-direction">
       <div className={live === undefined ? 'real-direction-row' : 'real-direction-row real-live'}>
-        <NumberField commitSame label={t('real.direction')} value={value} unit={`°${point}`} min={AZIMUTH.min} max={AZIMUTH.max} step={5}
+        <NumberField commitSame label={t('real.direction')} labelClass={glow ? 'glow-want' : undefined} value={value} unit={`°${point}`} min={AZIMUTH.min} max={AZIMUTH.max} step={5}
           placeholder={t('st.unknown')} inputRef={inputRef} invalidText={t('rm.range', { min: AZIMUTH.min, max: AZIMUTH.max })}
           disabled={live !== undefined} onChange={(v) => setDirection(v)} onClear={() => setDirection(null)} />
       </div>
@@ -194,7 +196,7 @@ export function DirectionField({ setup, update, inputRef, live }: {
  * it applies by itself, and the line then says the wind is from the forecast, until a hand wind takes over. A calm offers
  * Use without a direction; otherwise, with no direction there is no hour to set, and a hint asks for the direction instead.
  */
-export function ForecastLine({ setup, update, now, onNeedDirection }: { setup: RealSetup; update: Update; now: number; onNeedDirection: () => void }) {
+export function ForecastLine({ setup, update, now, onNeedDirection, glow = false }: { setup: RealSetup; update: Update; now: number; onNeedDirection: () => void; glow?: boolean }) {
   const { t, display } = useSettings()
   const [profile] = useRealProfile()
   const [station] = useStation()
@@ -225,7 +227,7 @@ export function ForecastLine({ setup, update, now, onNeedDirection }: { setup: R
   return (
     <div className="est real-forecast">
       <span>{text}</span>
-      {!following && (offer.calm || offer.hour !== null) && <button type="button" className="btn ghost real-forecast-use" onClick={use}>{t('fc.use')}</button>}
+      {!following && (offer.calm || offer.hour !== null) && <button type="button" className={glow ? 'btn ghost real-forecast-use glow-want' : 'btn ghost real-forecast-use'} onClick={use}>{t('fc.use')}</button>}
       {!following && !offer.calm && offer.hour === null && (
         <button type="button" className="real-forecast-ask" onClick={onNeedDirection}>{t('fc.needDirection')}</button>
       )}

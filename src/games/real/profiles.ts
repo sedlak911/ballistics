@@ -41,6 +41,8 @@ export interface ResolvedPreset extends Omit<RealPreset, 'twistIn' | 'mvRefTempC
   /** The scope's magnification; null for every built-in preset. */
   magnification: number | null
   zeroM: number
+  /** The zero is yours: stored as an override (a link's, see linkKeys) or your own scope's; false at the default. */
+  zeroSet: boolean
   clickValue: number
   travelUp: number | null
   /** The unit of clickValue and travelUp; null when none was stored, so solveReal uses the unit's defaults. */
@@ -101,6 +103,7 @@ export function resolvePreset(p: RealPreset, o: Overrides | undefined, linkKeys:
       lengthMm: ov.lengthMm === undefined ? p.bullet.lengthMm : sourced(ov.lengthMm, linkKeys.has('lengthMm')),
     },
     zeroM: ov.zeroM ?? DEFAULT_ZERO_M,
+    zeroSet: ov.zeroM !== undefined,
     clickValue: ov.clickValue ?? defaultClick('mil'),
     travelUp: ov.travelUp ?? null,
     scopeUnit: ov.scopeUnit ?? null,

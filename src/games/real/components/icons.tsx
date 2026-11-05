@@ -95,3 +95,12 @@ export function LensIcon() {
     </svg>
   )
 }
+
+/** An open book: the guide's button in ⓘ. */
+export function BookIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" {...line} strokeWidth={1.4}>
+      <path d="M3 4h6c1.5 0 1 1 1 2v11c0-1-1-2-2-2H3zM17 4h-6c-1.5 0-1 1-1 2v11c0-1 1-2 2-2h5z" />
+    </svg>
+  )
+}

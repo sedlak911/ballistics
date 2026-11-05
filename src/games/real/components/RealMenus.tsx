@@ -35,16 +35,17 @@ function LinkField({ href, label, once }: { href: string; label: string; once: o
   return <input ref={ref} type="text" readOnly className="rs-link" aria-label={label} value={href} />
 }
 
-function TagButton({ btn, open, label, onClick, title, children }: {
+function TagButton({ btn, open, label, onClick, title, className, children }: {
   btn: RefObject<HTMLButtonElement | null>
   open: boolean
   label: string
   onClick: () => void
   title?: string
+  className?: string
   children: ReactNode
 }) {
   return (
-    <button ref={btn} type="button" className="tag tag-btn" aria-haspopup="dialog" aria-expanded={open}
+    <button ref={btn} type="button" className={className ? `tag tag-btn ${className}` : 'tag tag-btn'} aria-haspopup="dialog" aria-expanded={open}
       aria-label={label} title={title} onClick={onClick}>
       {children}
     </button>
@@ -83,6 +84,7 @@ export function RealMenus({ setup, update, sel, own, save, station, sheet, onShe
   const { display, t } = useSettings()
   const phone = useMedia(PHONE)
   const open = sheet?.section ?? null
+  const chosen = setup.rifleSet
   const rifleTag = useRef<HTMLButtonElement>(null)
   const roundTag = useRef<HTMLButtonElement>(null)
   const scopeTag = useRef<HTMLButtonElement>(null)
@@ -141,17 +143,33 @@ export function RealMenus({ setup, update, sel, own, save, station, sheet, onShe
 
   return (
     <div className="setup-tags" data-testid="real-strip">
-      <TagButton btn={rifleTag} open={open === 'rifle'} label={`${t('rm.rifle')}: ${rifleText}`} onClick={() => onSheet({ section: 'rifle', returnFocus: rifleTag })}>
-        <RifleIcon />
-        <span className="tag-text">
-          {phone ? <b>{preset.rifleShort}</b> : <><b>{rifleName}</b>{rifleLength && ` · ${rifleLength}`}</>}
-        </span>
-      </TagButton>
-      <TagButton btn={roundTag} open={open === 'round'} label={`${t('rm.round')}: ${preset.short}`} title={preset.round}
-        onClick={() => onSheet({ section: 'round', returnFocus: roundTag })}>
-        <CartridgeIcon />
-        <span className="tag-text"><b>{phone ? preset.calibre : preset.short}</b></span>
-      </TagButton>
+      {chosen ? (
+        <TagButton btn={rifleTag} open={open === 'rifle'} label={`${t('rm.rifle')}: ${rifleText}`} onClick={() => onSheet({ section: 'rifle', returnFocus: rifleTag })}>
+          <RifleIcon />
+          <span className="tag-text">
+            {phone ? <b>{preset.rifleShort}</b> : <><b>{rifleName}</b>{rifleLength && ` · ${rifleLength}`}</>}
+          </span>
+        </TagButton>
+      ) : (
+        <TagButton btn={rifleTag} className="glow-need" open={open === 'rifle'} label={t('real.tag.rifle')}
+          onClick={() => onSheet({ section: 'rifle', returnFocus: rifleTag })}>
+          <RifleIcon />
+          <span className="tag-text tag-empty">{t('real.tag.rifle')}</span>
+        </TagButton>
+      )}
+      {chosen ? (
+        <TagButton btn={roundTag} open={open === 'round'} label={`${t('rm.round')}: ${preset.short}`} title={preset.round}
+          onClick={() => onSheet({ section: 'round', returnFocus: roundTag })}>
+          <CartridgeIcon />
+          <span className="tag-text"><b>{phone ? preset.calibre : preset.short}</b></span>
+        </TagButton>
+      ) : (
+        <TagButton btn={roundTag} className="glow-need" open={open === 'rifle' && sheet?.returnFocus === roundTag} label={t('real.tag.round')}
+          onClick={() => onSheet({ section: 'rifle', returnFocus: roundTag })}>
+          <CartridgeIcon />
+          <span className="tag-text tag-empty">{t('real.tag.round')}</span>
+        </TagButton>
+      )}
       <TagButton btn={scopeTag} open={open === 'scope'} label={`${t('rm.scope')}: ${scopeText}${zeroUnit}`}
         onClick={() => onSheet({ section: 'scope', returnFocus: scopeTag })}>
         <ReticleIcon />

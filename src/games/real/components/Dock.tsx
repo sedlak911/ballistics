@@ -6,6 +6,7 @@ import { useSettings } from '../../../settings/SettingsContext'
 import { isStandalone } from '../../../install'
 import { effectiveAimMode, useRealProfile, type WindUnit } from '../profile'
 import { BOUNDS, type RealSetup } from '../setup'
+import { forecastUseOffered } from '../forecastWind'
 import { useStation } from '../station'
 import { useSetDirection } from '../useSetDirection'
 import { useWindFlash } from '../windFlash'
@@ -19,7 +20,7 @@ import { CloseIcon, LensIcon } from './icons'
 import { WindZones, ZoneButtons, ZoneReset, useZoneSelection, zoneClockPatch } from './WindZones'
 import { useAiming } from './useAiming'
 import { WindTurnedStatus } from './WindTurnedStatus'
-import { NBSP, clockCardinals, rounded, windText } from './realText'
+import { NBSP, clockCardinals, rounded, speedShort, windText } from './realText'
 
 type PanelName = 'shot' | 'wind'
 /** What opened the camera view: Distance, or the shot panel's lens icon or Aim. */
@@ -254,11 +255,15 @@ export function Dock({ setup, update, system, windUnit, now, weights = null, onH
   const unit = (u: string) => <>{NBSP}<small>{u}</small></>
   const distance = <>{yards ? Math.round(setup.distanceM / M_PER_YD) : rounded(setup.distanceM, 1)}{unit(yards ? 'yd' : 'm')}</>
   const flash = useWindFlash()
-  const wind = zones ? <>{t('zones.count', { n: shownZones(setup.distanceM).length })}</> : <>{rounded(setup.windMs / SPEED_TO_MS[windUnit], 1)}{unit(windUnit)}{setup.windSet && <em key={flash?.key} className={flash?.hour === setup.windClock ? 'real-hour-flash' : undefined}>{t('dock.windValue', { s: '', h: setup.windClock })}</em>}</>
+  const wind = zones ? <>{t('zones.count', { n: shownZones(setup.distanceM).length })}</> : <>{speedShort(setup.windMs, windUnit)}{unit(windUnit)}{setup.windSet && <em key={flash?.key} className={flash?.hour === setup.windClock ? 'real-hour-flash' : undefined}>{t('dock.windValue', { s: '', h: setup.windClock })}</em>}</>
   const titles: Record<PanelName, string> = { shot: t('dock.shot'), wind: zones ? t('zones.title') : t('real.wind') }
   const words: Record<PanelName, string> = { shot: t('real.distance'), wind: t('real.wind') }
   const values: Record<PanelName, ReactNode> = { shot: distance, wind }
   const panelId = (name: PanelName) => `${id}-${name}`
+
+  const windGlow = !setup.windSet
+  const offered = forecastUseOffered(station, now, windUnit)
+  const needDir = station.azimuthDeg === null
 
   const cardinals = clockCardinals(station.azimuthDeg?.value, t('real.cardinals'))
 
@@ -285,8 +290,8 @@ export function Dock({ setup, update, system, windUnit, now, weights = null, onH
               <DistanceTool setup={setup} update={update} system={system} ruler />
               <SlopeTool setup={setup} update={update} hint="line" live={slopeLive} aiming={aiming.state.status === 'live'} inputRef={slopeRef} />
               <div className={aiming.state.status === 'live' ? 'real-dir-aim is-live' : 'real-dir-aim'}>
-                <DirectionField setup={setup} update={update} inputRef={directionRef} live={headingLive} />
-                {hasCompass() && !stream && <AimBar state={aiming.state} mode={aimMode} notice={noCamera && aiming.state.status === 'live' ? t('aim.noCamera') : undefined}
+                <DirectionField setup={setup} update={update} inputRef={directionRef} live={headingLive} glow={needDir && !hasCompass()} />
+                {hasCompass() && !stream && <AimBar state={aiming.state} mode={aimMode} glow={needDir} notice={noCamera && aiming.state.status === 'live' ? t('aim.noCamera') : undefined}
                   onAim={() => aim()} onUse={useAim} onCancel={leaveAim} />}
               </div>
             </div>
@@ -298,12 +303,12 @@ export function Dock({ setup, update, system, windUnit, now, weights = null, onH
                   speedMs={rounded(zw.ms / SPEED_TO_MS[windUnit], 1)} unit={windUnit} cardinals={cardinals}
                   valueText={t('real.clockValue', { h: zw.clock, s: windText(zw.ms, windUnit) })} />
                 <div className="real-panel-col">
-                  <div className="real-tool real-wind"><WindSpeedTool setup={setup} update={update} windUnit={windUnit} zone={zones ? zone : undefined} /></div>
+                  <div className="real-tool real-wind"><WindSpeedTool setup={setup} update={update} windUnit={windUnit} zone={zones ? zone : undefined} glow={windGlow && !offered} /></div>
                   <div className="real-tool"><WindSigmaTool /></div>
                   {zones && <ZoneReset setup={setup} update={update} zone={zone} />}
                 </div>
               </div>
-              <ForecastLine setup={setup} update={update} now={now} onNeedDirection={() => { wantDirection.current = true; setOpen('shot') }} />
+              <ForecastLine glow={windGlow} setup={setup} update={update} now={now} onNeedDirection={() => { wantDirection.current = true; setOpen('shot') }} />
               {!zones && <ReadingHint />}
             </div>
           )}
@@ -314,7 +319,7 @@ export function Dock({ setup, update, system, windUnit, now, weights = null, onH
       <WindTurnedStatus />
       <div className="real-dock-row">
         {(['shot', 'wind'] as const).map((name) => (
-          <button key={name} ref={buttons[name]} type="button" className="real-dock-btn" aria-expanded={open === name}
+          <button key={name} ref={buttons[name]} type="button" className={name === 'wind' && windGlow ? 'real-dock-btn glow-want' : 'real-dock-btn'} aria-expanded={open === name}
             aria-controls={panelId(name)} onClick={() => {
               const opening = open !== name
               if (opening) setZone('near')
@@ -324,7 +329,7 @@ export function Dock({ setup, update, system, windUnit, now, weights = null, onH
             }}>
             <span className="label">{words[name]}</span>{' '}
             <span className="num">{values[name]}</span>
-            <span className="real-dock-chevron" aria-hidden="true">{open === name ? '⌄' : '⌃'}</span>
+            <span className={name === 'shot' && needDir ? 'real-dock-chevron glow-want' : 'real-dock-chevron'} aria-hidden="true">{open === name ? '⌄' : '⌃'}</span>
           </button>
         ))}
       </div>

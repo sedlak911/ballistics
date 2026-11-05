@@ -840,3 +840,73 @@ describe('RealPage: the forecast follow on a link with missing items', () => {
     expect(hash()).toMatch(/ws=/)
   })
 })
+
+describe('RealPage: the first visit', () => {
+  const fresh = (hash = '#/real/workbench') => {
+    localStorage.removeItem('gb.real.setup')
+    return open(hash)
+  }
+
+  it('opens with nothing chosen', () => {
+    fresh()
+    expect(screen.queryByTestId('real-elevation')).toBeNull()
+    expect(screen.getByText('Start with your rifle')).toBeInTheDocument()
+    expect(screen.getByText('Pick your rifle and round. Then this shows what to dial and what to hold.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Pick a rifle' })).toHaveClass('glow-need')
+    expect(screen.queryByRole('button', { name: 'How it’s calculated' })).toBeNull()
+    expect(screen.queryByText('Wind not set: calm assumed')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Rifle' })).toHaveClass('glow-need')
+    expect(screen.getByRole('button', { name: 'Round' })).toHaveClass('glow-need')
+    expect(screen.getByRole('button', { name: /^Scope: MRAD · 0\.1 · zero 100\sm$/ })).toBeInTheDocument()
+    expect(hash()).not.toContain('p=')
+  })
+
+  it('in Czech', () => {
+    fresh('#/real/workbench?l=cs')
+    expect(screen.getByRole('button', { name: 'Zbraň' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Munice' })).toBeInTheDocument()
+    expect(screen.getByText('Začni zbraní')).toBeInTheDocument()
+  })
+
+  it('Pick a rifle opens the Rifle section', () => {
+    fresh()
+    fireEvent.click(screen.getByRole('button', { name: 'Pick a rifle' }))
+    const dialog = screen.getByRole('dialog', { name: 'Settings' })
+    const head = (n: string) => within(dialog).getByRole('button', { name: new RegExp(`^${n}`) })
+    expect(head('Rifle')).toHaveAttribute('aria-expanded', 'true')
+    expect(head('Rifle').querySelector('.rs-icon')).toHaveClass('glow-need')
+    expect(head('Rifle')).toHaveAccessibleDescription('—')
+    fireEvent.click(within(dialog).getByRole('button', { name: '—' }))
+    expect(dialog.querySelector('[aria-pressed="true"]')).toBeNull()
+    fireEvent.click(head('Round'))
+    fireEvent.click(head('Scope'))
+    expect(within(dialog).getAllByText('Pick the rifle first.')).toHaveLength(2)
+  })
+
+  it('the round tag opens the Rifle section', () => {
+    fresh()
+    fireEvent.click(screen.getByRole('button', { name: 'Round' }))
+    const dialog = screen.getByRole('dialog', { name: 'Settings' })
+    expect(within(dialog).getByRole('button', { name: /^Rifle/ })).toHaveAttribute('aria-expanded', 'true')
+    expect(within(dialog).getByRole('button', { name: /^Round/ })).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('picking AI AXSR counts', () => {
+    fresh()
+    fireEvent.click(screen.getByRole('button', { name: 'Pick a rifle' }))
+    const dialog = screen.getByRole('dialog', { name: 'Settings' })
+    fireEvent.click(within(dialog).getByRole('button', { name: '—' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: /AI AXSR/ }))
+    expect(hash()).toContain('p=p7')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Close settings' }))
+    expect(elevation()).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Rifle: AI AXSR · 27″' })).toBeInTheDocument()
+    expect(document.querySelector('.glow-need')).toBeNull()
+  })
+
+  it('a returning visitor sees today’s page', () => {
+    open('#/real/workbench')
+    expect(elevation()).toBeInTheDocument()
+    expect(document.querySelector('.real-start')).toBeNull()
+  })
+})

@@ -8,6 +8,7 @@ import { resolvePreset, type Overrides, type ResolvedPreset } from './profiles'
 import { resolveSelection } from './selection'
 import { DEFAULT_SETUP, type RealSetup } from './setup'
 import { windAtBy } from './zones'
+import { isYours } from './components/calcText'
 import { solveReal, trueReal, type RealSolution } from './solve'
 import { STANDARD_STATION, type Station } from './station'
 
@@ -337,7 +338,7 @@ describe('solveReal: the scope (R2: scope values carry their unit)', () => {
     const s = solve({ setup: { distanceM: 1500 }, o: { travelUp: 20, scopeUnit: 'moa' }, unit: 'moa' })
     expect(s.dial.clicks).toBe(80)
     expect(s.dial.hold).toBeCloseTo(s.elevation - 20, 9)
-    expect(s.inputs.find((i) => i.key === 'travelUp')).toMatchObject({ value: 20, unit: 'MOA', source: 'scope' })
+    expect(s.inputs.find((i) => i.key === 'travelUp')).toMatchObject({ value: 20, unit: 'MOA', source: 'yours' })
   })
 
   it('a travel stored in MRAD and shown in MOA is unknown: no hold split, ¼ MOA clicks', () => {
@@ -397,6 +398,52 @@ describe('solveReal: inputs', () => {
   it('lists where a trued MV was trued, and nothing when it wasn’t', () => {
     expect(solve({ o: { muzzleVelocityMs: 912, truedAtM: 800 } }).inputs.find((i) => i.key === 'truedAtM')).toMatchObject({ value: 800, unit: 'm' })
     expect(solve().inputs.find((i) => i.key === 'truedAtM')).toBeUndefined()
+  })
+
+  // One rule with the settings sheet's tags: the scope's values are yours once you set them (fields.tsx presetFields).
+  describe('the scope’s zero, click and travel', () => {
+    const scopeIn = (s: RealSolution) => Object.fromEntries(['zeroM', 'clickValue', 'travelUp'].map((k) => {
+      const i = s.inputs.find((x) => x.key === k) ?? null
+      return [k, i === null ? null : { source: i.source, yours: isYours(i, false) }]
+    }))
+
+    it('at the preset’s defaults none is yours', () => {
+      expect(scopeIn(solve())).toEqual({
+        zeroM: { source: 'scope', yours: false }, clickValue: { source: 'default', yours: false }, travelUp: null,
+      })
+    })
+
+    it('a zero you set on a built-in scope is yours, the click it didn’t touch is not', () => {
+      const s = solve({ o: { zeroM: 300 } })
+      expect(s.inputs.find((i) => i.key === 'zeroM')).toMatchObject({ value: 300, source: 'yours', trust: 'V' })
+      expect(scopeIn(s)).toMatchObject({ zeroM: { yours: true }, clickValue: { source: 'default', yours: false } })
+      // Set to the default figure, it is still yours: you set it.
+      expect(scopeIn(solve({ o: { zeroM: 100 } })).zeroM).toEqual({ source: 'yours', yours: true })
+    })
+
+    it('a click and travel you set in the shown unit are yours; a shared link’s are from the link', () => {
+      expect(scopeIn(solve({ o: { clickValue: 0.05, travelUp: 20, scopeUnit: 'mil' } }))).toEqual({
+        zeroM: { source: 'scope', yours: false }, clickValue: { source: 'yours', yours: true }, travelUp: { source: 'yours', yours: true },
+      })
+      const p7 = PRESETS.find((x) => x.id === 'p7')!
+      const linked = solve({ preset: resolvePreset(p7, { zeroM: 200, clickValue: 0.1, scopeUnit: 'mil' }, new Set(['zeroM', 'clickValue', 'scopeUnit'])) })
+      expect(scopeIn(linked)).toMatchObject({ zeroM: { source: 'link', yours: true }, clickValue: { source: 'link', yours: true } })
+      // Stored in MRAD and shown in MOA they aren't the scope's: the default click, no travel.
+      expect(scopeIn(solve({ o: { clickValue: 0.05, travelUp: 20, scopeUnit: 'mil' }, unit: 'moa' }))).toMatchObject({
+        clickValue: { source: 'default', yours: false }, travelUp: null,
+      })
+    })
+
+    it('your own scope’s zero, click and travel are yours', () => {
+      const library = {
+        v: 1 as const, rifles: [], rounds: [],
+        scopes: [{ id: 'u-scope', rifleId: 'axsr', name: 'Mine', scopeUnit: 'mil' as const, clickValue: 0.1, zeroM: 100, sightHeightMm: 55, travelUp: 30 }],
+      }
+      const preset = resolveSelection({ ...DEFAULT_SETUP, scopeId: 'u-scope' }, library, {}, undefined, new Set(), false).preset
+      expect(scopeIn(solve({ preset }))).toEqual({
+        zeroM: { source: 'yours', yours: true }, clickValue: { source: 'yours', yours: true }, travelUp: { source: 'yours', yours: true },
+      })
+    })
   })
 
   it('the muzzle velocity that went in follows the powder temperature', () => {
@@ -693,6 +740,19 @@ describe('zones', () => {
     expect(x.lag).toBeNull()
     expect(x.zones!.map((z) => z.name)).toEqual(['near', 'mid', 'far'])
     expect(x.zones!.reduce((a, z) => a + z.driftM, 0)).toBeCloseTo(x.wind!.xM, 9)
+  })
+
+  it('each zone line carries its 1 m/s drift, the weights’ own', () => {
+    const s = solve({ setup: { ...at1500, zonesOn: true, windFar: { ms: 5, clock: 9 } } })
+    const zones = s.explain!.zones!
+    const sum = zones.reduce((a, z) => a + z.perMsM, 0)
+    for (const z of zones) expect(z.perMsM).toBeGreaterThan(0)
+    expect(zones.map((z) => Math.round((z.perMsM / sum) * 100))).toEqual(s.zoneWeights)
+  })
+
+  it('a zone is its own only with a wind of its own; the near one never', () => {
+    const zones = solve({ setup: { ...at1500, zonesOn: true, windFar: { ms: 5, clock: 9 } } }).explain!.zones!
+    expect(zones.map((z) => [z.name, z.own])).toEqual([['near', false], ['mid', false], ['far', true]])
   })
 
   // Near 3 m/s from 9, far ~5.7 from 2 at 1000 m: the zones' straight-line parts nearly cancel, and a split by part / Σparts

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { BOUNDS } from './setup'
 import { STANDARD_STATION, type Station } from './station'
-import { cardinalIndex, clockHour, forecastOffer, windAtHeight } from './forecastWind'
+import { cardinalIndex, clockHour, forecastOffer, forecastUseOffered, windAtHeight } from './forecastWind'
 
 const NOW = 1_000_000_000_000
 
@@ -68,5 +68,18 @@ describe('forecastOffer', () => {
   it('calls under 0.5 m/s calm', () => {
     const o = forecastOffer(station({ wind: 0.6 }), NOW, 'm/s')!
     expect(o).toMatchObject({ calm: true, shown: 0, speedMs: 0 })
+  })
+})
+
+describe('forecastUseOffered', () => {
+  it('is false without a model', () => {
+    expect(forecastUseOffered(station({ noModel: true, azimuth: 90 }), NOW, 'm/s')).toBe(false)
+  })
+  it('is true for a calm model without a direction', () => {
+    expect(forecastUseOffered(station({ wind: 0.1, azimuth: null }), NOW, 'm/s')).toBe(true)
+  })
+  it('is false for a 3 m/s model without a direction, true with one', () => {
+    expect(forecastUseOffered(station({ wind: 3, azimuth: null }), NOW, 'm/s')).toBe(false)
+    expect(forecastUseOffered(station({ wind: 3, azimuth: 90 }), NOW, 'm/s')).toBe(true)
   })
 })

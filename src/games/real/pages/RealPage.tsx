@@ -5,6 +5,9 @@ import { PHONE, useMedia } from '../../../components/useMedia'
 import { useToast } from '../../../components/useToast'
 import type { TKey } from '../../../i18n'
 import { useSettings } from '../../../settings/SettingsContext'
+import { markInstallNoteShown } from '../../../install'
+import { Guide } from '../components/Guide'
+import { closeGuide, guideDue, openGuide, useGuide } from '../guide'
 import { BottomBar } from '../components/BottomBar'
 import { RealMenus, type SheetAt } from '../components/RealMenus'
 import { RealView, type AskLine } from '../components/RealView'
@@ -18,6 +21,8 @@ import { solveReal } from '../solve'
 import { useStation } from '../station'
 import { useForecastFollow } from '../useForecastFollow'
 import { useWeatherRefresh } from '../useWeatherRefresh'
+import { windSource } from '../windFollow'
+import { useWindMemory } from '../windMemory'
 import { modelFreshness } from '../components/stationText'
 import { useNow } from '../components/useNow'
 
@@ -36,12 +41,23 @@ type Chosen = Pick<RealSetup, 'presetId' | 'roundId' | 'scopeId' | 'customRifleI
  */
 export function RealPage() {
   const { display, t } = useSettings()
+  // A first visit is read before useRealSetup's effect stores the setup.
+  const [due] = useState(guideDue)
+  const guide = useGuide()
+  useEffect(() => {
+    if (due) {
+      markInstallNoteShown()
+      openGuide(null)
+    }
+  }, [due])
+  useEffect(() => closeGuide, [])
   const [setup, setSetup, po, fromUrl] = useRealSetup()
   const { own, fromLink, useMine } = po
   // `update` and `savePreset` drop a link's unknown ids with the first change (selection.ts dropUnknown).
   const { sel, library, actions, save, update, savePreset } = useSelection(setup, setSetup, po, fromUrl)
   const [profile] = useRealProfile()
   const [station] = useStation()
+  const windMem = useWindMemory()
   const now = useNow(station.model?.fetchedAt)
   useForecastFollow(setup, update, now, { paused: sel.linkMissing !== null })
   useWeatherRefresh()
@@ -125,7 +141,8 @@ export function RealPage() {
   // An incomplete selection isn't solved: its preset holds placeholders, which nobody is meant to read. The page shows
   // only the line naming what is missing, and a calculation sheet open on the answer before closes.
   const preset = sel.preset
-  const complete = sel.incomplete.length === 0
+  const chosen = setup.rifleSet
+  const complete = chosen && sel.incomplete.length === 0
   const [calcOpen, setCalcOpen] = useState(false)
   if (calcOpen && !complete) setCalcOpen(false)
   const needHit = !phone || calcOpen
@@ -142,7 +159,7 @@ export function RealPage() {
     && aimMark(solution.elevation, Math.abs(solution.windage), solution.windage < 0 ? -1 : 1, unit).clamped
 
   // The new lines are at most two: the incomplete line or the add line (never both), and the wind note.
-  const incomplete: AskLine | null = complete ? null
+  const incomplete: AskLine | null = complete || !chosen ? null
     : { text: t('lib.toCompute', { fields: names(sel.incomplete) }), open: openAt(sel.incomplete[0].section) }
   const addMore: AskLine | null = !complete || sel.unset.length === 0 ? null
     : { text: t('lib.morePrecise', { fields: names(sel.unset.slice(0, 4)) }), open: openAt(sel.unset[0].section) }
@@ -155,13 +172,14 @@ export function RealPage() {
 
   return (
     <>
-      <RealView solution={solution} mode={profile.mode} primary={profile.primary} distanceM={setup.distanceM} targetCm={setup.targetCm}
+      <RealView solution={solution} windByHand={windSource(setup, windMem) === 'hand'} mode={profile.mode} primary={profile.primary} distanceM={setup.distanceM} targetCm={setup.targetCm}
         windUnit={profile.windUnit} system={display.system} phone={phone} offView={offView} customScope={sel.scope !== null} calcOpen={calcOpen} onCalc={setCalcOpen}
-        station={<StationLine now={now} />} staleWeather={staleWeather} incomplete={incomplete} addMore={addMore} windUnset={!setup.windSet}
+        station={<StationLine now={now} />} staleWeather={staleWeather} incomplete={incomplete} addMore={addMore} windUnset={chosen && !setup.windSet} onStart={chosen ? undefined : openAt('rifle')}
         note={note}
         tags={<RealMenus setup={setup} update={update} sel={sel} own={own} save={save} station={station} sheet={sheet} onSheet={setSheet}
           onReset={reset} onDelete={deleteItem} show={show} onSheetClosed={closeSticky} />}
         bar={<BottomBar setup={setup} update={update} system={display.system} windUnit={profile.windUnit} phone={phone} now={now} weights={solution?.zoneWeights ?? null} />} />
+      {guide.open && <Guide key={guide.token} returnFocus={guide.returnFocus} phone={phone} />}
       <Toast toast={toast} onClose={close} closeLabel={t('toast.close')} />
     </>
   )

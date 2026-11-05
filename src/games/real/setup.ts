@@ -21,6 +21,8 @@ export interface RealSetup {
   scopeId: string | null
   /** The custom rifle's id (`cf`), written only so a device without the items can say which kind is missing. */
   customRifleId: string | null
+  /** The link or the stored setup names a rifle (`p`, `cr` or `cf` is present); until then nothing is chosen and the page doesn't solve. */
+  rifleSet: boolean
   distanceM: number
   slopeDeg: number
   windMs: number
@@ -38,7 +40,7 @@ export interface RealSetup {
 }
 
 export const DEFAULT_SETUP: RealSetup = {
-  presetId: DEFAULT_PRESET_ID, roundId: null, scopeId: null, customRifleId: null, distanceM: 300, slopeDeg: 0, windMs: 0, windSet: false, windClock: 9,
+  presetId: DEFAULT_PRESET_ID, roundId: null, scopeId: null, customRifleId: null, rifleSet: false, distanceM: 300, slopeDeg: 0, windMs: 0, windSet: false, windClock: 9,
   zonesOn: false, windMid: null, windFar: null, targetCm: 50,
 }
 
@@ -51,13 +53,16 @@ export const BOUNDS = {
 
 const KEYS = {
   presetId: 'p', roundId: 'cr', scopeId: 'cs', customRifleId: 'cf', distanceM: 'd', slopeDeg: 'sl', windMs: 'ws', windClock: 'wc',
-} as const satisfies Record<Exclude<keyof RealSetup, 'windSet' | 'targetCm' | 'zonesOn' | 'windMid' | 'windFar'>, string>
+} as const satisfies Record<Exclude<keyof RealSetup, 'rifleSet' | 'windSet' | 'targetCm' | 'zonesOn' | 'windMid' | 'windFar'>, string>
 /** The zone params, which aren't plain numbers: `zn=1`, and `zm`/`zf` as `<ms>,<clock>`. */
 const ZONE_KEYS = { zonesOn: 'zn', windMid: 'zm', windFar: 'zf' } as const
 /** The current preset's overrides in a link (profiles.ts writeLinkOverrides). The station and the profile never travel. */
 const LINK_KEY = 'o'
 /** A custom item's id as a link may carry it (library.ts newId); anything else reads as none. */
 const ITEM_ID = /^u-[A-Za-z0-9-]{1,64}$/
+
+/** The params name a rifle: a built-in preset, a custom round or a custom rifle. */
+export const namesRifle = (p: URLSearchParams): boolean => p.has('p') || p.has('cr') || p.has('cf')
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
@@ -91,6 +96,7 @@ export function readRealSetup(p: URLSearchParams): RealSetup {
     roundId: itemId(KEYS.roundId),
     scopeId: itemId(KEYS.scopeId),
     customRifleId: itemId(KEYS.customRifleId),
+    rifleSet: namesRifle(p),
     distanceM: num(KEYS.distanceM, BOUNDS.distanceM.min, BOUNDS.distanceM.max, DEFAULT_SETUP.distanceM),
     slopeDeg: num(KEYS.slopeDeg, BOUNDS.slopeDeg.min, BOUNDS.slopeDeg.max, DEFAULT_SETUP.slopeDeg),
     // To a thousandth of a m/s: the bar steps in the owner's wind unit (0.5 m/s, 2 km/h, 1 mph, 1 kn), not on one m/s grid.
@@ -109,6 +115,7 @@ export function readRealSetup(p: URLSearchParams): RealSetup {
 function setupParams(s: RealSetup): URLSearchParams {
   const p = new URLSearchParams()
   for (const [field, key] of Object.entries(KEYS) as [keyof typeof KEYS, string][]) {
+    if (!s.rifleSet && field === 'presetId') continue
     if (!s.windSet && (field === 'windMs' || field === 'windClock')) continue
     const v = s[field]
     if (v !== null) p.set(key, String(v))
@@ -133,13 +140,13 @@ export function writeRealSetup(s: RealSetup, d: Display, o?: Overrides): URLSear
   return p
 }
 
-const STORAGE_KEY = 'gb.real.setup'
+export const SETUP_KEY = 'gb.real.setup'
 const NO_LINK_KEYS: ReadonlySet<keyof Overrides> = new Set()
 const hasSetupParams = (p: URLSearchParams) => [...Object.values(KEYS), ...Object.values(ZONE_KEYS)].some((k) => p.has(k))
 
 function loadStored(): URLSearchParams {
   try {
-    return new URLSearchParams(localStorage.getItem(STORAGE_KEY) ?? '')
+    return new URLSearchParams(localStorage.getItem(SETUP_KEY) ?? '')
   } catch {
     return new URLSearchParams()
   }
@@ -147,7 +154,7 @@ function loadStored(): URLSearchParams {
 
 function store(params: string): void {
   try {
-    localStorage.setItem(STORAGE_KEY, params)
+    localStorage.setItem(SETUP_KEY, params)
   } catch {
     // Private mode or blocked storage: the URL still carries the setup.
   }
@@ -207,7 +214,12 @@ export function useRealSetup(): [RealSetup, (patch: Partial<RealSetup>) => void,
   const [all, saveOverrides] = useOverrides()
   const [library] = useLibrary()
   const fromUrl = hasSetupParams(route.params)
-  const read = useMemo(() => readRealSetup(fromUrl ? route.params : loadStored()), [route.params, fromUrl])
+  const read = useMemo(() => {
+    if (!fromUrl) return readRealSetup(loadStored())
+    const fromLink = readRealSetup(route.params)
+    // A link without a rifle opens as today on a device whose stored setup names one.
+    return fromLink.rifleSet || !namesRifle(loadStored()) ? fromLink : { ...fromLink, rifleSet: true }
+  }, [route.params, fromUrl])
   // A bare page whose stored setup names the retired Custom preset (`p=custom`) opens what that resolves to, by the ids
   // of the items migrated from it, as the first change would put them (selection.ts dropUnknown); with nothing migrated
   // only `p` moves. So the URL a share copies never says `custom`, which on another device opens that device's own Custom.
@@ -240,11 +252,15 @@ export function useRealSetup(): [RealSetup, (patch: Partial<RealSetup>) => void,
   // gets the stored overrides in place of what its `o=` holds (none, garbage, or another browser's).
   let target: string | null = null
   if (!fromUrl) target = writeRealSetup(setup, display, stored).toString()
-  else if (!fromLink && urlLink !== want) {
+  else {
     const q = new URLSearchParams(route.params)
-    if (want === null) q.delete(LINK_KEY)
-    else q.set(LINK_KEY, want)
-    target = q.toString()
+    // A link without a rifle, opened where a rifle is stored, gets the default preset written.
+    if (setup.rifleSet && !namesRifle(q)) q.set(KEYS.presetId, setup.presetId)
+    if (!fromLink && urlLink !== want) {
+      if (want === null) q.delete(LINK_KEY)
+      else q.set(LINK_KEY, want)
+    }
+    if (q.toString() !== route.params.toString()) target = q.toString()
   }
   useEffect(() => {
     store(stashed)
@@ -254,7 +270,8 @@ export function useRealSetup(): [RealSetup, (patch: Partial<RealSetup>) => void,
   const update = useCallback(
     (patch: Partial<RealSetup>) => {
       const wind = 'windMs' in patch || 'windClock' in patch || patch.windSet === true
-      const next = readRealSetup(writeRealSetup({ ...setup, ...patch, windSet: setup.windSet || wind }, display))
+      const rifle = 'presetId' in patch || 'roundId' in patch || 'customRifleId' in patch || patch.rifleSet === true
+      const next = readRealSetup(writeRealSetup({ ...setup, ...patch, windSet: setup.windSet || wind, rifleSet: setup.rifleSet || rifle }, display))
       // Another preset brings its own stored overrides; the same one keeps what is on screen, a link's values included.
       // Leaving a custom round for a built-in one brings that preset's stored overrides.
       const same = next.presetId === setup.presetId && !custom

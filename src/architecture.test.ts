@@ -74,3 +74,20 @@ describe('camera', () => {
     expect(offenders).toEqual([])
   })
 })
+
+// A reset finishes at the next start, before anything reads storage (reset.ts applyPendingReset): main.tsx's first
+// import is the boot, and the boot evaluates nothing but itself, reset.ts and the restart seam.
+describe('the reset at boot', () => {
+  const read = (f: string) => readFileSync(join(SRC, f), 'utf8')
+  const imports = (code: string) => [...code.matchAll(/^import\s(?:[^'"]*from\s)?['"]([^'"]+)['"]/gm)].map((m) => m[1])
+
+  it('main.tsx imports the boot first', () => {
+    expect(imports(read('main.tsx'))[0]).toBe('./resetBoot')
+  })
+
+  it('the boot imports nothing that could read storage before it', () => {
+    expect(imports(read('resetBoot.ts'))).toEqual(['./reset'])
+    expect(imports(read('reset.ts'))).toEqual(['./leave'])
+    expect(imports(read('leave.ts'))).toEqual([])
+  })
+})

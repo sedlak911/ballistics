@@ -5,6 +5,7 @@ import type { T } from '../i18n'
 import type { Display } from '../settings/url'
 import { InfoSheet, type DataInfo } from './InfoSheet'
 import { Logo } from './Logo'
+import { ResetRow } from './ResetRow'
 import { Segmented } from './Segmented'
 import { PHONE, useMedia } from './useMedia'
 
@@ -59,7 +60,7 @@ function useHeaderScroll(pinned: boolean): { hidden: boolean; over: boolean } {
   return { hidden: hidden && !pinned, over }
 }
 
-export function AppHeader({ route, games, display, setDisplay, t, slotRef, info, extraSettings }: {
+export function AppHeader({ route, games, display, setDisplay, t, slotRef, info, extraSettings, infoAction, onReset }: {
   route: Route
   games: GameTab[]
   display: Display
@@ -71,6 +72,10 @@ export function AppHeader({ route, games, display, setDisplay, t, slotRef, info,
   info: DataInfo | null
   /** A game's own rows, after the shared ones in the ⚙ sheet. */
   extraSettings?: ReactNode
+  /** A button leading the ⓘ sheet; it closes the sheet and runs, given the ⓘ button for the focus to return to. */
+  infoAction?: { label: string; icon?: ReactNode; run: (from: HTMLElement | null) => void }
+  /** Reset everything to defaults: the ⚙ sheet's last row, after the game's own, asks first. */
+  onReset?: () => void
 }) {
   const href = (patch: Partial<Route>) => buildHash({ ...route, ...patch })
   const [open, setOpen] = useState<Sheet | null>(null)
@@ -132,27 +137,32 @@ export function AppHeader({ route, games, display, setDisplay, t, slotRef, info,
       </div>
       {open === 'info' && (
         <div ref={sheetRef} className="sheet info-sheet panel" role="dialog" aria-label={t('hdr.info')}>
-          <InfoSheet info={info} t={t} game={route.game} />
+          <InfoSheet info={info} t={t} game={route.game}
+            action={infoAction && { label: infoAction.label, icon: infoAction.icon, onClick: () => { setOpen(null); infoAction.run(infoRef.current) } }} />
         </div>
       )}
       {open === 'settings' && (
         <div ref={sheetRef} className="sheet settings-sheet panel" role="dialog" aria-label={t('hdr.settings')}>
-          <div className="sheet-row">
-            <span className="label">{t('toggle.lang')}</span>
-            <Segmented label={t('toggle.lang')} value={display.lang} onChange={(lang) => setDisplay({ lang })}
-              options={[{ value: 'en', label: 'EN' }, { value: 'cs', label: 'CS' }]} />
+          {/* The body scrolls on a short phone; the sheet doesn't, so its corner marks stay. */}
+          <div className="settings-body">
+            <div className="sheet-row">
+              <span className="label">{t('toggle.lang')}</span>
+              <Segmented label={t('toggle.lang')} value={display.lang} onChange={(lang) => setDisplay({ lang })}
+                options={[{ value: 'en', label: 'EN' }, { value: 'cs', label: 'CS' }]} />
+            </div>
+            <div className="sheet-row">
+              <span className="label">{t('toggle.units')}</span>
+              <Segmented label={t('toggle.units')} value={display.system} onChange={(system) => setDisplay({ system })}
+                options={[{ value: 'metric', label: 'm' }, { value: 'imperial', label: 'yd' }]} />
+            </div>
+            <div className="sheet-row">
+              <span className="label">{t('toggle.angle')}</span>
+              <Segmented label={t('toggle.angle')} value={display.angle} onChange={(angle) => setDisplay({ angle })}
+                options={[{ value: 'mil', label: route.game === 'real' ? 'MRAD' : 'MIL' }, { value: 'moa', label: 'MOA' }]} />
+            </div>
+            {extraSettings}
+            {onReset && <ResetRow t={t} onReset={onReset} />}
           </div>
-          <div className="sheet-row">
-            <span className="label">{t('toggle.units')}</span>
-            <Segmented label={t('toggle.units')} value={display.system} onChange={(system) => setDisplay({ system })}
-              options={[{ value: 'metric', label: 'm' }, { value: 'imperial', label: 'yd' }]} />
-          </div>
-          <div className="sheet-row">
-            <span className="label">{t('toggle.angle')}</span>
-            <Segmented label={t('toggle.angle')} value={display.angle} onChange={(angle) => setDisplay({ angle })}
-              options={[{ value: 'mil', label: route.game === 'real' ? 'MRAD' : 'MIL' }, { value: 'moa', label: 'MOA' }]} />
-          </div>
-          {extraSettings}
         </div>
       )}
     </header>

@@ -25,4 +25,6 @@ beforeEach(() => {
   localStorage.clear()
   sessionStorage.clear()
   localStorage.setItem('gb.gzw.profile', JSON.stringify({ setupDone: true }))
+  // A returning REAL visitor, a rifle chosen: tests see today's page unless they clear it.
+  localStorage.setItem('gb.real.setup', 'p=p7')
 })
